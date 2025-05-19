@@ -6,8 +6,10 @@ import java.util.*;
 
 public class Supplier {
 
-    private Set<JenisBarang> stokHariIni;
-    private Random random = new Random();
+    private final Set<JenisBarang> stokHariIni;
+    private final Random random = new Random();
+    private final int jumlahMinStokHarian = 5;
+    private final int jumlahMaxStokHarian = JenisBarang.values().length;
 
     public Supplier() {
         this.stokHariIni = new HashSet<>();
@@ -19,24 +21,42 @@ public class Supplier {
         List<JenisBarang> semuaJenis = new ArrayList<>(List.of(JenisBarang.values()));
         Collections.shuffle(semuaJenis);
 
-        int jumlahTersedia = 2 + random.nextInt(semuaJenis.size() - 1); // minimal 2 jenis
+        int jumlahTersedia = jumlahMinStokHarian + random.nextInt(jumlahMaxStokHarian - jumlahMinStokHarian + 1);
+
         for (int i = 0; i < jumlahTersedia; i++) {
             stokHariIni.add(semuaJenis.get(i));
         }
+    }
+
+    public boolean tersediaHariIni(JenisBarang barang) {
+        return stokHariIni.contains(barang);
     }
 
     public Set<JenisBarang> getStokHariIni() {
         return new HashSet<>(stokHariIni);
     }
 
-    public void tampilkanStokHariIni() {
+    public Barang beliBarang(JenisBarang jenis) {
+        if (tersediaHariIni(jenis)) {
+            return new Barang(jenis);
+        }
+        return null;
+    }
+
+    public void printStokHariIni() {
         System.out.println("=== Stok Supplier Hari Ini ===");
         for (JenisBarang barang : stokHariIni) {
             System.out.printf("%s - Harga: %d\n", barang.name(), barang.getHarga());
         }
     }
 
-    public boolean tersediaHariIni(JenisBarang barang) {
-        return stokHariIni.contains(barang);
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("Stok Hari Ini:\n");
+        for (JenisBarang jenis : stokHariIni) {
+            sb.append("- ").append(jenis.name()).append(" (Harga: ")
+                    .append(jenis.getHarga()).append(")\n");
+        }
+        return sb.toString();
     }
 }
