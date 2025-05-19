@@ -36,9 +36,4 @@ public enum JenisItem implements Showable {
     public void tampilkanDetail() {
         System.out.printf("%s - %s (Harga: %d)\n", nama, deskripsi, harga);
     }
-
-    @Override
-    public String toString() {
-        return String.format("%s - %s (Harga: %d)", nama, deskripsi, harga);
-    }
 }
