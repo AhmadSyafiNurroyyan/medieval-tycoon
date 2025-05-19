@@ -57,14 +57,9 @@ public class Item implements Showable, Upgrade {
         return Math.min(level * CHANCE_PER_LEVEL, MAX_CHANCE);
     }
 
-    @Override
-    public boolean upgradeLevel(int biaya) {
-        if (level >= MAX_LEVEL) {
-            return false;
-        }
-
-        int biayaUpgrade = level * 100;
-        if (biaya >= biayaUpgrade) {
+   @Override
+    public boolean upgradeLevel() {
+        if (level < MAX_LEVEL) {
             level++;
             return true;
         }
