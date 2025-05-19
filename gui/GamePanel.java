@@ -105,7 +105,11 @@ public class GamePanel extends JPanel implements Runnable {
         tileManager.draw(g2d, camera.getX(), camera.getY());
         PlayerSkin.render(g, playerMovement.getX() - camera.getX(), playerMovement.getY() - camera.getY(), playerMovement.getCurrentFrame());
 
-        // Draw money info (Gold) at upper right
+        drawMoneyInfo(g2d);
+        drawUID(g2d);
+    }
+
+    public void drawMoneyInfo(Graphics2D g2d) {
         String goldText = "Gold: " + player.getMoney() + "G";
         g2d.setFont(new Font("Serif", Font.BOLD, 24));
         FontMetrics fm = g2d.getFontMetrics();
@@ -116,8 +120,11 @@ public class GamePanel extends JPanel implements Runnable {
         g2d.fillRoundRect(goldX - 10, goldY - fm.getAscent(), goldWidth + 20, fm.getHeight() + 8, 12, 12);
         g2d.setColor(new Color(218, 165, 32));
         g2d.drawString(goldText, goldX, goldY);
+    }
 
-        // Draw UID at lower right
+    public void drawUID(Graphics2D g2d) {
+        g2d.setFont(new Font("Serif", Font.BOLD, 24));
+        FontMetrics fm = g2d.getFontMetrics();
         String uidText = "UID: " + player.getID();
         int uidWidth = fm.stringWidth(uidText);
         int uidX = getWidth() - uidWidth - 20;
@@ -128,7 +135,6 @@ public class GamePanel extends JPanel implements Runnable {
         g2d.drawString(uidText, uidX, uidY);
     }
 
-    
     public Player getPlayer() {
         return player;
     }
@@ -136,3 +142,4 @@ public class GamePanel extends JPanel implements Runnable {
         return tileManager;
     }
 }
+
