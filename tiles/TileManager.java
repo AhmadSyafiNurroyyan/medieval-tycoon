@@ -21,7 +21,7 @@ public class TileManager {
 
     private void loadTiles() {
         try {
-            for (int i = 0; i <= 4; i++) {
+            for (int i = 0; i <= tiles.length; i++) {
                 File file = new File("assets/tiles/" + i + ".png");
                 if (file.exists()) {
                     BufferedImage image = ImageIO.read(file);
