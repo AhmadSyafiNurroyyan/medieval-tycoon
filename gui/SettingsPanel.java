@@ -9,54 +9,42 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
         setLayout(new BorderLayout());
         setOpaque(false);
 
-        JLabel titleLabel = new JLabel("Settings", JLabel.CENTER);
-        titleLabel.setFont(new Font("Serif", Font.BOLD, 36));
-        titleLabel.setForeground(new Color(218, 165, 32));
+        JLabel titleLabel = StyledButton.createLabel("Settings", 36, new Color(218, 165, 32), Font.BOLD, JLabel.CENTER);
         add(titleLabel, BorderLayout.NORTH);
+        JCheckBox soundCheckbox = StyledButton.createCheckBox("Enable Sound");
+        JLabel resolutionLabel = StyledButton.createLabel("Resolution:");
+        JLabel fullscreenLabel = StyledButton.createLabel("Fullscreen:");
+        JButton backButton = StyledButton.create("Back to Menu");
 
-        JCheckBox soundCheckbox = new JCheckBox("Enable Sound");
-        soundCheckbox.setFont(new Font("Serif", Font.PLAIN, 24));
-        soundCheckbox.setOpaque(true);
-        soundCheckbox.setBackground(new Color(139, 69, 19));
-        soundCheckbox.setForeground(Color.WHITE);
-        soundCheckbox.setAlignmentY(Component.CENTER_ALIGNMENT);
 
-        // Resolution choices
-        JLabel resolutionLabel = new JLabel("Resolution:");
+        
         resolutionLabel.setFont(new Font("Serif", Font.BOLD, 24));
         resolutionLabel.setForeground(Color.WHITE);
-        String[] resolutions = {"800 x 600", "1024 x 768", "1280 x 720", "1600 x 900", "1920 x 1080"};
+        String[] resolutions = {"800 x 600", "1024 x 768", "1280 x 720", "1920 x 1080"};
         JComboBox<String> resolutionCombo = new JComboBox<>(resolutions);
         resolutionCombo.setFont(new Font("Serif", Font.PLAIN, 22));
         resolutionCombo.setMaximumSize(new Dimension(300, 50));
         resolutionCombo.setPreferredSize(new Dimension(300, 50));
         resolutionCombo.setSelectedIndex(0);
 
-        // Fullscreen toggle button
-        JLabel fullscreenLabel = new JLabel("Fullscreen:");
+        
         fullscreenLabel.setFont(new Font("Serif", Font.BOLD, 24));
         fullscreenLabel.setForeground(Color.WHITE);
-        JButton fullscreenToggle = createStyledButton("OFF");
-        fullscreenToggle.setBackground(new Color(139, 69, 19));
-        fullscreenToggle.setForeground(Color.WHITE);
-        fullscreenToggle.setFocusPainted(false);
-        fullscreenToggle.setBorder(BorderFactory.createRaisedBevelBorder());
-        fullscreenToggle.setMaximumSize(new Dimension(300, 60));
-        fullscreenToggle.setPreferredSize(new Dimension(300, 60));
+        JButton fullscreenToggle = StyledButton.create("OFF");
         fullscreenToggle.putClientProperty("isOn", Boolean.FALSE);
         fullscreenToggle.addActionListener(e -> {
             boolean isOn = Boolean.TRUE.equals(fullscreenToggle.getClientProperty("isOn"));
             Window window = SwingUtilities.getWindowAncestor(this);
             if (window instanceof JFrame) {
                 JFrame frame = (JFrame) window;
-                if (!isOn) { // Turn ON fullscreen
+                if (!isOn) { 
                     fullscreenToggle.setText("ON");
                     fullscreenToggle.putClientProperty("isOn", Boolean.TRUE);
                     frame.dispose();
                     frame.setUndecorated(true);
                     frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
                     frame.setVisible(true);
-                } else { // Turn OFF fullscreen
+                } else { 
                     fullscreenToggle.setText("OFF");
                     fullscreenToggle.putClientProperty("isOn", Boolean.FALSE);
                     frame.dispose();
@@ -79,8 +67,8 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
             }
         });
 
-        // Use the same style as MainMenu for the back button
-        JButton backButton = createStyledButton("Back to Menu");
+        
+
         backButton.addActionListener(e -> {
             Container parent = this.getParent();
             if (parent instanceof JPanel) {
@@ -102,20 +90,16 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 0, 10, 0);
 
-        // Add resolution
         gbc.gridy = 0;
         innerContentPanel.add(resolutionLabel, gbc);
         gbc.gridy = 1;
         innerContentPanel.add(resolutionCombo, gbc);
-        // Add fullscreen toggle
         gbc.gridy = 2;
         innerContentPanel.add(fullscreenLabel, gbc);
         gbc.gridy = 3;
         innerContentPanel.add(fullscreenToggle, gbc);
-        // Add sound checkbox (keep only one)
         gbc.gridy = 4;
         innerContentPanel.add(soundCheckbox, gbc);
-        // Add back button
         gbc.gridy = 5;
         gbc.insets = new Insets(20, 0, 0, 0);
         innerContentPanel.add(backButton, gbc);
@@ -123,7 +107,6 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
         outerBoxPanel.add(innerContentPanel);
         add(outerBoxPanel, BorderLayout.CENTER);
 
-        // Resolution change logic
         resolutionCombo.addActionListener(e -> {
             Window window = SwingUtilities.getWindowAncestor(this);
             if (window instanceof JFrame && !((JFrame) window).isUndecorated()) {
@@ -165,31 +148,5 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
                 }
             }
         }
-    }
-
-    // Styled button method copied from MainMenu
-    private JButton createStyledButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Serif", Font.BOLD, 24));
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        button.setMaximumSize(new Dimension(300, 60));
-        button.setPreferredSize(new Dimension(300, 60));
-        button.setBackground(new Color(139, 69, 19));
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createRaisedBevelBorder());
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                button.setBackground(new Color(160, 82, 45));
-                setCursor(new Cursor(Cursor.HAND_CURSOR));
-            }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                button.setBackground(new Color(139, 69, 19));
-                setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-            }
-        });
-        return button;
     }
 }

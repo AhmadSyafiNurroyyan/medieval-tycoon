@@ -52,7 +52,7 @@ public class Player {
         private int x = 64, y = 64;
         private final int speed = 5;
         private boolean up, down, left, right;
-        private final Image[][] sprites = new Image[4][4];
+        private Image[][] sprites = new Image[4][4];
         private int direction = 0, frameIndex = 0, animDelay = 5, animCount = 0;
 
         public PlayerMovement() {
@@ -83,8 +83,6 @@ public class Player {
                 frameIndex = 0;
             }
         }
-
-        // New update method for collision with map boundaries
         public void update(int mapWidth, int mapHeight, int tileSize) {
             boolean moving = false;
             if (up)    { y -= speed; direction = 3; moving = true; }
@@ -92,7 +90,7 @@ public class Player {
             if (left)  { x -= speed; direction = 1; moving = true; }
             if (right) { x += speed; direction = 2; moving = true; }
 
-            // Clamp to map boundaries
+            // colliders
             int min = 0;
             int maxX = mapWidth * tileSize - tileSize;
             int maxY = mapHeight * tileSize - tileSize;
@@ -114,27 +112,27 @@ public class Player {
 
         public void keyPressed(int keyCode) {
             switch (keyCode) {
-                case KeyEvent.VK_W: up = true; break;
-                case KeyEvent.VK_S: down = true; break;
-                case KeyEvent.VK_A: left = true; break;
-                case KeyEvent.VK_D: right = true; break;
+                case KeyEvent.VK_W -> up = true;
+                case KeyEvent.VK_S -> down = true;
+                case KeyEvent.VK_A -> left = true;
+                case KeyEvent.VK_D -> right = true;
             }
         }
 
         public void keyReleased(int keyCode) {
             switch (keyCode) {
-                case KeyEvent.VK_W: up = false; break;
-                case KeyEvent.VK_S: down = false; break;
-                case KeyEvent.VK_A: left = false; break;
-                case KeyEvent.VK_D: right = false; break;
+                case KeyEvent.VK_W -> up = false;
+                case KeyEvent.VK_S -> down = false;
+                case KeyEvent.VK_A -> left = false;
+                case KeyEvent.VK_D -> right = false;
             }
         }
         public void resetKeys() {
             up = down = left = right = false;
         }
-        public int getX() { return x; }
-        public int getY() { return y; }
-        public Image getCurrentFrame() { return sprites[direction][frameIndex]; }
+        public int getX() {return x;}
+        public int getY() {return y;}
+        public Image getCurrentFrame() {return sprites[direction][frameIndex];}
     }
 
     public class PlayerSkin implements ImageObserver{

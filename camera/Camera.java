@@ -22,11 +22,9 @@ public class Camera {
         worldWidth = tileManager.getMapWidth() * tileManager.getTileSize();
         worldHeight = tileManager.getMapHeight() * tileManager.getTileSize();
 
-        // Center camera on player
-        x = player.getX() - viewportWidth / 2 + 16; // 16 = half tile size (32)
+        x = player.getX() - viewportWidth / 2 + 16; 
         y = player.getY() - viewportHeight / 2 + 16;
 
-        // Clamp camera to world boundaries
         if (x < 0) x = 0;
         if (y < 0) y = 0;
         if (x > worldWidth - viewportWidth) x = worldWidth - viewportWidth;

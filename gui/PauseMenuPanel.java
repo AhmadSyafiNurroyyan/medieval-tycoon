@@ -15,9 +15,9 @@ public class PauseMenuPanel extends JPanel {
         pauseButtonsPanel.setOpaque(false);
         pauseButtonsPanel.setBorder(new EmptyBorder(0, 0, 100, 0));
 
-        JButton resumeButton = createStyledButton("Resume");
-        JButton pauseSettingsButton = createStyledButton("Settings");
-        JButton backToMenuButton = createStyledButton("Back to Menu");
+        JButton resumeButton = StyledButton.create("Resume");
+        JButton pauseSettingsButton = StyledButton.create("Settings");
+        JButton backToMenuButton = StyledButton.create("Back to Menu");
 
         resumeButton.addActionListener(e -> {
             cardLayout.show(cardsPanel, "GAME");
@@ -55,39 +55,11 @@ public class PauseMenuPanel extends JPanel {
         add(pauseButtonsPanel, BorderLayout.CENTER);
     }
 
-    private JButton createStyledButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Serif", Font.BOLD, 24));
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        button.setMaximumSize(new Dimension(300, 60));
-        button.setPreferredSize(new Dimension(300, 60));
-        button.setBackground(new Color(139, 69, 19));
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createRaisedBevelBorder());
-
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                button.setBackground(new Color(160, 82, 45));
-                setCursor(new Cursor(Cursor.HAND_CURSOR));
-            }
-
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                button.setBackground(new Color(139, 69, 19));
-                setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-            }
-        });
-
-        return button;
-    }
-
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g.create();
-        g2d.setColor(new Color(0, 0, 0, 128)); // 50% transparent black
+        g2d.setColor(new Color(0, 0, 0, 128)); 
         g2d.fillRect(0, 0, getWidth(), getHeight());
         g2d.dispose();
     }
