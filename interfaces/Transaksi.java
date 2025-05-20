@@ -1,4 +1,7 @@
 package interfaces;
+ 
+import enums.JenisItem;
+import model.Player;
 
 public interface Transaksi {
 
