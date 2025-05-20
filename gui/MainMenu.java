@@ -132,9 +132,6 @@ public class MainMenu extends JFrame {
         });
 
         loadGameButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(this,
-                "Load game feature will be available soon!",
-                "Coming Soon", JOptionPane.INFORMATION_MESSAGE);
         });
 
         settingsButton.addActionListener(e -> {

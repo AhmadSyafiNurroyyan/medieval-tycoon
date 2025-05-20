@@ -25,7 +25,7 @@ public class TileManager {
                 File file = new File("assets/tiles/" + i + ".png");
                 if (file.exists()) {
                     BufferedImage image = ImageIO.read(file);
-                    boolean collision = (i != 0); 
+                    boolean collision = (i == 2 || i == 3); // collision adder
                     tiles[i] = new Tile(image, collision);
                 }
             }

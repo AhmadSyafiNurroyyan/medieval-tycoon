@@ -7,12 +7,14 @@ import javax.swing.*;
 import model.*;
 import model.Player.PlayerMovement;
 import model.Player.PlayerSkin;
+import tiles.MapObjectManager;
 import tiles.TileManager;
 
 public class GamePanel extends JPanel implements Runnable {
     private Player player = new Player("tauwus");
     private PlayerMovement playerMovement;
     private PlayerSkin PlayerSkin;
+    MapObjectManager mapObjectManager = new MapObjectManager();
     private Thread gameThread;
     private int FPS = 60;
     private TileManager tileManager;
@@ -29,6 +31,15 @@ public class GamePanel extends JPanel implements Runnable {
         PlayerSkin = player.createNametag();
         tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
+        // mapObjectManager.addObject("assets/sprites/objects/tree.png", 128, 96);
+        // mapObjectManager.addObject("assets/sprites/objects/rock.png", 200, 150); 
+        int xshop = 935, yshop = 545;
+        mapObjectManager.addObject("assets/sprites/objects/house.png", 80, 30, true);
+        mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop, yshop, true);
+        mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop-140, yshop, true);
+        mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop-140-140, yshop, true);
+        mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop-140-140-140, yshop, true);
+        mapObjectManager.addObject("assets/sprites/objects/tent.png", 230, 1280, true);
 
         addKeyListener(new KeyAdapter() {
             @Override public void keyPressed(KeyEvent e) {
@@ -59,7 +70,6 @@ public class GamePanel extends JPanel implements Runnable {
     @Override
     public void removeNotify() {
         super.removeNotify();
-        // Stop the game thread when panel is removed
         Thread oldThread = gameThread;
         gameThread = null;
         if (oldThread != null && oldThread.isAlive()) {
@@ -73,11 +83,13 @@ public class GamePanel extends JPanel implements Runnable {
         double nextDrawTime = System.nanoTime() + drawInterval;
         
         while (gameThread != null) {
-            // Use new update method with map boundaries
+            // Use new update method with map boundaries and object collision
             playerMovement.update(
                 tileManager.getMapWidth(),
                 tileManager.getMapHeight(),
-                tileManager.getTileSize()
+                tileManager.getTileSize(),
+                mapObjectManager,
+                tileManager
             );
             repaint();
             
@@ -91,7 +103,6 @@ public class GamePanel extends JPanel implements Runnable {
                 
                 nextDrawTime += drawInterval;
             } catch (InterruptedException ex) {
-                System.out.println("Game thread was interrupted: " + ex.getMessage());
                 Thread.currentThread().interrupt();
                 break;
             }
@@ -104,7 +115,7 @@ public class GamePanel extends JPanel implements Runnable {
         camera.update(playerMovement, tileManager, this);
         tileManager.draw(g2d, camera.getX(), camera.getY());
         PlayerSkin.render(g, playerMovement.getX() - camera.getX(), playerMovement.getY() - camera.getY(), playerMovement.getCurrentFrame());
-
+        mapObjectManager.draw(g2d, camera.getX(), camera.getY());
         drawMoneyInfo(g2d);
         drawUID(g2d);
     }

@@ -17,7 +17,7 @@ public class Player {
         this.username = username;
         this.ID = (int) (Math.random() * 9999999 + 80000000);
         this.level = 1;
-        this.money = 100;
+        this.money = 100000;
     }
 
     public String getUsername() {
@@ -49,7 +49,8 @@ public class Player {
     }
     
     public class PlayerMovement {
-        private int x = 64, y = 64;
+        // private int x = 110, y = 184;
+        private int x = 885, y = 729;
         private final int speed = 5;
         private boolean up, down, left, right;
         private Image[][] sprites = new Image[4][4];
@@ -66,31 +67,80 @@ public class Player {
             }
         }
 
-        public void update() {
-            boolean moving = false;
-            if (up)    { y -= speed; direction = 3; moving = true; }
-            if (down)  { y += speed; direction = 0; moving = true; }
-            if (left)  { x -= speed; direction = 1; moving = true; }
-            if (right) { x += speed; direction = 2; moving = true; }
+        // public void update() {
+        //     boolean moving = false;
+        //     if (up)    { y -= speed; direction = 3; moving = true; }
+        //     if (down)  { y += speed; direction = 0; moving = true; }
+        //     if (left)  { x -= speed; direction = 1; moving = true; }
+        //     if (right) { x += speed; direction = 2; moving = true; }
 
-            if (moving) {
-                animCount++;
-                if (animCount >= animDelay) {
-                    animCount = 0;
-                    frameIndex = (frameIndex + 1) % sprites[direction].length;
-                }
-            } else {
-                frameIndex = 0;
+        //     if (moving) {
+        //         gui.DebugCoordinateLogger.logPlayerCoordinates(this);
+        //         animCount++;
+        //         if (animCount >= animDelay) {
+        //             animCount = 0;
+        //             frameIndex = (frameIndex + 1) % sprites[direction].length;
+        //         }
+        //     } else {
+        //         frameIndex = 0;
+        //     }
+        // }
+        
+        public void update(int mapWidth, int mapHeight, int tileSize, tiles.MapObjectManager mapObjectManager, tiles.TileManager tileManager) {
+            boolean moving = false;
+            int nextX = x, nextY = y;
+            if (up)    { nextY -= speed; }
+            if (down)  { nextY += speed; }
+            if (left)  { nextX -= speed; }
+            if (right) { nextX += speed; }
+
+            // Player bounding box (assume 32x32 sprite)
+            int size = 32;
+            int offset = 32;
+            int[][] corners = {
+                {nextX, nextY}, // top-left
+                {nextX + size - 1, nextY}, // top-right
+                {nextX, nextY + size - 1 + (down ? offset : 0)}, // bottom-left
+                {nextX + size - 1 + (right ? offset : 0), nextY + size - 1 + (down ? offset : 0)} // bottom-right
+            };
+
+            // Check collision with map boundaries
+            boolean blockedByMap = false;
+            int col = nextX / tileSize;
+            int row = nextY / tileSize;
+            if (col < 0 || col >= mapWidth || row < 0 || row >= mapHeight) {
+                blockedByMap = true;
             }
-        }
-        public void update(int mapWidth, int mapHeight, int tileSize) {
-            boolean moving = false;
-            if (up)    { y -= speed; direction = 3; moving = true; }
-            if (down)  { y += speed; direction = 0; moving = true; }
-            if (left)  { x -= speed; direction = 1; moving = true; }
-            if (right) { x += speed; direction = 2; moving = true; }
 
-            // colliders
+            // Check collision with solid tiles
+            boolean blockedBySolidTile = false;
+            if (tileManager != null) {
+                for (int[] c : corners) {
+                    if (tileManager.isSolid(c[0], c[1])) {
+                        blockedBySolidTile = true;
+                        break;
+                    }
+                }
+            }
+
+            // Check collision with map objects
+            boolean blockedByObject = false;
+            if (mapObjectManager != null) {
+                for (int[] c : corners) {
+                    if (mapObjectManager.isSolid(c[0], c[1])) {
+                        blockedByObject = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!blockedByMap && !blockedBySolidTile && !blockedByObject) {
+                if (up)    { y -= speed; direction = 3; moving = true; }
+                if (down)  { y += speed; direction = 0; moving = true; }
+                if (left)  { x -= speed; direction = 1; moving = true; }
+                if (right) { x += speed; direction = 2; moving = true; }
+            }
+
             int min = 0;
             int maxX = mapWidth * tileSize - tileSize;
             int maxY = mapHeight * tileSize - tileSize;
@@ -100,6 +150,7 @@ public class Player {
             if (y > maxY) y = maxY;
 
             if (moving) {
+                gui.DebugCoordinateLogger.logPlayerCoordinates(this);
                 animCount++;
                 if (animCount >= animDelay) {
                     animCount = 0;
