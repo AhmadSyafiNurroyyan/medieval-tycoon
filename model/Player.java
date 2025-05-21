@@ -10,7 +10,6 @@ public class Player {
     private int ID;
     private int level;
     private int money;
-    private List<Item> daftarItem = new ArrayList<>();
     
     public Player() {}
     
@@ -55,19 +54,6 @@ public class Player {
 
     public void kurangiMoney(int jumlah){
         this.money -= jumlah;
-    }
-    
-    public Item cariItem(JenisItem jenis) {
-        for (Item item : daftarItem) {
-            if (item.getJenis() == jenis) {
-                return item; 
-            }
-        }
-        return null;
-    }
-    
-    public void tambahItem(Item item) {
-        daftarItem.add(item);
     }
 
     public class PlayerMovement {
