@@ -1,4 +1,4 @@
-package gui;
+package debugger;
 
 import model.Player.PlayerMovement;
 

@@ -35,8 +35,10 @@ public class GamePanel extends JPanel implements Runnable {
         tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
-        triggerZoneManager.addZone("supplier", 511, 480, 1054, 575, true);
-        triggerZoneManager.addZone("home", 68, 32, 217, 205, true);
+        //triggerZoneManager.addZone("supplier", 511, 480, 1054, 575, true);
+        triggerZoneManager.addZone("home", 68, 32, 217, 205, true, () -> {
+            System.out.println("wleowleowleo");
+        });
         
 
         // mapObjectManager.addObject("assets/sprites/objects/tree.png", 128, 96);
@@ -52,6 +54,13 @@ public class GamePanel extends JPanel implements Runnable {
         addKeyListener(new KeyAdapter() {
             @Override public void keyPressed(KeyEvent e) {
                 playerMovement.keyPressed(e.getKeyCode());
+                if (e.getKeyCode() == KeyEvent.VK_E) {
+                    // Check if player is in any trigger zone
+                    java.util.List<tiles.TriggerZoneManager.TriggerZone> zones = triggerZoneManager.getZonesAt(playerMovement.getX(), playerMovement.getY());
+                    for (tiles.TriggerZoneManager.TriggerZone zone : zones) {
+                        zone.trigger();
+                    }
+                }
             }
             @Override public void keyReleased(KeyEvent e) {
                 playerMovement.keyReleased(e.getKeyCode());
@@ -98,7 +107,7 @@ public class GamePanel extends JPanel implements Runnable {
     public void run() {
         final double drawInterval = 1000000000.0 / FPS;
         double nextDrawTime = System.nanoTime() + drawInterval;
-        boolean wasInZone = false;
+        // boolean wasInZone = false;
         while (gameThread != null) {
             playerMovement.update(tileManager.getMapWidth(), tileManager.getMapHeight(), tileManager.getTileSize(), mapObjectManager, tileManager);
 
@@ -109,8 +118,6 @@ public class GamePanel extends JPanel implements Runnable {
             //     System.out.println("[DEBUG] Exited trigger zone");
             // }
             // wasInZone = inZone;
-            
-
             repaint();
             try {
                 double remaining = nextDrawTime - System.nanoTime();

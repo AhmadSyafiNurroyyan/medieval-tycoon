@@ -4,22 +4,25 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class TriggerZoneManager {
     public static class TriggerZone {
         private final String id;
         private final Rectangle bounds;
+        private final Runnable onTrigger;
 
-        public TriggerZone(String id, int x, int y, int width, int height) {
+        public TriggerZone(String id, int x, int y, int width, int height, Runnable onTrigger) {
             this.id = id;
             this.bounds = new Rectangle(x, y, width, height);
+            this.onTrigger = onTrigger;
         }
 
-        // Constructor using rectangle sides
-        public TriggerZone(String id, int leftX, int topY, int rightX, int bottomY, boolean useSides) {
+        public TriggerZone(String id, int leftX, int topY, int rightX, int bottomY, boolean sizes, Runnable onTrigger) {
             this.id = id;
             int width = rightX - leftX;
             int height = bottomY - topY;
             this.bounds = new Rectangle(leftX, topY, width, height);
+            this.onTrigger = onTrigger;
         }
 
         public String getId() {
@@ -33,16 +36,20 @@ public class TriggerZoneManager {
         public boolean contains(int px, int py) {
             return bounds.contains(px, py);
         }
+
+        public void trigger() {
+            if (onTrigger != null) onTrigger.run();
+        }
     }
 
-    private final List<TriggerZone> zones = new ArrayList<>();
+    private List<TriggerZone> zones = new ArrayList<>();
 
-    public void addZone(String id, int x, int y, int width, int height) {
-        zones.add(new TriggerZone(id, x, y, width, height));
+    public void addZone(String id, int x, int y, int width, int height, Runnable onTrigger) {
+        zones.add(new TriggerZone(id, x, y, width, height, onTrigger));
     }
 
-    public void addZone(String id, int leftX, int topY, int rightX, int bottomY, boolean useSides) {
-        zones.add(new TriggerZone(id, leftX, topY, rightX, bottomY, useSides));
+    public void addZone(String id, int leftX, int topY, int rightX, int bottomY, boolean sizes, Runnable onTrigger) {
+        zones.add(new TriggerZone(id, leftX, topY, rightX, bottomY, sizes, onTrigger));
     }
 
     public void removeZoneById(String id) {
