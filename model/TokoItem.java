@@ -33,7 +33,7 @@ public class TokoItem implements Transaksi, Showable{
     public boolean transaksi(Player player, JenisItem jenis, int jumlah) {
         int totalHarga = jenis.getHarga() * jumlah;
 
-        if (player.getUang() < totalHarga) {
+        if (player.getMoney() < totalHarga) {
             System.out.println("Uang tidak cukup untuk membeli item.");
             return false;
         }
@@ -44,7 +44,7 @@ public class TokoItem implements Transaksi, Showable{
             return false;
         }
 
-        player.kurangiUang(totalHarga);
+        player.kurangiMoney(totalHarga);
         for (int i = 0; i < jumlah; i++) {
             player.tambahItem(new Item(jenis));
         }
