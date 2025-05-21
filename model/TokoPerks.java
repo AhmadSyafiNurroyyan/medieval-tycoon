@@ -1,6 +1,5 @@
 package model;
 
-import model.*;
 import enums.PerkType;
 import exceptions.*;
 import interfaces.Transaksi;
