@@ -47,6 +47,14 @@ public class Player {
     public int getMoney() {
         return money;
     }
+
+    public void tambahMoney(int jumlah){
+        this.money += jumlah;
+    }
+
+    public void kurangiMoney(int jumlah){
+        this.money -= jumlah;
+    
     
     public class PlayerMovement {
         // private int x = 110, y = 184;
