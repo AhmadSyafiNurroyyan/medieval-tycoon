@@ -47,6 +47,7 @@ public class Player {
     public int getMoney() {
         return money;
     }
+    
      public void tambahMoney(int jumlah){
         this.money += jumlah;
     }
