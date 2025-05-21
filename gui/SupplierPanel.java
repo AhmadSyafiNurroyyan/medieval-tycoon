@@ -31,7 +31,6 @@ public class SupplierPanel extends JPanel {
 
         moneyLabel = new JLabel("Uang: " + player.getMoney(), JLabel.CENTER);
         moneyLabel.setFont(new Font("Serif", Font.PLAIN, 22));
-        add(moneyLabel, BorderLayout.SOUTH);
 
         itemsPanel = new JPanel();
         itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.Y_AXIS));
@@ -47,6 +46,7 @@ public class SupplierPanel extends JPanel {
         backButton.addActionListener(e -> {
             if (backToGameCallback != null) backToGameCallback.run();
         });
+        
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setOpaque(false);
         bottomPanel.add(moneyLabel, BorderLayout.CENTER);
@@ -68,7 +68,10 @@ public class SupplierPanel extends JPanel {
             String formattedName = Arrays.stream(jenis.name().toLowerCase().split("_"))
                 .map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1))
                 .reduce((a, b) -> a + " " + b).orElse(jenis.name());
-            JLabel nameLabel = new JLabel(formattedName);
+
+            //ImageIcon icon = new ImageIcon("assets/icons/" + jenis.getIconPath());
+            ImageIcon icon = new ImageIcon("assets/sprites/dir1_0.png");
+            JLabel nameLabel = new JLabel(formattedName, icon, JLabel.LEFT);
             nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
             gbc.gridx = 0;
             gbc.anchor = GridBagConstraints.WEST;
@@ -132,13 +135,18 @@ public class SupplierPanel extends JPanel {
                 int qty;
                 try { qty = Math.max(1, Integer.parseInt(qtyField.getText())); }
                 catch (NumberFormatException ex) { qty = 1; }
-                boolean allSuccess = true;
-                for (int i = 0; i < qty; i++) {
-                    if (!supplier.beli(player, jenis)) { allSuccess = false; break; }
+                int totalHarga = jenis.getHarga() * qty;
+                if (player.getMoney() < totalHarga) {
+                    JOptionPane.showMessageDialog(this, "Uang tidak cukup untuk membeli " + formattedName + " x" + qty + ".", "Gagal", JOptionPane.ERROR_MESSAGE);
+                    return;
                 }
-                String msg = allSuccess ? "Berhasil membeli " + formattedName + " x" + qty + "!" : "Gagal membeli " + formattedName + ".";
-                JOptionPane.showMessageDialog(this, msg, allSuccess ? "Sukses" : "Gagal", allSuccess ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
-                moneyLabel.setText("Uang: " + player.getMoney());
+                boolean success = true;
+                for (int i = 0; i < qty; i++) {
+                    if (!supplier.beli(player, jenis)) { success = false; break; }
+                }
+                String msg = success ? "Berhasil membeli " + formattedName + " x" + qty + "!" : "Gagal membeli " + formattedName + ".";
+                JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal", success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+                moneyLabel.setText("Uang: " + player.getMoney()+"G");
             });
 
             itemRow.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -153,7 +161,7 @@ public class SupplierPanel extends JPanel {
     }
 
     public void refresh() {
-        moneyLabel.setText("Uang: " + player.getMoney());
+        moneyLabel.setText("Uang: " + player.getMoney()+"G");
         populateItems();
     }
 }
