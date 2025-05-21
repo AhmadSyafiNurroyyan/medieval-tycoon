@@ -56,12 +56,13 @@ public class Player {
     }
 
     public class PlayerMovement {
-        // private int x = 110, y = 184;
-        private int x = 885, y = 729;
+        private int x = 885, y = 729; // x, y are now the CENTER of the player
         private final int speed = 5;
         private boolean up, down, left, right;
         private Image[][] sprites = new Image[4][4];
         private int direction = 0, frameIndex = 0, animDelay = 5, animCount = 0;
+        private final int spriteWidth = 32;
+        private final int spriteHeight = 32;
 
         public PlayerMovement() {
             // ../assets/sprites/dir{dir}_{frame}.png
@@ -101,18 +102,21 @@ public class Player {
             if (left)  { nextX -= speed; }
             if (right) { nextX += speed; }
 
-            int size = 32;
+            // Collision checks use top-left corner, so adjust
+            int halfW = spriteWidth / 2;
+            int halfH = spriteHeight / 2;
+            int size = spriteWidth;
             int offset = 32;
             int[][] corners = {
-                {nextX, nextY}, // top-left
-                {nextX + size - 1, nextY}, // top-right
-                {nextX, nextY + size - 1 + (down ? offset : 0)}, // bottom-left
-                {nextX + size - 1 + (right ? offset : 0), nextY + size - 1 + (down ? offset : 0)} // bottom-right
+                {nextX - halfW, nextY - halfH}, // top-left
+                {nextX - halfW + size - 1, nextY - halfH}, // top-right
+                {nextX - halfW, nextY - halfH + size - 1 + (down ? offset : 0)}, // bottom-left
+                {nextX - halfW + size - 1 + (right ? offset : 0), nextY - halfH + size - 1 + (down ? offset : 0)} // bottom-right
             };
 
             boolean blockedByMap = false;
-            int col = nextX / tileSize;
-            int row = nextY / tileSize;
+            int col = (nextX - halfW) / tileSize;
+            int row = (nextY - halfH) / tileSize;
             if (col < 0 || col >= mapWidth || row < 0 || row >= mapHeight) {
                 blockedByMap = true;
             }
@@ -144,9 +148,9 @@ public class Player {
                 if (right) { x += speed; direction = 2; moving = true; }
             }
 
-            int min = 0;
-            int maxX = mapWidth * tileSize - tileSize;
-            int maxY = mapHeight * tileSize - tileSize;
+            int min = 0 + halfW;
+            int maxX = mapWidth * tileSize - halfW;
+            int maxY = mapHeight * tileSize - halfH;
             if (x < min) x = min;
             if (y < min) y = min;
             if (x > maxX) x = maxX;
@@ -186,6 +190,8 @@ public class Player {
         }
         public int getX() {return x;}
         public int getY() {return y;}
+        public int getSpriteWidth() { return spriteWidth; }
+        public int getSpriteHeight() { return spriteHeight; }
         public Image getCurrentFrame() {return sprites[direction][frameIndex];}
     }
 

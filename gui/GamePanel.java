@@ -1,8 +1,10 @@
 package gui;
 
 import camera.*;
+import debugger.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
 import javax.swing.*;
 import model.*;
 import model.Player.PlayerMovement;
@@ -35,9 +37,11 @@ public class GamePanel extends JPanel implements Runnable {
         tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
-        //triggerZoneManager.addZone("supplier", 511, 480, 1054, 575, true);
+        triggerZoneManager.addZone("supplier", 511, 480, 1054, 575, true, () -> {
+            System.out.println("Supplier triggered");
+        });
         triggerZoneManager.addZone("home", 68, 32, 217, 205, true, () -> {
-            System.out.println("wleowleowleo");
+            System.out.println("Home triggered");
         });
         
 
@@ -52,11 +56,11 @@ public class GamePanel extends JPanel implements Runnable {
         mapObjectManager.addObject("assets/sprites/objects/tent.png", 230, 1280, true);
 
         addKeyListener(new KeyAdapter() {
-            @Override public void keyPressed(KeyEvent e) {
+            @Override 
+            public void keyPressed(KeyEvent e) {
                 playerMovement.keyPressed(e.getKeyCode());
                 if (e.getKeyCode() == KeyEvent.VK_E) {
-                    // Check if player is in any trigger zone
-                    java.util.List<tiles.TriggerZoneManager.TriggerZone> zones = triggerZoneManager.getZonesAt(playerMovement.getX(), playerMovement.getY());
+                    List<tiles.TriggerZoneManager.TriggerZone> zones = triggerZoneManager.getZonesAt(playerMovement.getX(), playerMovement.getY());
                     for (tiles.TriggerZoneManager.TriggerZone zone : zones) {
                         zone.trigger();
                     }
@@ -138,18 +142,14 @@ public class GamePanel extends JPanel implements Runnable {
         Graphics2D g2d = (Graphics2D) g;
         camera.update(playerMovement, tileManager, this);
         tileManager.draw(g2d, camera.getX(), camera.getY());
-        PlayerSkin.render(g, playerMovement.getX() - camera.getX(), playerMovement.getY() - camera.getY(), playerMovement.getCurrentFrame());
+
+        int px = playerMovement.getX() - camera.getX() - playerMovement.getSpriteWidth() / 2;
+        int py = playerMovement.getY() - camera.getY() - playerMovement.getSpriteHeight() / 2;
+        PlayerSkin.render(g, px, py, playerMovement.getCurrentFrame());
         mapObjectManager.draw(g2d, camera.getX(), camera.getY());
-        // Draw trigger zones for debug
-        for (TriggerZoneManager.TriggerZone zone : triggerZoneManager.getAllZones()) {
-            Rectangle r = zone.getBounds();
-            g2d.setColor(new Color(255, 0, 0, 80));
-            g2d.fillRect(r.x - camera.getX(), r.y - camera.getY(), r.width, r.height);
-            g2d.setColor(Color.BLACK);
-            g2d.drawRect(r.x - camera.getX(), r.y - camera.getY(), r.width, r.height);
-            g2d.setColor(Color.WHITE);
-            g2d.drawString(zone.getId(), r.x - camera.getX() + 4, r.y - camera.getY() + 16);
-        }
+
+        DebugTriggerZoneRender.drawAllZones(g2d, triggerZoneManager, camera);
+
         drawMoneyInfo(g2d);
         drawUID(g2d);
     }

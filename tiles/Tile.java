@@ -2,7 +2,7 @@ package tiles;
 
 import java.awt.image.BufferedImage;
 
-public class Tile {
+public abstract class Tile {
     private BufferedImage image;
     private boolean collision;
 
