@@ -3,6 +3,7 @@ package model;
 import interfaces.Upgrade;
 import interfaces.Showable;
 import enums.PerkType;
+import exceptions.PerkConversionException;
 
 public abstract class Perk implements Upgrade, Showable {
 
@@ -10,21 +11,23 @@ public abstract class Perk implements Upgrade, Showable {
     protected String deskripsi;
     protected boolean isActive;
     protected int level;
-    protected double kesaktian;
+    protected double kesaktianAwal;
+    protected double kesaktianSekarang;
     protected int harga;
     protected int biayaUpgrade;
     protected PerkType type;
 
     public static final int MAX_LEVEL = 5; // maksimal level upgrade 5
 
-    public Perk(String nama, String deskripsi, PerkType type, int harga, double kesaktian, int biayaUpgrade) {
+    public Perk(String nama, String deskripsi, PerkType type, int harga, double kesaktianAwal, int biayaUpgrade) {
         this.nama = nama;
         this.deskripsi = deskripsi;
         this.type = type;
         this.harga = harga;
         this.isActive = false;
-        this.level = 1;
-        this.kesaktian = kesaktian;
+        this.level = 0;
+        this.kesaktianAwal = kesaktianAwal;
+        this.kesaktianSekarang = kesaktianAwal;
         this.biayaUpgrade = biayaUpgrade;
     }
 
@@ -49,23 +52,31 @@ public abstract class Perk implements Upgrade, Showable {
     }
 
     public void resetUpgrade() {
-        this.level = 1;
-        this.kesaktian = 0.0;
+        this.level = 0;
+        this.kesaktianSekarang = kesaktianAwal;
     }
 
     public boolean isActive() {
         return isActive;
     }
 
-    public double getKesaktian() {
-        return kesaktian;
+    public double getKesaktianAwal() {
+        return kesaktianAwal;
     }
 
+    public double getKesaktianSekarang() {
+        return kesaktianSekarang;
+    }
+    
     public int getHarga() {
         return harga;
     }
+    
+    public int getBiayaUpgrade() {
+        return biayaUpgrade;
+    }
 
-    public abstract double getPerkEffect();
+    //public abstract double getPerkEffect();
 
     @Override
     public int getLevel() {
@@ -88,7 +99,7 @@ public abstract class Perk implements Upgrade, Showable {
 
     public void convertTo(PerkType targetType) {
         if (!canConvertTo(targetType)) {
-            throw new IllegalArgumentException("Konversi dari " + type + " ke " + targetType + " tidak diperbolehkan.");
+            throw new PerkConversionException("Konversi dari " + type + " ke " + targetType + " tidak diperbolehkan.");
         }
         this.type = targetType;
         resetUpgrade();
