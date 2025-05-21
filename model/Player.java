@@ -47,15 +47,14 @@ public class Player {
     public int getMoney() {
         return money;
     }
-
-    public void tambahMoney(int jumlah){
+     public void tambahMoney(int jumlah){
         this.money += jumlah;
     }
 
     public void kurangiMoney(int jumlah){
         this.money -= jumlah;
-    
-    
+    }
+
     public class PlayerMovement {
         // private int x = 110, y = 184;
         private int x = 885, y = 729;
@@ -102,7 +101,6 @@ public class Player {
             if (left)  { nextX -= speed; }
             if (right) { nextX += speed; }
 
-            // Player bounding box (assume 32x32 sprite)
             int size = 32;
             int offset = 32;
             int[][] corners = {
@@ -112,7 +110,6 @@ public class Player {
                 {nextX + size - 1 + (right ? offset : 0), nextY + size - 1 + (down ? offset : 0)} // bottom-right
             };
 
-            // Check collision with map boundaries
             boolean blockedByMap = false;
             int col = nextX / tileSize;
             int row = nextY / tileSize;
@@ -120,7 +117,6 @@ public class Player {
                 blockedByMap = true;
             }
 
-            // Check collision with solid tiles
             boolean blockedBySolidTile = false;
             if (tileManager != null) {
                 for (int[] c : corners) {
@@ -131,7 +127,6 @@ public class Player {
                 }
             }
 
-            // Check collision with map objects
             boolean blockedByObject = false;
             if (mapObjectManager != null) {
                 for (int[] c : corners) {
@@ -158,7 +153,7 @@ public class Player {
             if (y > maxY) y = maxY;
 
             if (moving) {
-                gui.DebugCoordinateLogger.logPlayerCoordinates(this);
+                //debugger.DebugCoordinateLogger.logPlayerCoordinates(this);
                 animCount++;
                 if (animCount >= animDelay) {
                     animCount = 0;

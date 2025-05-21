@@ -9,6 +9,8 @@ import model.Player.PlayerMovement;
 import model.Player.PlayerSkin;
 import tiles.MapObjectManager;
 import tiles.TileManager;
+import tiles.TriggerZoneManager;
+//import debugger.DebugCoordinateLogger;
 
 public class GamePanel extends JPanel implements Runnable {
     private Player player = new Player("tauwus");
@@ -19,6 +21,7 @@ public class GamePanel extends JPanel implements Runnable {
     private int FPS = 60;
     private TileManager tileManager;
     private Camera camera;
+    private TriggerZoneManager triggerZoneManager;
 
     
     
@@ -31,6 +34,11 @@ public class GamePanel extends JPanel implements Runnable {
         PlayerSkin = player.createNametag();
         tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
+        triggerZoneManager = new TriggerZoneManager();
+        triggerZoneManager.addZone("supplier", 511, 480, 1054, 575, true);
+        triggerZoneManager.addZone("home", 68, 32, 217, 205, true);
+        
+
         // mapObjectManager.addObject("assets/sprites/objects/tree.png", 128, 96);
         // mapObjectManager.addObject("assets/sprites/objects/rock.png", 200, 150); 
         int xshop = 935, yshop = 545;
@@ -54,6 +62,15 @@ public class GamePanel extends JPanel implements Runnable {
         addFocusListener(new FocusAdapter() {
             @Override public void focusLost(FocusEvent e) {
                 playerMovement.resetKeys();
+            }
+        });
+        
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int mapX = e.getX() + camera.getX();
+                int mapY = e.getY() + camera.getY();
+                debugger.DebugClickLogger.logClickCoordinates(e, mapX, mapY);
             }
         });
     }
@@ -81,26 +98,26 @@ public class GamePanel extends JPanel implements Runnable {
     public void run() {
         final double drawInterval = 1000000000.0 / FPS;
         double nextDrawTime = System.nanoTime() + drawInterval;
-        
+        boolean wasInZone = false;
         while (gameThread != null) {
-            // Use new update method with map boundaries and object collision
-            playerMovement.update(
-                tileManager.getMapWidth(),
-                tileManager.getMapHeight(),
-                tileManager.getTileSize(),
-                mapObjectManager,
-                tileManager
-            );
-            repaint();
+            playerMovement.update(tileManager.getMapWidth(), tileManager.getMapHeight(), tileManager.getTileSize(), mapObjectManager, tileManager);
+
+            // boolean inZone = !triggerZoneManager.getZonesAt(playerMovement.getX(), playerMovement.getY()).isEmpty();
+            // if (inZone && !wasInZone) {
+            //     System.out.println("[DEBUG] Entered trigger zone");
+            // } else if (!inZone && wasInZone) {
+            //     System.out.println("[DEBUG] Exited trigger zone");
+            // }
+            // wasInZone = inZone;
             
+
+            repaint();
             try {
                 double remaining = nextDrawTime - System.nanoTime();
                 long sleepMs = Math.max(0, (long)(remaining / 1_000_000));
-                
                 if (sleepMs > 0) {
                     Thread.sleep(sleepMs);
                 }
-                
                 nextDrawTime += drawInterval;
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
@@ -116,6 +133,16 @@ public class GamePanel extends JPanel implements Runnable {
         tileManager.draw(g2d, camera.getX(), camera.getY());
         PlayerSkin.render(g, playerMovement.getX() - camera.getX(), playerMovement.getY() - camera.getY(), playerMovement.getCurrentFrame());
         mapObjectManager.draw(g2d, camera.getX(), camera.getY());
+        // Draw trigger zones for debug
+        for (TriggerZoneManager.TriggerZone zone : triggerZoneManager.getAllZones()) {
+            Rectangle r = zone.getBounds();
+            g2d.setColor(new Color(255, 0, 0, 80));
+            g2d.fillRect(r.x - camera.getX(), r.y - camera.getY(), r.width, r.height);
+            g2d.setColor(Color.BLACK);
+            g2d.drawRect(r.x - camera.getX(), r.y - camera.getY(), r.width, r.height);
+            g2d.setColor(Color.WHITE);
+            g2d.drawString(zone.getId(), r.x - camera.getX() + 4, r.y - camera.getY() + 16);
+        }
         drawMoneyInfo(g2d);
         drawUID(g2d);
     }

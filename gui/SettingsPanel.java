@@ -12,14 +12,18 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
         JLabel titleLabel = StyledButton.createLabel("Settings", 36, new Color(218, 165, 32), Font.BOLD, JLabel.CENTER);
         add(titleLabel, BorderLayout.NORTH);
         JCheckBox soundCheckbox = StyledButton.createCheckBox("Enable Sound");
+
+        
+        // soundCheckbox.setSelected(BGMPlayer.isEnabled());
+        soundCheckbox.addActionListener(e -> {
+            // BGMPlayer.setEnabled(soundCheckbox.isSelected());
+        });
+
+
         JLabel resolutionLabel = StyledButton.createLabel("Resolution:");
         JLabel fullscreenLabel = StyledButton.createLabel("Fullscreen:");
         JButton backButton = StyledButton.create("Back to Menu");
 
-
-        
-        resolutionLabel.setFont(new Font("Serif", Font.BOLD, 24));
-        resolutionLabel.setForeground(Color.WHITE);
         String[] resolutions = {"800 x 600", "1024 x 768", "1280 x 720", "1920 x 1080"};
         JComboBox<String> resolutionCombo = new JComboBox<>(resolutions);
         resolutionCombo.setFont(new Font("Serif", Font.PLAIN, 22));
@@ -28,42 +32,32 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
         resolutionCombo.setSelectedIndex(0);
 
         
-        fullscreenLabel.setFont(new Font("Serif", Font.BOLD, 24));
-        fullscreenLabel.setForeground(Color.WHITE);
         JButton fullscreenToggle = StyledButton.create("OFF");
         fullscreenToggle.putClientProperty("isOn", Boolean.FALSE);
         fullscreenToggle.addActionListener(e -> {
             boolean isOn = Boolean.TRUE.equals(fullscreenToggle.getClientProperty("isOn"));
             Window window = SwingUtilities.getWindowAncestor(this);
-            if (window instanceof JFrame) {
-                JFrame frame = (JFrame) window;
-                if (!isOn) { 
-                    fullscreenToggle.setText("ON");
-                    fullscreenToggle.putClientProperty("isOn", Boolean.TRUE);
-                    frame.dispose();
-                    frame.setUndecorated(true);
-                    frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-                    frame.setVisible(true);
-                } else { 
-                    fullscreenToggle.setText("OFF");
-                    fullscreenToggle.putClientProperty("isOn", Boolean.FALSE);
-                    frame.dispose();
-                    frame.setUndecorated(false);
-                    String selected = (String) resolutionCombo.getSelectedItem();
-                    if (selected != null) {
-                        String[] parts = selected.split(" x ");
-                        if (parts.length == 2) {
-                            try {
-                                int w = Integer.parseInt(parts[0].trim());
-                                int h = Integer.parseInt(parts[1].trim());
-                                frame.setSize(w, h);
-                                frame.setLocationRelativeTo(null);
-                            } catch (NumberFormatException ignored) {}
-                        }
+            if (window instanceof JFrame frame) {
+                fullscreenToggle.setText(isOn ? "OFF" : "ON");
+                fullscreenToggle.putClientProperty("isOn", !isOn);
+                frame.dispose();
+                frame.setUndecorated(!isOn);
+            if (!isOn) {
+                frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            } else {
+                String selected = (String) resolutionCombo.getSelectedItem();
+                if (selected != null) {
+                String[] parts = selected.split(" x ");
+                if (parts.length == 2) {
+                    try {
+                        int w = Integer.parseInt(parts[0].trim());
+                        int h = Integer.parseInt(parts[1].trim());
+                        frame.setSize(w, h);
+                        frame.setLocationRelativeTo(null);
+                    } catch (NumberFormatException ignored) {}
                     }
-                    frame.setExtendedState(JFrame.NORMAL);
-                    frame.setVisible(true);
-                }
+                } frame.setExtendedState(JFrame.NORMAL);
+            } frame.setVisible(true);
             }
         });
 
@@ -79,7 +73,7 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
         backButton.setAlignmentY(Component.CENTER_ALIGNMENT);
 
         JPanel outerBoxPanel = new JPanel(new GridBagLayout());
-        outerBoxPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 3));
+        outerBoxPanel.setBorder(BorderFactory.createLineBorder(new Color(139, 69, 19, 100), 3));
         outerBoxPanel.setOpaque(true);
         outerBoxPanel.setBackground(new Color(139, 69, 19, 100)); // Brown color
 
@@ -124,25 +118,31 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
                 }
             }
         });
+
+        // // BGM control logic
+        // soundCheckbox.addActionListener(e -> {
+        //     boolean enabled = soundCheckbox.isSelected();
+        //     if (!enabled) {
+        //         BGMPlayer.globalMute = true;
+        //         BGMPlayer.stopGlobal();
+        //     } else {
+        //         BGMPlayer.globalMute = false;
+        //         // Optionally resume or replay current BGM if needed
+                
+        //     }
+        // });
     }
 
     public void setPreviousScreen(String screen) {
         this.previousScreen = screen;
-        
-        Container container = this.getParent();
-        if (container != null) {
-            Component[] components = container.getComponents();
-            for (Component component : components) {
-                if (component instanceof JPanel) {
-                    JPanel panel = (JPanel) component;
-                    for (Component c : panel.getComponents()) {
-                        if (c instanceof JButton && ((JButton) c).getText().startsWith("Back to")) {
-                            if ("PAUSE_MENU".equals(screen)) {
-                                ((JButton) c).setText("Back to Pause Menu");
-                            } else {
-                                ((JButton) c).setText("Back to Menu");
-                            }
-                            break;
+        for (Component c : this.getComponents()) {
+            if (c instanceof JPanel) {
+                for (Component inner : ((JPanel) c).getComponents()) {
+                    if (inner instanceof JButton) {
+                        JButton btn = (JButton) inner;
+                        if (btn.getText().startsWith("Back to")) {
+                            btn.setText("PAUSE_MENU".equals(screen) ? "Back to Pause Menu" : "Back to Menu");
+                            return;
                         }
                     }
                 }
