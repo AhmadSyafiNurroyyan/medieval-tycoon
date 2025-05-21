@@ -4,8 +4,34 @@ import enums.JenisItem;
 import interfaces.Transaksi;
 import interfaces.Showable;
 
-public class TokoItem implements Transaksi, Showable{
+public class TokoItem implements Transaksi<JenisItem>, Showable {
+
     protected Player player;
+
+    public TokoItem(Player player) {
+        this.player = player;
+    }
+
+    @Override
+    public boolean beli(Player player, JenisItem jenis) {
+        int harga = jenis.getHarga();
+
+        if (player.getMoney() < harga) {
+            System.out.println("Uang tidak cukup untuk membeli item.");
+            return false;
+        }
+
+        if (player.cariItem(jenis) != null) {
+            System.out.println("Item sudah dimiliki.");
+            return false;
+        }
+
+        player.kurangiMoney(harga);
+        player.tambahItem(new Item(jenis));
+
+        System.out.println("Berhasil membeli item: " + jenis.getNama());
+        return true;
+    }
 
     public void upgradeItem(Player player, JenisItem jenis) {
         Item item = player.cariItem(jenis);
@@ -15,14 +41,14 @@ public class TokoItem implements Transaksi, Showable{
         }
 
         int biaya = jenis.getBiayaUpgrade();
-        if (player.getUang() < biaya) {
+        if (player.getMoney() < biaya) {
             System.out.println("Uang tidak cukup untuk upgrade.");
             return;
         }
 
         boolean berhasil = item.upgradeLevel();
         if (berhasil) {
-            player.kurangiUang(biaya);
+            player.kurangiMoney(biaya);
             System.out.println("Upgrade berhasil. Level sekarang: " + item.getLevel());
         } else {
             System.out.println("Item sudah mencapai level maksimal.");
@@ -30,30 +56,7 @@ public class TokoItem implements Transaksi, Showable{
     }
 
     @Override
-    public boolean transaksi(Player player, JenisItem jenis, int jumlah) {
-        int totalHarga = jenis.getHarga() * jumlah;
-
-        if (player.getMoney() < totalHarga) {
-            System.out.println("Uang tidak cukup untuk membeli item.");
-            return false;
-        }
-
-        Item existing = player.cariItem(jenis);
-        if (existing != null) {
-            System.out.println("Item sudah dimiliki.");
-            return false;
-        }
-
-        player.kurangiMoney(totalHarga);
-        for (int i = 0; i < jumlah; i++) {
-            player.tambahItem(new Item(jenis));
-        }
-        System.out.println("Berhasil membeli " + jumlah + " item: " + jenis.getNama());
-        return true;
-        }
-    
-     @Override    
-     public void tampilkanDetail(){
+    public void tampilkanDetail() {
         System.out.println("=== Daftar Item di Toko ===");
         for (JenisItem jenis : JenisItem.values()) {
             jenis.tampilkanDetail();
