@@ -28,6 +28,30 @@ public class StyledButton {
         });
         return button;
     }
+    public static JButton create(String text, int fontSize, int width, int height) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Serif", Font.BOLD, fontSize));
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        button.setMaximumSize(new Dimension(width, height));
+        button.setPreferredSize(new Dimension(width, height));
+        button.setBackground(new Color(139, 69, 19));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createRaisedBevelBorder());
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                button.setBackground(new Color(160, 82, 45));
+                button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                button.setBackground(new Color(139, 69, 19));
+                button.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            }
+        });
+        return button;
+    }
     public static JCheckBox createCheckBox(String text) {
         JCheckBox checkBox = new JCheckBox(text);
         checkBox.setFont(new Font("Serif", Font.PLAIN, 24));

@@ -29,7 +29,7 @@ public class MainMenu extends JFrame {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 try {
-                    Image bgImg = new ImageIcon(getClass().getResource("../assets/background.png")).getImage();
+                    Image bgImg = new ImageIcon(getClass().getResource("../assets/backgrounds/MainMenu.png")).getImage();
                     g.drawImage(bgImg, 0, 0, getWidth(), getHeight(), this);
                 } catch (Exception e) {
                     g.setColor(new Color(50, 30, 10));
@@ -46,6 +46,12 @@ public class MainMenu extends JFrame {
         GamePanel gamePanel = new GamePanel();
         SettingsPanel settingsPanel = new SettingsPanel();
         PauseMenuPanel pauseMenuPanel = new PauseMenuPanel(cardLayout, cardsPanel);
+        SupplierPanel supplierPanel = new SupplierPanel(gamePanel.getSupplier(), gamePanel.getPlayer());
+        // Pass a callback to SupplierPanel to return to game
+        supplierPanel.setBackToGameCallback(() -> {
+            cardLayout.show(cardsPanel, "GAME");
+            gamePanel.requestFocusInWindow();
+        });
 
         JPanel menuPanel = new JPanel(new BorderLayout());
         menuPanel.setOpaque(false);
@@ -73,7 +79,7 @@ public class MainMenu extends JFrame {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 try {
-                    Image bgImg = new ImageIcon(getClass().getResource("../assets/background.png")).getImage();
+                    Image bgImg = new ImageIcon(getClass().getResource("../assets/backgrounds/MainMenu.png")).getImage();
                     g.drawImage(bgImg, 0, 0, getWidth(), getHeight(), this);
                 } catch (Exception e) {
                     g.setColor(new Color(50, 30, 10));
@@ -159,7 +165,7 @@ public class MainMenu extends JFrame {
 
         menuPanel.add(buttonsPanel, BorderLayout.CENTER);
 
-        JLabel versionLabel = StyledButton.createLabel("v0.1 Alpha", 18, Color.LIGHT_GRAY, Font.PLAIN, JLabel.CENTER);
+        JLabel versionLabel = StyledButton.createLabel("Alpha v1", 18, Color.LIGHT_GRAY, Font.PLAIN, JLabel.CENTER);
         menuPanel.add(versionLabel, BorderLayout.SOUTH);
 
         cardsPanel.add(menuPanel, "MENU");
@@ -167,6 +173,7 @@ public class MainMenu extends JFrame {
         cardsPanel.add(settingsPanel, "SETTINGS");
         cardsPanel.add(pauseMenuPanel, "PAUSE_MENU");
         cardsPanel.add(newGamePanel, "NEW_GAME");
+        cardsPanel.add(supplierPanel, "SUPPLIER");
         background.add(cardsPanel, BorderLayout.CENTER);
 
 
@@ -176,7 +183,6 @@ public class MainMenu extends JFrame {
         actionMap.put("showPauseMenu", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Only show pause menu if the GAME panel is currently visible
                 for (Component comp : cardsPanel.getComponents()) {
                     if (comp.isVisible() && comp == gamePanel) {
                         cardLayout.show(cardsPanel, "PAUSE_MENU");
@@ -184,6 +190,13 @@ public class MainMenu extends JFrame {
                     }
                 }
             }
+        });
+
+        // Provide a way for GamePanel to show the supplier panel
+        gamePanel.setShowSupplierPanelCallback(() -> {
+            cardLayout.show(cardsPanel, "SUPPLIER");
+            supplierPanel.refresh();
+            supplierPanel.requestFocusInWindow();
         });
 
         setVisible(true);

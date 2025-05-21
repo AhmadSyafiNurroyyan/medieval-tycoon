@@ -56,7 +56,7 @@ public class Player {
     }
 
     public class PlayerMovement {
-        private int x = 885, y = 729; // x, y are now the CENTER of the player
+        private int x = 885, y = 729; 
         private final int speed = 5;
         private boolean up, down, left, right;
         private Image[][] sprites = new Image[4][4];
@@ -102,7 +102,6 @@ public class Player {
             if (left)  { nextX -= speed; }
             if (right) { nextX += speed; }
 
-            // Collision checks use top-left corner, so adjust
             int halfW = spriteWidth / 2;
             int halfH = spriteHeight / 2;
             int size = spriteWidth;

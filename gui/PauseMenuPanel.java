@@ -21,15 +21,14 @@ public class PauseMenuPanel extends JPanel {
 
         resumeButton.addActionListener(e -> {
             cardLayout.show(cardsPanel, "GAME");
-            // Request focus for the game panel so key events work
             for (Component comp : cardsPanel.getComponents()) {
                 if (comp instanceof GamePanel) {
                     comp.requestFocusInWindow();
                     break;
                 }
             }
-        });        pauseSettingsButton.addActionListener(e -> {
-            // Get the settings panel and set its previous screen to PAUSE_MENU
+        });        
+        pauseSettingsButton.addActionListener(e -> {
             Component[] components = cardsPanel.getComponents();
             for (Component comp : components) {
                 if (comp instanceof SettingsPanel) {

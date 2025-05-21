@@ -1,7 +1,7 @@
 package model;
 
-import java.util.*;
 import enums.JenisBarang;
+import java.util.*;
 
 public class Inventory {
 

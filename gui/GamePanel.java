@@ -24,6 +24,8 @@ public class GamePanel extends JPanel implements Runnable {
     private TileManager tileManager;
     private Camera camera;
     private TriggerZoneManager triggerZoneManager;
+    private Supplier supplier; 
+    private Runnable showSupplierPanelCallback;
 
     
     
@@ -37,8 +39,11 @@ public class GamePanel extends JPanel implements Runnable {
         tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
+        supplier = new Supplier(); 
         triggerZoneManager.addZone("supplier", 511, 480, 1054, 575, true, () -> {
-            System.out.println("Supplier triggered");
+            if (showSupplierPanelCallback != null) {
+                SwingUtilities.invokeLater(showSupplierPanelCallback);
+            }
         });
         triggerZoneManager.addZone("home", 68, 32, 217, 205, true, () -> {
             System.out.println("Home triggered");
@@ -66,7 +71,8 @@ public class GamePanel extends JPanel implements Runnable {
                     }
                 }
             }
-            @Override public void keyReleased(KeyEvent e) {
+            @Override 
+            public void keyReleased(KeyEvent e) {
                 playerMovement.keyReleased(e.getKeyCode());
             }
         });
@@ -86,6 +92,7 @@ public class GamePanel extends JPanel implements Runnable {
                 debugger.DebugClickLogger.logClickCoordinates(e, mapX, mapY);
             }
         });
+        
     }
 
     @Override
@@ -185,6 +192,12 @@ public class GamePanel extends JPanel implements Runnable {
     }
     public TileManager getTileManager() {
         return tileManager;
+    }
+    public void setShowSupplierPanelCallback(Runnable cb) {
+        this.showSupplierPanelCallback = cb;
+    }
+    public Supplier getSupplier() {
+        return supplier;
     }
 }
 

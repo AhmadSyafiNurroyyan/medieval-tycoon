@@ -1,9 +1,8 @@
 package model;
 
 import enums.JenisBarang;
-import interfaces.Transaksi;
 import interfaces.Showable;
-
+import interfaces.Transaksi;
 import java.util.*;
 
 public class Supplier implements Transaksi<JenisBarang>, Showable {
@@ -54,7 +53,7 @@ public class Supplier implements Transaksi<JenisBarang>, Showable {
         }
 
         player.kurangiMoney(harga);
-        player.tambahBarang(new Barang(jenis));
+        //player.getInventory().tambahBarang(new Barang(jenis));
 
         System.out.println("Berhasil membeli: " + jenis.name());
         return true;
