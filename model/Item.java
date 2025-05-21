@@ -31,6 +31,10 @@ public class Item implements Showable, Upgrade {
     public int getHarga() {
         return jenis.getHarga();
     }
+    
+    public int getBiayaUpgrade() {
+        return jenis.getBiayaUpgrade();
+    }
 
     public JenisItem getJenis() {
         return jenis;
@@ -57,17 +61,13 @@ public class Item implements Showable, Upgrade {
         return Math.min(level * CHANCE_PER_LEVEL, MAX_CHANCE);
     }
 
-   @Override
+    @Override
     public boolean upgradeLevel() {
         if (level < MAX_LEVEL) {
             level++;
             return true;
         }
         return false;
-    }
-
-    public boolean triggerEffect() {
-        return Math.random() < getChance();
     }
 
     @Override
