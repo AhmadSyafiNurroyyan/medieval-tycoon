@@ -5,7 +5,7 @@ import model.Player.PlayerMovement;
 import tiles.TileManager;
 
 public class Camera {
-    private int x, y; // top-left corner of camera in world coordinates
+    private int x, y; 
     private int viewportWidth, viewportHeight;
     private int worldWidth, worldHeight;
 

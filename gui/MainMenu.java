@@ -47,8 +47,12 @@ public class MainMenu extends JFrame {
         SettingsPanel settingsPanel = new SettingsPanel();
         PauseMenuPanel pauseMenuPanel = new PauseMenuPanel(cardLayout, cardsPanel);
         SupplierPanel supplierPanel = new SupplierPanel(gamePanel.getSupplier(), gamePanel.getPlayer());
-        // Pass a callback to SupplierPanel to return to game
         supplierPanel.setBackToGameCallback(() -> {
+            cardLayout.show(cardsPanel, "GAME");
+            gamePanel.requestFocusInWindow();
+        });
+        HomeBasePanel homeBasePanel = new HomeBasePanel(gamePanel.getPlayer());
+        homeBasePanel.setBackToGameCallback(() -> {
             cardLayout.show(cardsPanel, "GAME");
             gamePanel.requestFocusInWindow();
         });
@@ -174,6 +178,7 @@ public class MainMenu extends JFrame {
         cardsPanel.add(pauseMenuPanel, "PAUSE_MENU");
         cardsPanel.add(newGamePanel, "NEW_GAME");
         cardsPanel.add(supplierPanel, "SUPPLIER");
+        cardsPanel.add(homeBasePanel, "HOME_BASE");
         background.add(cardsPanel, BorderLayout.CENTER);
 
 
@@ -191,12 +196,15 @@ public class MainMenu extends JFrame {
                 }
             }
         });
-
-        // Provide a way for GamePanel to show the supplier panel
+        
         gamePanel.setShowSupplierPanelCallback(() -> {
             cardLayout.show(cardsPanel, "SUPPLIER");
             supplierPanel.refresh();
             supplierPanel.requestFocusInWindow();
+        });
+        gamePanel.setShowHomeBasePanelCallback(() -> {
+            cardLayout.show(cardsPanel, "HOME_BASE");
+            homeBasePanel.requestFocusInWindow();
         });
 
         setVisible(true);

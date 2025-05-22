@@ -26,6 +26,7 @@ public class GamePanel extends JPanel implements Runnable {
     private TriggerZoneManager triggerZoneManager;
     private Supplier supplier; 
     private Runnable showSupplierPanelCallback;
+    private Runnable showHomeBasePanelCallback;
 
     
     
@@ -46,7 +47,9 @@ public class GamePanel extends JPanel implements Runnable {
             }
         });
         triggerZoneManager.addZone("home", 68, 32, 217, 205, true, () -> {
-            System.out.println("Home triggered");
+            if (showHomeBasePanelCallback != null) {
+                SwingUtilities.invokeLater(showHomeBasePanelCallback);
+            }
         });
         
 
@@ -195,6 +198,9 @@ public class GamePanel extends JPanel implements Runnable {
     }
     public void setShowSupplierPanelCallback(Runnable cb) {
         this.showSupplierPanelCallback = cb;
+    }
+    public void setShowHomeBasePanelCallback(Runnable cb) {
+        this.showHomeBasePanelCallback = cb;
     }
     public Supplier getSupplier() {
         return supplier;

@@ -23,7 +23,7 @@ public class SupplierPanel extends JPanel {
         setOpaque(true);
         setBackground(new Color(245, 222, 179));
 
-        JLabel title = new JLabel("Supplier - Stok Hari Ini", JLabel.CENTER);
+        JLabel title = new JLabel("Supplier ", JLabel.CENTER);
         title.setFont(new Font("Serif", Font.BOLD, 32));
         title.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         add(title, BorderLayout.NORTH);
@@ -68,7 +68,7 @@ public class SupplierPanel extends JPanel {
                 .reduce((a, b) -> a + " " + b).orElse(jenis.name());
 
             //ImageIcon icon = new ImageIcon("assets/icons/" + jenis.getIconPath());
-            Image icon = new ImageIcon("assets/icons/" + jenis.getIconPath()).getImage().getScaledInstance(16,16, Image.SCALE_SMOOTH);
+            Image icon = new ImageIcon("assets/icons/" + jenis.getIconPath()).getImage().getScaledInstance(40,40, Image.SCALE_SMOOTH);
             ImageIcon scaledIcon = new ImageIcon(icon);
             JLabel nameLabel = new JLabel(formattedName, scaledIcon, JLabel.LEFT);
             nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
