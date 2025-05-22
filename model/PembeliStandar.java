@@ -10,7 +10,7 @@ public class PembeliStandar extends Pembeli {
     public int tawarHarga(int hargaAwal) {
         return generateOffer(hargaAwal); 
     }
-
+    
     @Override
     public boolean putuskanTransaksi(int hargaFinal) {
         return hargaFinal <= maxTawaran;
