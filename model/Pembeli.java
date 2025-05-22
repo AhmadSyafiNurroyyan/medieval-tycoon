@@ -3,7 +3,7 @@ public abstract class Pembeli implements Menawar {
     protected double tawarMultiplier;
     protected double maxTawaran;
     protected double peluangMuncul; 
-
+    
     public Pembeli(String kategori, double tawarMultiplier) {
         this.kategori = kategori;
         this.tawarMultiplier = tawarMultiplier;
