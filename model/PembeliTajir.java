@@ -6,7 +6,6 @@ public class PembeliTajir extends Pembeli {
         peluangMuncul = 0.1;
     }
 
-
     @Override
     public int tawarHarga(int hargaAwal) {
         if (Math.random() < 0.5) {
