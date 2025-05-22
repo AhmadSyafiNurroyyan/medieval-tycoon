@@ -1,13 +1,12 @@
 package gui;
 
-import model.Supplier;
-import model.Player;
 import enums.JenisBarang;
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.util.Arrays;
 import java.util.Set;
+import javax.swing.*;
+import model.Player;
+import model.Supplier;
 
 public class SupplierPanel extends JPanel {
     private Supplier supplier;
@@ -64,14 +63,14 @@ public class SupplierPanel extends JPanel {
             gbc.insets = new Insets(5, 5, 5, 5);
             gbc.gridy = 0;
 
-            // Format name: replace _ with space, capitalize each word
             String formattedName = Arrays.stream(jenis.name().toLowerCase().split("_"))
                 .map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1))
                 .reduce((a, b) -> a + " " + b).orElse(jenis.name());
 
             //ImageIcon icon = new ImageIcon("assets/icons/" + jenis.getIconPath());
-            ImageIcon icon = new ImageIcon("assets/sprites/dir1_0.png");
-            JLabel nameLabel = new JLabel(formattedName, icon, JLabel.LEFT);
+            Image icon = new ImageIcon("assets/icons/" + jenis.getIconPath()).getImage().getScaledInstance(16,16, Image.SCALE_SMOOTH);
+            ImageIcon scaledIcon = new ImageIcon(icon);
+            JLabel nameLabel = new JLabel(formattedName, scaledIcon, JLabel.LEFT);
             nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
             gbc.gridx = 0;
             gbc.anchor = GridBagConstraints.WEST;
