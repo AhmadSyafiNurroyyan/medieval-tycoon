@@ -1,23 +1,33 @@
 package model;
 
-import enums.JenisBarang;
+import interfaces.Showable;
 
-public class Barang implements Cloneable {
+public class Barang implements Showable {
 
-    private final JenisBarang jenis;
+    private final String nama;
+    private final String kategori;
     private final int hargaBeli;
-    private int hargaJual;
     private int kesegaran;
+    private final String iconPath;
 
-    public Barang(JenisBarang jenis) {
-        this.jenis = jenis;
-        this.hargaBeli = jenis.getHarga();
+    public Barang(String nama, String kategori, int hargaBeli, String iconPath) {
+        this.nama = nama;
+        this.kategori = kategori;
+        this.hargaBeli = hargaBeli;
         this.kesegaran = 100;
-        this.hargaJual = hargaBeli;
+        this.iconPath = iconPath;
+    }
+
+    public Barang(Barang b) {
+        this.nama = b.nama;
+        this.kategori = b.kategori;
+        this.hargaBeli = b.hargaBeli;
+        this.kesegaran = b.kesegaran;
+        this.iconPath = b.iconPath;
     }
 
     public void kurangiKesegaran() {
-        kesegaran = Math.max(0, kesegaran - 25);
+        kesegaran = kesegaran - 25;
     }
 
     public boolean isBusuk() {
@@ -32,46 +42,26 @@ public class Barang implements Cloneable {
         return kesegaran;
     }
 
-    public JenisBarang getJenis() {
-        return jenis;
+    public String getNamaBarang() {
+        return nama;
     }
 
     public int getHargaBeli() {
         return hargaBeli;
     }
 
-    public int getHargaJual() {
-        return hargaJual;
-    }
-
-    public boolean setHargaJual(int hargaJualBaru) {
-        if (hargaJualBaru >= hargaBeli && hargaJualBaru <= 2 * hargaBeli) {
-            this.hargaJual = hargaJualBaru;
-            return true;
-        }
-        return false;
+    public String getIconPath() {
+        return iconPath;
     }
 
     public String getKategori() {
-        return jenis.getKategori();
-    }
-
-    public String getNamaBarang() {
-        return jenis.name();
+        return kategori;
     }
 
     @Override
-    public String toString() {
-        return String.format("%s (Kesegaran: %d%%, Harga Jual: %d)",
-                jenis.name(), kesegaran, hargaJual);
-    }
-
-    @Override
-    public Barang clone() throws CloneNotSupportedException {
-        try {
-            return (Barang) super.clone();
-        } catch (CloneNotSupportedException e) {
-            return new Barang(this.jenis);
-        }
+    public void tampilkanDetail() {
+        System.out.println(nama);
+        System.out.println(iconPath);
+        System.out.println("Rp" + hargaBeli);
     }
 }
