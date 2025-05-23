@@ -1,46 +1,58 @@
 package model;
 
-import enums.JenisItem;
 import interfaces.Transaksi;
 import interfaces.Showable;
+import java.util.*;
 
-public class TokoItem implements Transaksi<JenisItem>, Showable {
+public class TokoItem implements Transaksi<Item>, Showable {
 
     protected Player player;
+    private final List<Item> listItem = new ArrayList<>();
 
     public TokoItem(Player player) {
         this.player = player;
+        inisialisasiItem();
+    }
+
+    private void inisialisasiItem() {
+        listItem.add(new Item("Hipnotis", "Meningkatkan peluang pembeli tidak menawar", 100_000, 40_000));
+        listItem.add(new Item("Rayuan", "Meningkatkan peluang pembeli membeli dengan harga tinggi", 150_000, 60_000));
+        listItem.add(new Item("Bonus Kesabaran", "Memperlama waktu tunggu pembeli", 120_000, 50_000));
+        listItem.add(new Item("Segarkan Dagangan", "Meningkatkan kesegaran barang dagangan", 200_000, 90_000));
+        listItem.add(new Item("Memperbesar Peluang Beli", "Meningkatkan peluang pembeli untuk JADI beli", 180_000, 70_000));
     }
 
     @Override
-    public boolean beli(Player player, JenisItem jenis) {
-        int harga = jenis.getHarga();
+    public boolean beli(Player player, Item item) {
+        if (!listItem.contains(item)) {
+            System.out.println("Item tidak tersedia di toko.");
+            return false;
+        }
 
-        if (player.getMoney() < harga) {
+        if (player.getMoney() < item.getHarga()) {
             System.out.println("Uang tidak cukup untuk membeli item.");
             return false;
         }
 
-        if (player.cariItem(jenis) != null) {
+        if (player.cariItem(item.getNama()) != null) {
             System.out.println("Item sudah dimiliki.");
             return false;
         }
 
-        player.kurangiMoney(harga);
-        player.tambahItem(new Item(jenis));
-
-        System.out.println("Berhasil membeli item: " + jenis.getNama());
+        player.kurangiMoney(item.getHarga());
+        player.tambahItem(new Item(item.getNama(), item.getDeskripsi(), item.getHarga(), item.getBiayaUpgrade()));
+        System.out.println("Berhasil membeli item: " + item.getNama());
         return true;
     }
 
-    public void upgradeItem(Player player, JenisItem jenis) {
-        Item item = player.cariItem(jenis);
+    public void upgradeItem(Player player, String namaItem) {
+        Item item = player.cariItem(namaItem);
         if (item == null) {
             System.out.println("Item belum dimiliki.");
             return;
         }
 
-        int biaya = jenis.getBiayaUpgrade();
+        int biaya = item.getBiayaUpgrade();
         if (player.getMoney() < biaya) {
             System.out.println("Uang tidak cukup untuk upgrade.");
             return;
@@ -58,8 +70,12 @@ public class TokoItem implements Transaksi<JenisItem>, Showable {
     @Override
     public void tampilkanDetail() {
         System.out.println("=== Daftar Item di Toko ===");
-        for (JenisItem jenis : JenisItem.values()) {
-            jenis.tampilkanDetail();
+        for (Item item : listItem) {
+            item.tampilkanDetail();
         }
+    }
+
+    public List<Item> getDaftarItem() {
+        return new ArrayList<>(listItem);
     }
 }
