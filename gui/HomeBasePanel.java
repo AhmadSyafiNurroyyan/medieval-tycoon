@@ -44,8 +44,8 @@ public class HomeBasePanel extends JPanel {
         
         add(titleLabel);
 
-        btn1 = StyledButton.create("Inventory");
-        btn2 = StyledButton.create("Supplier");
+        btn1 = StyledButton.create("Gudang");
+        btn2 = StyledButton.create("Gerobak");
         btn3 = StyledButton.create("Perks");
         btn4 = StyledButton.create("Settings");
         btn5 = StyledButton.create("Help");
@@ -62,6 +62,15 @@ public class HomeBasePanel extends JPanel {
         });
         // Add backButton to be painted directly in paintComponent
         add(backButton);
+
+        btn1.addActionListener(e -> {});
+        btn2.addActionListener(e -> {
+
+        });
+        btn3.addActionListener(e -> {});
+        btn4.addActionListener(e -> {
+        });
+        btn5.addActionListener(e -> {});
     }
 
     public void setBackToGameCallback(Runnable cb) {
