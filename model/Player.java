@@ -4,25 +4,39 @@ import enums.JenisItem;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.ImageObserver;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Random;
 import javax.swing.*;
 
 public class Player {
+
     private String username;
     private int ID;
     private int level;
     private int money;
     private List<Item> daftarItem = new ArrayList<>();
+    private List<Perk> semuaPerkDimiliki = new ArrayList<>();
+    private List<Perk> perkDipilihUntukJualan = new ArrayList<>();
+    private Perk perk;
 
-    
-    public Player() {}
-    
+    public Player() {
+    }
+
     public Player(String username) {
         this.username = username;
         this.ID = (int) (Math.random() * 9999999 + 80000000);
         this.level = 1;
         this.money = 100000;
+
+        List<Perk> pilihanPerk = new ArrayList<>();
+        pilihanPerk.add(new PerksElegan());
+        pilihanPerk.add(new PerksCharming());
+        pilihanPerk.add(new PerksActive());
+
+        Perk perkGratis = pilihanPerk.get(new Random().nextInt(pilihanPerk.size()));
+        semuaPerkDimiliki.add(perkGratis);
+        System.out.println("Perk gratis diberikan: " + perkGratis.getTypeName());
     }
 
     public String getUsername() {
@@ -52,30 +66,86 @@ public class Player {
     public int getMoney() {
         return money;
     }
-    
-     public void tambahMoney(int jumlah){
+
+    public void tambahMoney(int jumlah) {
         this.money += jumlah;
     }
 
-    public void kurangiMoney(int jumlah){
+    public void kurangiMoney(int jumlah) {
         this.money -= jumlah;
     }
 
-    public Item cariItem(JenisItem jenis) {
+    public List<Item> getDaftarItem() {
+        return daftarItem;
+    }
+
+    public void addItem(Item item) {
+        daftarItem.add(item);
+    }
+
+    public Item cariItem(String nama) {
         for (Item item : daftarItem) {
-            if (item.getJenis() == jenis) {
-                return item; 
+            if (item.getNama().equalsIgnoreCase(nama)) {
+                return item;
             }
         }
         return null;
     }
-    
+
     public void tambahItem(Item item) {
         daftarItem.add(item);
     }
 
+    public List<Perk> getSemuaPerkDimiliki() {
+        return semuaPerkDimiliki;
+    }
+
+    public void addPerk(Perk perk) {
+        semuaPerkDimiliki.add(perk);
+    }
+
+    public void removePerk(Perk perk) {
+        semuaPerkDimiliki.remove(perk);
+        perkDipilihUntukJualan.remove(perk);
+    }
+
+    public List<Perk> getPerkDipilihUntukJualan() {
+        return perkDipilihUntukJualan;
+    }
+
+    public boolean pilihPerkUntukJualan(Perk perk) {
+        if (!semuaPerkDimiliki.contains(perk)) {
+            System.out.println("Perk tidak dimiliki.");
+            return false;
+        }
+
+        if (perkDipilihUntukJualan.contains(perk)) {
+            System.out.println("Perk sudah dipilih.");
+            return false;
+        }
+
+        if (perkDipilihUntukJualan.size() >= 2) {
+            System.out.println("Maksimal 2 perk saja boleh dibawa saat jualan.");
+            return false;
+        }
+
+        perkDipilihUntukJualan.add(perk);
+        perk.activate(); // aktifkan saat dipilih
+        System.out.println("Perk dipilih untuk jualan: " + perk.getTypeName());
+        return true;
+    }
+
+    public void resetPerkUntukJualan() {
+        for (Perk perk : perkDipilihUntukJualan) {
+            perk.deactivate();
+        }
+        perkDipilihUntukJualan.clear();
+        System.out.println("Perk untuk jualan telah direset.");
+    }
+
     public class PlayerMovement {
-        private int x = 885, y = 729; 
+
+        private int x = 885, y = 729;
         private final int speed = 5;
         private boolean up, down, left, right;
         private Image[][] sprites = new Image[4][4];
@@ -88,7 +158,7 @@ public class Player {
             for (int d = 0; d < sprites.length; d++) {
                 for (int f = 0; f < sprites[d].length; f++) {
                     sprites[d][f] = new ImageIcon(
-                        getClass().getResource("../assets/sprites/dir" + d + "_" + f + ".png")
+                            getClass().getResource("../assets/sprites/dir" + d + "_" + f + ".png")
                     ).getImage();
                 }
             }
@@ -100,7 +170,6 @@ public class Player {
         //     if (down)  { y += speed; direction = 0; moving = true; }
         //     if (left)  { x -= speed; direction = 1; moving = true; }
         //     if (right) { x += speed; direction = 2; moving = true; }
-
         //     if (moving) {
         //         gui.DebugCoordinateLogger.logPlayerCoordinates(this);
         //         animCount++;
@@ -112,14 +181,21 @@ public class Player {
         //         frameIndex = 0;
         //     }
         // }
-        
         public void update(int mapWidth, int mapHeight, int tileSize, tiles.MapObjectManager mapObjectManager, tiles.TileManager tileManager) {
             boolean moving = false;
             int nextX = x, nextY = y;
-            if (up)    { nextY -= speed; }
-            if (down)  { nextY += speed; }
-            if (left)  { nextX -= speed; }
-            if (right) { nextX += speed; }
+            if (up) {
+                nextY -= speed;
+            }
+            if (down) {
+                nextY += speed;
+            }
+            if (left) {
+                nextX -= speed;
+            }
+            if (right) {
+                nextX += speed;
+            }
 
             int halfW = spriteWidth / 2;
             int halfH = spriteHeight / 2;
@@ -160,19 +236,43 @@ public class Player {
             }
 
             if (!blockedByMap && !blockedBySolidTile && !blockedByObject) {
-                if (up)    { y -= speed; direction = 3; moving = true; }
-                if (down)  { y += speed; direction = 0; moving = true; }
-                if (left)  { x -= speed; direction = 1; moving = true; }
-                if (right) { x += speed; direction = 2; moving = true; }
+                if (up) {
+                    y -= speed;
+                    direction = 3;
+                    moving = true;
+                }
+                if (down) {
+                    y += speed;
+                    direction = 0;
+                    moving = true;
+                }
+                if (left) {
+                    x -= speed;
+                    direction = 1;
+                    moving = true;
+                }
+                if (right) {
+                    x += speed;
+                    direction = 2;
+                    moving = true;
+                }
             }
 
             int min = 0 + halfW;
             int maxX = mapWidth * tileSize - halfW;
             int maxY = mapHeight * tileSize - halfH;
-            if (x < min) x = min;
-            if (y < min) y = min;
-            if (x > maxX) x = maxX;
-            if (y > maxY) y = maxY;
+            if (x < min) {
+                x = min;
+            }
+            if (y < min) {
+                y = min;
+            }
+            if (x > maxX) {
+                x = maxX;
+            }
+            if (y > maxY) {
+                y = maxY;
+            }
 
             if (moving) {
                 //debugger.DebugCoordinateLogger.logPlayerCoordinates(this);
@@ -188,63 +288,88 @@ public class Player {
 
         public void keyPressed(int keyCode) {
             switch (keyCode) {
-                case KeyEvent.VK_W -> up = true;
-                case KeyEvent.VK_S -> down = true;
-                case KeyEvent.VK_A -> left = true;
-                case KeyEvent.VK_D -> right = true;
+                case KeyEvent.VK_W ->
+                    up = true;
+                case KeyEvent.VK_S ->
+                    down = true;
+                case KeyEvent.VK_A ->
+                    left = true;
+                case KeyEvent.VK_D ->
+                    right = true;
             }
         }
 
         public void keyReleased(int keyCode) {
             switch (keyCode) {
-                case KeyEvent.VK_W -> up = false;
-                case KeyEvent.VK_S -> down = false;
-                case KeyEvent.VK_A -> left = false;
-                case KeyEvent.VK_D -> right = false;
+                case KeyEvent.VK_W ->
+                    up = false;
+                case KeyEvent.VK_S ->
+                    down = false;
+                case KeyEvent.VK_A ->
+                    left = false;
+                case KeyEvent.VK_D ->
+                    right = false;
             }
         }
+
         public void resetKeys() {
             up = down = left = right = false;
         }
-        public int getX() {return x;}
-        public int getY() {return y;}
-        public int getSpriteWidth() { return spriteWidth; }
-        public int getSpriteHeight() { return spriteHeight; }
-        public Image getCurrentFrame() {return sprites[direction][frameIndex];}
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public int getSpriteWidth() {
+            return spriteWidth;
+        }
+
+        public int getSpriteHeight() {
+            return spriteHeight;
+        }
+
+        public Image getCurrentFrame() {
+            return sprites[direction][frameIndex];
+        }
     }
 
-    public class PlayerSkin implements ImageObserver{
+    public class PlayerSkin implements ImageObserver {
+
         private Font nametagFont;
-        
+
         public PlayerSkin() {
             nametagFont = new Font("Arial", Font.BOLD, 14);
         }
-        
+
         public void render(Graphics g, int x, int y, Image playerSkin) {
 
             if (username != null && !username.isEmpty()) {
                 g.drawImage(
-                    playerSkin,
-                    x,y,
-                    this
+                        playerSkin,
+                        x, y,
+                        this
                 );
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setFont(nametagFont);
-                
+
                 FontMetrics metrics = g2d.getFontMetrics(nametagFont);
                 int nameWidth = metrics.stringWidth(username);
-                
+
                 int nameX = x + 32 - (nameWidth / 2);
                 int nameY = y - 10;
-                
+
                 g2d.setColor(new Color(0, 0, 0, 128));
                 g2d.fillRoundRect(nameX - 4, nameY - metrics.getHeight() + 4, nameWidth + 8, metrics.getHeight() + 2, 5, 5);
-                
+
                 g2d.setColor(Color.WHITE);
                 g2d.drawString(username, nameX, nameY);
             }
         }
-        
+
         public void setFont(Font font) {
             this.nametagFont = font;
         }
@@ -255,7 +380,7 @@ public class Player {
             throw new UnsupportedOperationException("Unimplemented method 'imageUpdate'");
         }
     }
-    
+
     public PlayerSkin createNametag() {
         return new PlayerSkin();
     }
