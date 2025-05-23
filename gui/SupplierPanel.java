@@ -1,14 +1,15 @@
 package gui;
 
-import enums.JenisBarang;
 import java.awt.*;
 import java.util.Arrays;
-import java.util.Set;
+import java.util.List;
 import javax.swing.*;
 import model.Player;
+import model.Barang;
 import model.Supplier;
 
 public class SupplierPanel extends JPanel {
+
     private Supplier supplier;
     private Player player;
     private JPanel itemsPanel;
@@ -43,9 +44,11 @@ public class SupplierPanel extends JPanel {
 
         JButton backButton = StyledButton.create("Kembali", 20, 120, 40);
         backButton.addActionListener(e -> {
-            if (backToGameCallback != null) backToGameCallback.run();
+            if (backToGameCallback != null) {
+                backToGameCallback.run();
+            }
         });
-        
+
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setOpaque(false);
         bottomPanel.add(moneyLabel, BorderLayout.CENTER);
@@ -55,20 +58,21 @@ public class SupplierPanel extends JPanel {
 
     private void populateItems() {
         itemsPanel.removeAll();
-        Set<JenisBarang> stok = supplier.getStokHariIni();
-        for (JenisBarang jenis : stok) {
+        List<Barang> stok = supplier.getStokHariIni();  // ini List<Barang>
+        for (Barang barang : stok) {  // Ganti JenisBarang jadi Barang
             JPanel itemRow = new JPanel(new GridBagLayout());
             itemRow.setOpaque(false);
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(5, 5, 5, 5);
             gbc.gridy = 0;
 
-            String formattedName = Arrays.stream(jenis.name().toLowerCase().split("_"))
-                .map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1))
-                .reduce((a, b) -> a + " " + b).orElse(jenis.name());
+            // Formatting nama barang supaya kapital di awal kata
+            String formattedName = Arrays.stream(barang.getNamaBarang().toLowerCase().split("_"))
+                    .map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1))
+                    .reduce((a, b) -> a + " " + b).orElse(barang.getNamaBarang());
 
-            //ImageIcon icon = new ImageIcon("assets/icons/" + jenis.getIconPath());
-            Image icon = new ImageIcon("assets/icons/" + jenis.getIconPath()).getImage().getScaledInstance(40,40, Image.SCALE_SMOOTH);
+            // Ambil icon barang, sesuaikan path jika perlu
+            Image icon = new ImageIcon("assets/icons/" + barang.getIconPath()).getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
             ImageIcon scaledIcon = new ImageIcon(icon);
             JLabel nameLabel = new JLabel(formattedName, scaledIcon, JLabel.LEFT);
             nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
@@ -77,7 +81,7 @@ public class SupplierPanel extends JPanel {
             gbc.weightx = 1;
             itemRow.add(nameLabel, gbc);
 
-            JLabel hargaLabel = new JLabel(jenis.getHarga() + "G");
+            JLabel hargaLabel = new JLabel(barang.getHargaBeli() + "G");  // harga beli dari barang
             hargaLabel.setFont(new Font("Serif", Font.PLAIN, 22));
             hargaLabel.setPreferredSize(new Dimension(90, 30));
             gbc.gridx = 1;
@@ -101,7 +105,7 @@ public class SupplierPanel extends JPanel {
             gbc.gridx = 4;
             itemRow.add(plusBtn, gbc);
 
-            JLabel totalLabel = new JLabel("= " + jenis.getHarga() + "G");
+            JLabel totalLabel = new JLabel("= " + barang.getHargaBeli() + "G");
             totalLabel.setFont(new Font("Serif", Font.BOLD, 22));
             totalLabel.setPreferredSize(new Dimension(110, 30));
             gbc.gridx = 5;
@@ -113,39 +117,50 @@ public class SupplierPanel extends JPanel {
 
             minusBtn.addActionListener(e -> {
                 int qty = Integer.parseInt(qtyField.getText());
-                if (qty > 1) qty--;
+                if (qty > 1) {
+                    qty--;
+                }
                 qtyField.setText(String.valueOf(qty));
-                totalLabel.setText("= " + (jenis.getHarga() * qty) + "G");
+                totalLabel.setText("= " + (barang.getHargaBeli() * qty) + "G");
             });
             plusBtn.addActionListener(e -> {
                 int qty = Integer.parseInt(qtyField.getText()) + 1;
                 qtyField.setText(String.valueOf(qty));
-                totalLabel.setText("= " + (jenis.getHarga() * qty) + "G");
+                totalLabel.setText("= " + (barang.getHargaBeli() * qty) + "G");
             });
             qtyField.addActionListener(e -> {
                 int qty;
-                try { qty = Math.max(1, Integer.parseInt(qtyField.getText())); }
-                catch (NumberFormatException ex) { qty = 1; }
+                try {
+                    qty = Math.max(1, Integer.parseInt(qtyField.getText()));
+                } catch (NumberFormatException ex) {
+                    qty = 1;
+                }
                 qtyField.setText(String.valueOf(qty));
-                totalLabel.setText("= " + (jenis.getHarga() * qty) + "G");
+                totalLabel.setText("= " + (barang.getHargaBeli() * qty) + "G");
             });
 
             buyButton.addActionListener(e -> {
                 int qty;
-                try { qty = Math.max(1, Integer.parseInt(qtyField.getText())); }
-                catch (NumberFormatException ex) { qty = 1; }
-                int totalHarga = jenis.getHarga() * qty;
+                try {
+                    qty = Math.max(1, Integer.parseInt(qtyField.getText()));
+                } catch (NumberFormatException ex) {
+                    qty = 1;
+                }
+                int totalHarga = barang.getHargaBeli() * qty;
                 if (player.getMoney() < totalHarga) {
                     JOptionPane.showMessageDialog(this, "Uang tidak cukup untuk membeli " + formattedName + " x" + qty + ".", "Gagal", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 boolean success = true;
                 for (int i = 0; i < qty; i++) {
-                    if (!supplier.beli(player, jenis)) { success = false; break; }
+                    if (!supplier.beli(player, barang.getNamaBarang())) {  // pakai nama barang (String)
+                        success = false;
+                        break;
+                    }
                 }
                 String msg = success ? "Berhasil membeli " + formattedName + " x" + qty + "!" : "Gagal membeli " + formattedName + ".";
                 JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal", success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
-                moneyLabel.setText("Uang: " + player.getMoney()+"G");
+                moneyLabel.setText("Uang: " + player.getMoney() + "G");
             });
 
             itemRow.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -160,7 +175,7 @@ public class SupplierPanel extends JPanel {
     }
 
     public void refresh() {
-        moneyLabel.setText("Uang: " + player.getMoney()+"G");
+        moneyLabel.setText("Uang: " + player.getMoney() + "G");
         populateItems();
     }
 }
