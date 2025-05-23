@@ -1,12 +1,14 @@
 package model;
 
-import enums.JenisItem;
 import interfaces.Showable;
 import interfaces.Upgrade;
 
 public class Item implements Showable, Upgrade {
 
-    private final JenisItem jenis;
+    private final String nama;
+    private final String deskripsi;
+    private final int harga;
+    private final int biayaUpgrade;
     private boolean isActive;
     private int level;
 
@@ -14,30 +16,29 @@ public class Item implements Showable, Upgrade {
     private static final double CHANCE_PER_LEVEL = 0.1;
     private static final double MAX_CHANCE = 0.5;
 
-    public Item(JenisItem jenis) {
-        this.jenis = jenis;
-        this.level = 1;
+    public Item(String nama, String deskripsi, int harga, int biayaUpgrade) {
+        this.nama = nama;
+        this.deskripsi = deskripsi;
+        this.harga = harga;
+        this.biayaUpgrade = biayaUpgrade;
+        this.level = 0;
         this.isActive = false;
     }
 
     public String getNama() {
-        return jenis.getNama();
+        return nama;
     }
 
     public String getDeskripsi() {
-        return jenis.getDeskripsi();
+        return deskripsi;
     }
 
     public int getHarga() {
-        return jenis.getHarga();
-    }
-    
-    public int getBiayaUpgrade() {
-        return jenis.getBiayaUpgrade();
+        return harga;
     }
 
-    public JenisItem getJenis() {
-        return jenis;
+    public int getBiayaUpgrade() {
+        return biayaUpgrade;
     }
 
     public boolean isActive() {
