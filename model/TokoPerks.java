@@ -1,7 +1,6 @@
 package model;
 
 import enums.PerkType;
-import exceptions.*;
 import interfaces.Transaksi;
 
 import java.util.HashMap;
@@ -29,15 +28,15 @@ public class TokoPerks implements Transaksi<Perk> {
 
     @Override
     public boolean beli(Player player, Perk perk) {
-        if (perk.isActive()) {
+        // Cek apakah perk sudah dimiliki
+        if (player.getSemuaPerkDimiliki().contains(perk)) {
             System.out.println("Perk sudah dimiliki.");
             return false;
         }
 
         if (player.getMoney() >= perk.getHarga()) {
-            player.kurangiUang(perk.getHarga());
-            perk.activate();
-            player.setPerk(perk);
+            player.kurangiMoney(perk.getHarga());
+            player.addPerk(perk);  // Simpan ke koleksi
             System.out.println("Berhasil membeli perk " + perk.getTypeName());
             return true;
         } else {
@@ -46,17 +45,16 @@ public class TokoPerks implements Transaksi<Perk> {
         }
     }
 
-    public boolean upgrade(Player player) {
-        Perk perk = player.getPerk();
-        if (perk == null || !perk.isActive()) {
-            System.out.println("Belum punya perk untuk di-upgrade.");
+    public boolean upgrade(Player player, Perk perk) {
+        if (perk == null || !player.getSemuaPerkDimiliki().contains(perk)) {
+            System.out.println("Perk tidak dimiliki.");
             return false;
         }
 
         int biaya = perk.getBiayaUpgrade();
-        if (player.getUang() >= biaya) {
+        if (player.getMoney() >= biaya) {
             if (perk.upgradeLevel()) {
-                player.kurangiUang(biaya);
+                player.kurangiMoney(biaya);
                 System.out.println("Upgrade berhasil ke level " + perk.getLevel());
                 return true;
             } else {
@@ -69,14 +67,13 @@ public class TokoPerks implements Transaksi<Perk> {
         }
     }
 
-    public boolean convert(Player player, PerkType targetType) {
-        Perk current = player.getPerk();
-        if (current == null || !current.isActive()) {
-            System.out.println("Belum punya perk aktif untuk dikonversi.");
+    public boolean convert(Player player, Perk perkSaatIni, PerkType targetType) {
+        if (perkSaatIni == null || !player.getSemuaPerkDimiliki().contains(perkSaatIni)) {
+            System.out.println("Perk tidak dimiliki.");
             return false;
         }
 
-        if (!current.canConvertTo(targetType)) {
+        if (!perkSaatIni.canConvertTo(targetType)) {
             System.out.println("Konversi tidak diizinkan.");
             return false;
         }
@@ -88,10 +85,11 @@ public class TokoPerks implements Transaksi<Perk> {
         }
 
         int biaya = targetPerk.getHarga();
-        if (player.getUang() >= biaya) {
-            player.kurangiUang(biaya);
-            targetPerk.activate();
-            player.setPerk(targetPerk);
+        if (player.getMoney() >= biaya) {
+            player.kurangiMoney(biaya);
+            targetPerk.resetUpgrade(); // Reset upgrade sebelum digunakan
+            player.removePerk(perkSaatIni);
+            player.addPerk(targetPerk);
             System.out.println("Konversi berhasil ke perk " + targetPerk.getTypeName());
             return true;
         } else {
