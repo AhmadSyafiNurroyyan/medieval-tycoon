@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-
 import model.Barang;
 import model.Inventory;
 
@@ -201,9 +201,9 @@ public class HomeBasePanel extends JPanel {
                     e -> updateGoodsTable(sortCombo.getSelectedIndex(), orderCombo.getSelectedIndex()));
             orderCombo.addActionListener(
                     e -> updateGoodsTable(sortCombo.getSelectedIndex(), orderCombo.getSelectedIndex()));
-            inventoryFrame.addInternalFrameListener(new javax.swing.event.InternalFrameAdapter() {
+            inventoryFrame.addInternalFrameListener(new InternalFrameAdapter() {
                 @Override
-                public void internalFrameClosed(javax.swing.event.InternalFrameEvent e) {
+                public void internalFrameClosed(InternalFrameEvent e) {
                     inventoryFrame = null;
                 }
             });
@@ -249,7 +249,7 @@ public class HomeBasePanel extends JPanel {
                 icon = new ImageIcon(img.getScaledInstance(32, 32, Image.SCALE_SMOOTH));
             } catch (Exception ignored) {
             }
-            data[i][0] = icon != null ? new JLabel(icon) : new JLabel();
+            data[i][0] = icon; // hanya ImageIcon, bukan JLabel
             data[i][1] = b.getNamaBarang();
             data[i][2] = b.getKategori();
             data[i][3] = b.getKesegaran();
@@ -260,7 +260,7 @@ public class HomeBasePanel extends JPanel {
         DefaultTableModel model = new DefaultTableModel(data, cols) {
             @Override
             public Class<?> getColumnClass(int c) {
-                return c == 0 ? JLabel.class : Object.class;
+                return c == 0 ? Icon.class : Object.class;
             }
 
             @Override
@@ -272,11 +272,17 @@ public class HomeBasePanel extends JPanel {
         goodsTable.setRowHeight(36);
         goodsTable.getColumnModel().getColumn(0).setPreferredWidth(40);
 
+        // Set renderer kolom icon agar menampilkan ImageIcon
+        goodsTable.getColumnModel().getColumn(0).setCellRenderer((_,value,_,_,_,_) -> {
+            JLabel label = new JLabel();
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setIcon(value instanceof Icon ? (Icon) value : null);
+            return label;
+        });
+
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        for (int i = 1; i < goodsTable.getColumnCount(); i++) {
-            goodsTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
-        }
+        goodsTable.setDefaultRenderer(Object.class, centerRenderer);
 
         if (lblJumlah != null) {
             lblJumlah.setText("Jumlah barang: " + inventory.getJumlahBarang());

@@ -1,7 +1,6 @@
 package gui;
 
 import javax.swing.SwingUtilities;
-
 import model.Player;
 
 public class main {
