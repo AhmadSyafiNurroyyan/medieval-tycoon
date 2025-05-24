@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import model.Barang;
@@ -234,6 +235,12 @@ public class HomeBasePanel extends JPanel {
         goodsTable.setModel(model);
         goodsTable.setRowHeight(36);
         goodsTable.getColumnModel().getColumn(0).setPreferredWidth(40);
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int i = 1; i < goodsTable.getColumnCount(); i++) {
+            goodsTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
     }
 
     public void setBackToGameCallback(Runnable cb) {
