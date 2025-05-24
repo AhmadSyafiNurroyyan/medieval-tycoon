@@ -1,5 +1,7 @@
 package model;
 
+import java.util.Objects;
+
 import interfaces.Showable;
 
 public class Barang implements Showable {
@@ -64,4 +66,20 @@ public class Barang implements Showable {
         System.out.println(iconPath);
         System.out.println("Rp" + hargaBeli);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        Barang barang = (Barang) obj;
+        return nama.equalsIgnoreCase(barang.nama);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nama.toLowerCase());
+    }
+
 }
