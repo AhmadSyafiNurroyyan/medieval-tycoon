@@ -34,19 +34,26 @@ public class TokoItem implements Transaksi<Item>, Showable {
             return false;
         }
 
-        if (player.cariItem(item.getNama()) != null) {
+        boolean sudahPunya = player.getInventory().getStokItem().stream()
+                .anyMatch(i -> i.getNama().equalsIgnoreCase(item.getNama()));
+
+        if (sudahPunya) {
             System.out.println("Item sudah dimiliki.");
             return false;
         }
 
         player.kurangiMoney(item.getHarga());
-        player.tambahItem(new Item(item.getNama(), item.getDeskripsi(), item.getHarga(), item.getBiayaUpgrade()));
+        player.getInventory().tambahItem(new Item(item.getNama(), item.getDeskripsi(), item.getHarga(), item.getBiayaUpgrade()));
         System.out.println("Berhasil membeli item: " + item.getNama());
         return true;
     }
 
     public void upgradeItem(Player player, String namaItem) {
-        Item item = player.cariItem(namaItem);
+        Item item = player.getInventory().getStokItem().stream()
+                .filter(i -> i.getNama().equalsIgnoreCase(namaItem))
+                .findFirst()
+                .orElse(null);
+
         if (item == null) {
             System.out.println("Item belum dimiliki.");
             return;
