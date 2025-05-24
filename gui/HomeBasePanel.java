@@ -26,6 +26,9 @@ public class HomeBasePanel extends JPanel {
     private JTable goodsTable;
     private Image bgImage;
     private Image tetoImage;
+    private JLabel lblJumlah;
+    private int currentSortBy = 0;
+    private int currentSortOrder = 0;
 
     public HomeBasePanel() {
         setLayout(null);
@@ -151,6 +154,39 @@ public class HomeBasePanel extends JPanel {
             sortPanel.add(orderCombo);
             goodsPanel.add(sortPanel, BorderLayout.NORTH);
             goodsPanel.add(goodsScroll, BorderLayout.CENTER);
+            
+            JButton btnHapus = new JButton("Hapus Barang");
+            btnHapus.setFont(new Font("SansSerif", Font.BOLD, 13));
+            btnHapus.setPreferredSize(new Dimension(123, 32));
+            lblJumlah = new JLabel("Jumlah barang: " + inventory.getJumlahBarang());
+            lblJumlah.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            lblJumlah.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 13));
+
+            JPanel bawahPanel = new JPanel(new BorderLayout());
+            bawahPanel.add(btnHapus, BorderLayout.WEST);
+            bawahPanel.add(lblJumlah, BorderLayout.EAST);
+            goodsPanel.add(bawahPanel, BorderLayout.SOUTH);
+
+            btnHapus.addActionListener(e -> {
+                int row = goodsTable.getSelectedRow();
+                if (row == -1) {
+                    JOptionPane.showMessageDialog(this, "Pilih barang terlebih dahulu!", "Peringatan",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                String nama = goodsTable.getValueAt(row, 1).toString();
+                Barang b = new Barang(nama);
+
+                if (inventory.hapusBarang(b)) {
+                    JOptionPane.showMessageDialog(this, "Barang berhasil dihapus.");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Barang tidak ditemukan.");
+                }
+
+                updateGoodsTable(currentSortBy, currentSortOrder); // refresh tabel dan label
+            });
+            
             tabbedPane.addTab("Goods", goodsPanel);
             // Tab Items (placeholder)
             JPanel itemsPanel = new JPanel();
@@ -240,6 +276,10 @@ public class HomeBasePanel extends JPanel {
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 1; i < goodsTable.getColumnCount(); i++) {
             goodsTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
+
+        if (lblJumlah != null) {
+            lblJumlah.setText("Jumlah barang: " + inventory.getJumlahBarang());
         }
     }
 
