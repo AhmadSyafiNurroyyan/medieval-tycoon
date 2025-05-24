@@ -1,6 +1,5 @@
 package model;
 
-import enums.JenisItem;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.ImageObserver;
@@ -15,7 +14,7 @@ public class Player {
     private int ID;
     private int level;
     private int money;
-    private List<Item> daftarItem = new ArrayList<>();
+    private Inventory inventory;
     private List<Perk> semuaPerkDimiliki = new ArrayList<>();
     private List<Perk> perkDipilihUntukJualan = new ArrayList<>();
     private Perk perk;
@@ -28,6 +27,7 @@ public class Player {
         this.ID = (int) (Math.random() * 9999999 + 80000000);
         this.level = 1;
         this.money = 100000;
+        this.inventory = new Inventory();
 
         List<Perk> pilihanPerk = new ArrayList<>();
         pilihanPerk.add(new PerksElegan());
@@ -75,25 +75,8 @@ public class Player {
         this.money -= jumlah;
     }
 
-    public List<Item> getDaftarItem() {
-        return daftarItem;
-    }
-
-    public void addItem(Item item) {
-        daftarItem.add(item);
-    }
-
-    public Item cariItem(String nama) {
-        for (Item item : daftarItem) {
-            if (item.getNama().equalsIgnoreCase(nama)) {
-                return item;
-            }
-        }
-        return null;
-    }
-
-    public void tambahItem(Item item) {
-        daftarItem.add(item);
+    public Inventory getInventory() {
+        return inventory;
     }
 
     public List<Perk> getSemuaPerkDimiliki() {
@@ -142,7 +125,7 @@ public class Player {
         perkDipilihUntukJualan.clear();
         System.out.println("Perk untuk jualan telah direset.");
     }
-
+    
     public class PlayerMovement {
 
         private int x = 885, y = 729;
