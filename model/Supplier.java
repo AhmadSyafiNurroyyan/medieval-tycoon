@@ -72,7 +72,7 @@ public class Supplier implements Transaksi<String>, Showable {
                 }
 
                 player.kurangiMoney(b.getHargaBeli());
-                //player.getInventory().tambahBarang(new Barang(b)); 
+                player.getInventory().tambahBarang(new Barang(b)); 
                 System.out.println("Berhasil membeli: " + b.getNamaBarang());
                 return true;
             }
