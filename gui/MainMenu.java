@@ -51,7 +51,7 @@ public class MainMenu extends JFrame {
             cardLayout.show(cardsPanel, "GAME");
             gamePanel.requestFocusInWindow();
         });
-        HomeBasePanel homeBasePanel = new HomeBasePanel(gamePanel.getPlayer());
+        HomeBasePanel homeBasePanel = new HomeBasePanel();
         homeBasePanel.setBackToGameCallback(() -> {
             cardLayout.show(cardsPanel, "GAME");
             gamePanel.requestFocusInWindow();
