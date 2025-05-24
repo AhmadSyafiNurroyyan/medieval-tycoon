@@ -12,6 +12,14 @@ public class Barang implements Showable {
     private int kesegaran;
     private final String iconPath;
 
+    public Barang(String nama) {
+        this.nama = nama;
+        this.kategori = "";
+        this.hargaBeli = 0;
+        this.kesegaran = 0;
+        this.iconPath = "";
+    }
+
     public Barang(String nama, String kategori, int hargaBeli, String iconPath) {
         this.nama = nama;
         this.kategori = kategori;
