@@ -31,7 +31,7 @@ public abstract class Perk implements Upgrade, Showable {
         this.biayaUpgrade = biayaUpgrade;
     }
 
-    public String getTypeName() {
+    public String getName() {
         return nama;
     }
 
@@ -67,16 +67,20 @@ public abstract class Perk implements Upgrade, Showable {
     public double getKesaktianSekarang() {
         return kesaktianSekarang;
     }
-    
+
     public int getHarga() {
         return harga;
     }
-    
+
     public int getBiayaUpgrade() {
         return biayaUpgrade;
     }
 
-    //public abstract double getPerkEffect();
+    public boolean isMaxLevel() {
+        return level >= MAX_LEVEL;
+    }
+
+    // public abstract double getPerkEffect();
 
     @Override
     public int getLevel() {
@@ -103,6 +107,11 @@ public abstract class Perk implements Upgrade, Showable {
         }
         this.type = targetType;
         resetUpgrade();
+    }
+
+    @Override
+    public String toString() {
+        return nama + " (Lv. " + level + ")";
     }
 
     @Override
