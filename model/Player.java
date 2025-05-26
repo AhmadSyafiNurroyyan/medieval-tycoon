@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
 
+import enums.PerkType;
+
 public class Player {
 
     private String username;
@@ -17,7 +19,6 @@ public class Player {
     private Inventory inventory;
     private List<Perk> semuaPerkDimiliki = new ArrayList<>();
     private List<Perk> perkDipilihUntukJualan = new ArrayList<>();
-    private Perk perk;
 
     public Player() {
     }
@@ -36,7 +37,7 @@ public class Player {
 
         Perk perkGratis = pilihanPerk.get(new Random().nextInt(pilihanPerk.size()));
         semuaPerkDimiliki.add(perkGratis);
-        System.out.println("Perk gratis diberikan: " + perkGratis.getTypeName());
+        System.out.println("Perk gratis diberikan: " + perkGratis.getName());
     }
 
     public String getUsername() {
@@ -114,7 +115,7 @@ public class Player {
 
         perkDipilihUntukJualan.add(perk);
         perk.activate(); // aktifkan saat dipilih
-        System.out.println("Perk dipilih untuk jualan: " + perk.getTypeName());
+        System.out.println("Perk dipilih untuk jualan: " + perk.getName());
         return true;
     }
 
@@ -124,6 +125,15 @@ public class Player {
         }
         perkDipilihUntukJualan.clear();
         System.out.println("Perk untuk jualan telah direset.");
+    }
+
+    public boolean hasPerk(PerkType type) {
+        for (Perk p : semuaPerkDimiliki) {
+            if (p.getPerkType() == type) {
+                return true;
+            }
+        }
+        return false;
     }
     
     public class PlayerMovement {
