@@ -1,86 +1,176 @@
 package model;
 
-import interfaces.Showable;
-import interfaces.Upgrade;
+import java.util.*;
 
-public class Gerobak implements Upgrade, Showable {
+public class Inventory {
 
-    private int level;
-    private static final int KAPASITAS_PERKS = 2;
-    private static final int MAX_LEVEL = 5;
+    private final Map<Barang, Integer> stokBarang;
+    private final Map<Barang, Integer> barangDibawa;
+    private final Map<String, Item> stokItem;
+    private final Set<String> itemDibawa;
+    private final Map<Barang, Integer> hargaJualBarang;
 
-    public Gerobak() {
-        this.level = 0;
+    public Inventory() {
+        this.stokBarang = new HashMap<>();
+        this.stokItem = new HashMap<>();
+        this.barangDibawa = new HashMap<>();
+        this.hargaJualBarang = new HashMap<>();
+        this.itemDibawa = new HashSet<>();
     }
 
-    @Override
-    public int getLevel() {
-        return level;
+    public void tambahItem(Item item) {
+        stokItem.putIfAbsent(item.getNama().toLowerCase(), item);
     }
 
-    public int getKapasitasBarang() {
-        switch (level) {
-            case 0:
-                return 20;
-            case 1:
-                return 30;
-            case 2:
-                return 45;
-            case 3:
-                return 60;
-            case 4:
-                return 75;
-            case 5:
-                return 90;
-            default:
-                return 20;
+    public void tambahBarang(Barang barang) {
+        stokBarang.put(barang, stokBarang.getOrDefault(barang, 0) + 1);
+    }
+
+    public List<Barang> getStokBarang() {
+        List<Barang> result = new ArrayList<>();
+        for (Map.Entry<Barang, Integer> entry : stokBarang.entrySet()) {
+            for (int i = 0; i < entry.getValue(); i++) {
+                result.add(entry.getKey());
+            }
+        }
+        return result;
+    }
+
+    public List<Item> getStokItem() {
+        return new ArrayList<>(stokItem.values());
+    }
+
+    public Item getItem(String namaItem) {
+        if (namaItem == null)
+            return null;
+        return stokItem.get(namaItem.toLowerCase());
+    }
+
+    public void bersihkanBarangBusuk() {
+        Iterator<Map.Entry<Barang, Integer>> iterator = stokBarang.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Barang, Integer> entry = iterator.next();
+            if (entry.getKey().isBusuk()) {
+                iterator.remove();
+            }
         }
     }
 
-    public int getKapasitasItem() {
-        if (level <= 1) {
-            return 1;
-        } else if (level <= 3) {
-            return 2;
-        } else {
-            return 3;
+    public void kurangiKesegaranSemua() {
+        for (Barang barang : stokBarang.keySet()) {
+            barang.kurangiKesegaran();
         }
     }
 
-    public int getKapasitasPerks() {
-        return KAPASITAS_PERKS;
-    }
-
-    public int getBiayaUpgrade() {
-        if (isMaxLevel()) {
-            return -1;
-        }
-        return 100_000 + (level * level * 25_000);
-    }
-
-    public boolean isMaxLevel() {
-        return this.level == MAX_LEVEL;
-    }
-
-    @Override
-    public boolean upgradeLevel() {
-        if (!isMaxLevel()) {
-            level++;
+    public boolean hapusBarang(Barang barang) {
+        if (stokBarang.containsKey(barang)) {
+            int count = stokBarang.get(barang);
+            if (count > 1) {
+                stokBarang.put(barang, count - 1);
+            } else {
+                stokBarang.remove(barang);
+            }
             return true;
         }
         return false;
     }
 
-    @Override
-    public void tampilkanDetail() {
-        System.out.println("Level: " + level);
-        System.out.println("Kapasitas Barang: " + getKapasitasBarang());
-        System.out.println("Kapasitas Item: " + getKapasitasItem());
-        System.out.println("Kapasitas Perks: " + KAPASITAS_PERKS);
-        if (!isMaxLevel()) {
-            System.out.println("Biaya Upgrade ke level " + (level + 1) + ": " + getBiayaUpgrade());
-        } else {
-            System.out.println("Gerobak sudah mencapai level maksimal.");
+    public int getJumlahBarang() {
+        int total = 0;
+        for (int count : stokBarang.values()) {
+            total += count;
+        }
+        return total;
+    }
+
+    public boolean hapusItem(String namaItem) {
+        return stokItem.remove(namaItem.toLowerCase()) != null;
+    }
+
+    public int getJumlahItem() {
+        return stokItem.size();
+    }
+
+    public void bawaBarang(Barang barang, int jumlah, int kapasitasGerobak) {
+        if (jumlah <= kapasitasBarangTersisa(kapasitasGerobak) && stokBarang.getOrDefault(barang, 0) >= jumlah) {
+            barangDibawa.put(barang, barangDibawa.getOrDefault(barang, 0) + jumlah);
+            int sisa = stokBarang.get(barang) - jumlah;
+            if (sisa > 0) {
+                stokBarang.put(barang, sisa);
+            } else {
+                stokBarang.remove(barang);
+            }
+        }
+    }
+
+    public void bawaItem(String namaItem, int kapasitasItem) {
+        if (itemDibawa.size() < kapasitasItem && stokItem.containsKey(namaItem.toLowerCase())) {
+            itemDibawa.add(namaItem.toLowerCase());
+        }
+    }
+
+    public void bawaOtomatisSemua(Gerobak g) {
+        int sisaBarang = g.getKapasitasBarang();
+        int sisaItem = g.getKapasitasItem();
+
+        for (Map.Entry<Barang, Integer> entry : stokBarang.entrySet()) {
+            if (sisaBarang <= 0)
+                break;
+            int jumlah = Math.min(entry.getValue(), sisaBarang);
+            bawaBarang(entry.getKey(), jumlah, g.getKapasitasBarang());
+            sisaBarang -= jumlah;
+        }
+
+        for (String namaItem : stokItem.keySet()) {
+            if (sisaItem <= 0)
+                break;
+            bawaItem(namaItem, g.getKapasitasItem());
+            sisaItem--;
+        }
+    }
+
+    public int kapasitasBarangTersisa(int kapasitasGerobak) {
+        int total = 0;
+        for (int val : barangDibawa.values()) {
+            total += val;
+        }
+        return kapasitasGerobak - total;
+    }
+
+    public int kapasitasItemTersisa(int kapasitasItem) {
+        return kapasitasItem - itemDibawa.size();
+    }
+
+    public void setHargaJual(Barang barang, int harga) {
+        hargaJualBarang.put(barang, harga);
+    }
+
+    public int getHargaJual(Barang barang) {
+        return hargaJualBarang.getOrDefault(barang, 0);
+    }
+
+    public Map<Barang, Integer> getBarangDibawa() {
+        return Collections.unmodifiableMap(barangDibawa);
+    }
+
+    public Set<String> getItemDibawa() {
+        return Collections.unmodifiableSet(itemDibawa);
+    }
+
+    public void undoBawaBarang(Barang barang, int jumlah) {
+        if (barangDibawa.containsKey(barang)) {
+            int dibawa = barangDibawa.get(barang);
+            int pengurangan = Math.min(jumlah, dibawa);
+
+            stokBarang.put(barang, stokBarang.getOrDefault(barang, 0) + pengurangan);
+
+            if (dibawa > pengurangan) {
+                barangDibawa.put(barang, dibawa - pengurangan);
+            } else {
+                barangDibawa.remove(barang);
+            }
+
+            System.out.println("Undo bawa " + barang.getNamaBarang() + ": -" + pengurangan);
         }
     }
 }
