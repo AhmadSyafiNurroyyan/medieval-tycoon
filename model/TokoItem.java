@@ -19,7 +19,8 @@ public class TokoItem implements Transaksi<Item>, Showable {
         listItem.add(new Item("Rayuan", "Meningkatkan peluang pembeli membeli dengan harga tinggi", 150_000, 60_000));
         listItem.add(new Item("Bonus Kesabaran", "Memperlama waktu tunggu pembeli", 120_000, 50_000));
         listItem.add(new Item("Segarkan Dagangan", "Meningkatkan kesegaran barang dagangan", 200_000, 90_000));
-        listItem.add(new Item("Memperbesar Peluang Beli", "Meningkatkan peluang pembeli untuk JADI beli", 180_000, 70_000));
+        listItem.add(
+                new Item("Memperbesar Peluang Beli", "Meningkatkan peluang pembeli untuk JADI beli", 180_000, 70_000));
     }
 
     @Override
@@ -43,17 +44,14 @@ public class TokoItem implements Transaksi<Item>, Showable {
         }
 
         player.kurangiMoney(item.getHarga());
-        player.getInventory().tambahItem(new Item(item.getNama(), item.getDeskripsi(), item.getHarga(), item.getBiayaUpgrade()));
+        player.getInventory()
+                .tambahItem(new Item(item.getNama(), item.getDeskripsi(), item.getHarga(), item.getBiayaUpgrade()));
         System.out.println("Berhasil membeli item: " + item.getNama());
         return true;
     }
 
     public void upgradeItem(Player player, String namaItem) {
-        Item item = player.getInventory().getStokItem().stream()
-                .filter(i -> i.getNama().equalsIgnoreCase(namaItem))
-                .findFirst()
-                .orElse(null);
-
+        Item item = player.getInventory().getItem(namaItem);
         if (item == null) {
             System.out.println("Item belum dimiliki.");
             return;
