@@ -3,7 +3,9 @@ package model;
 import enums.PerkType;
 import interfaces.Transaksi;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TokoPerks implements Transaksi<Perk> {
@@ -17,6 +19,14 @@ public class TokoPerks implements Transaksi<Perk> {
         daftarPerk.put(PerkType.ACTIVE, new PerksActive());
     }
 
+    public List<Perk> getDaftarPerk() {
+        return new ArrayList<>(daftarPerk.values());
+    }
+
+    public Perk getPerkByType(PerkType type) {
+        return daftarPerk.get(type);
+    }
+
     public void tampilkanDaftarPerks() {
         System.out.println("=== Daftar Perks di Toko ===");
         for (Perk perk : daftarPerk.values()) {
@@ -28,16 +38,24 @@ public class TokoPerks implements Transaksi<Perk> {
 
     @Override
     public boolean beli(Player player, Perk perk) {
-        // Cek apakah perk sudah dimiliki
-        if (player.getSemuaPerkDimiliki().contains(perk)) {
+        if (perk == null) {
+            System.out.println("Perk tidak valid.");
+            return false;
+        }
+
+        if (player.hasPerk(perk.getPerkType())) {
             System.out.println("Perk sudah dimiliki.");
             return false;
         }
 
         if (player.getMoney() >= perk.getHarga()) {
             player.kurangiMoney(perk.getHarga());
-            player.addPerk(perk);  // Simpan ke koleksi
-            System.out.println("Berhasil membeli perk " + perk.getTypeName());
+
+            // Clone agar tidak share object
+            Perk perkBaru = clonePerk(perk);
+            player.addPerk(perkBaru);
+
+            System.out.println("Berhasil membeli perk " + perk.getName());
             return true;
         } else {
             System.out.println("Uang tidak cukup.");
@@ -78,23 +96,38 @@ public class TokoPerks implements Transaksi<Perk> {
             return false;
         }
 
-        Perk targetPerk = daftarPerk.get(targetType);
-        if (targetPerk == null) {
+        Perk targetBase = daftarPerk.get(targetType);
+        if (targetBase == null) {
             System.out.println("Perk target tidak ditemukan.");
             return false;
         }
 
-        int biaya = targetPerk.getHarga();
+        Perk perkTarget = clonePerk(targetBase);
+        int biaya = perkTarget.getHarga();
+
         if (player.getMoney() >= biaya) {
             player.kurangiMoney(biaya);
-            targetPerk.resetUpgrade(); // Reset upgrade sebelum digunakan
+            perkTarget.resetUpgrade();
             player.removePerk(perkSaatIni);
-            player.addPerk(targetPerk);
-            System.out.println("Konversi berhasil ke perk " + targetPerk.getTypeName());
+            player.addPerk(perkTarget);
+            System.out.println("Konversi berhasil ke perk " + perkTarget.getName());
             return true;
         } else {
             System.out.println("Uang tidak cukup untuk konversi.");
             return false;
         }
     }
+
+    private Perk clonePerk(Perk perk) {
+        if (perk instanceof PerksActive) {
+            return new PerksActive((PerksActive) perk);
+        } else if (perk instanceof PerksElegan) {
+            return new PerksElegan((PerksElegan) perk);
+        } else if (perk instanceof PerksCharming) {
+            return new PerksCharming((PerksCharming) perk);
+        } else {
+            throw new IllegalArgumentException("Perk tidak diketahui: " + perk.getClass());
+        }
+    }
+
 }
