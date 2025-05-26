@@ -5,34 +5,36 @@ import enums.PerkType;
 public class PerksElegan extends Perk {
 
     public PerksElegan() {
-        super(PerkType.ELEGAN.getNama(), "Meningkatkan peluang untuk bertemu pembeli tajir", PerkType.ELEGAN, 350_000, 10, 150_000);
+        super(PerkType.ELEGAN.getNama(), "Meningkatkan peluang untuk bertemu pembeli tajir ", PerkType.ELEGAN, 550_000,
+                1.0,
+                250_000);
     }
 
-//    @Override
-//    public double getPerkEffect() {
-//        // perlu implementasi dari kelas pembeli tajir
-//    }
-//  
+    public PerksElegan(PerksElegan other) {
+        super(other.nama, other.deskripsi, other.type, other.harga, other.kesaktianAwal, other.biayaUpgrade);
+        this.level = other.level;
+        this.kesaktianSekarang = other.kesaktianSekarang;
+        this.isActive = other.isActive;
+    }
+
+    // @Override
+    // public double getPerkEffect() {
+    // // perlu implementasi dari kelas arena jual beli
+    // }
+    //
+
     @Override
     public boolean upgradeLevel() {
-        if (level < MAX_LEVEL) {
+        if (!isMaxLevel()) {
             level++;
-            double tambahKesaktian = kesaktianAwal * 0.1;
-            kesaktianSekarang += tambahKesaktian;
+            kesaktianSekarang += 0.5;
             return true;
-        } else {
-            System.out.println("Level Perks sudah maksimal");
-            return false;
         }
+        return false;
     }
 
     @Override
     public void tampilkanDetail() {
-        System.out.println("Nama Perk: " + nama);
-        System.out.println("Deskripsi Perk: " + deskripsi);
-        System.out.println("Type Perk: " + type);
-        System.out.println("Harga: " + harga);
-        System.out.println("Kesaktian: " + kesaktianSekarang);
-        System.out.println("Biaya Upgrade per Level: " + biayaUpgrade);
+        System.out.println("[ELEGAN] " + nama + " Lv." + level + ": " + deskripsi);
     }
 }
