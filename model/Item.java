@@ -1,5 +1,6 @@
 package model;
 
+import java.util.Objects;
 import interfaces.Showable;
 import interfaces.Upgrade;
 
@@ -62,6 +63,10 @@ public class Item implements Showable, Upgrade {
         return Math.min(level * CHANCE_PER_LEVEL, MAX_CHANCE);
     }
 
+    public boolean isMaxLevel() {
+        return level >= MAX_LEVEL;
+    }
+
     @Override
     public boolean upgradeLevel() {
         if (level < MAX_LEVEL) {
@@ -72,10 +77,33 @@ public class Item implements Showable, Upgrade {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Item item = (Item) o;
+        return nama.equals(item.nama);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nama);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Item[nama=%s, level=%d, aktif=%s]", nama, level, isActive);
+    }
+
+    @Override
     public void tampilkanDetail() {
-        System.out.printf(
-                "Potion: %s (Lv.%d) - %s\nChance: %.0f%% | Harga: %d\n",
-                getNama(), level, getDeskripsi(), getChance() * 100, getHarga()
-        );
+        System.out.println(getDetail());
+    }
+
+    public String getDetail() {
+        return String.format(
+                "Potion: %s (Lv.%d) - %s\nChance: %.0f%% | Harga: %d",
+                nama, level, deskripsi, getChance() * 100, harga);
     }
 }
