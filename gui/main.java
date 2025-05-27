@@ -1,6 +1,6 @@
 package gui;
 
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import model.Player;
 
 public class main {
@@ -16,7 +16,7 @@ public class main {
         // frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         // frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         // frame.setSize(800, 600);
-        // frame.add(new GamePanel(new Player("Tauwus")));
+        // frame.add(new HomeBasePanel());
         // frame.setLocationRelativeTo(null);
         // frame.setVisible(true);
         // });

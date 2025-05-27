@@ -1,6 +1,7 @@
 package model;
 
 import java.util.*;
+import interfaces.InventoryChangeListener;
 
 public class Inventory {
 
@@ -8,8 +9,10 @@ public class Inventory {
     private final Map<Barang, Integer> barangDibawa;
     private final Map<String, Item> stokItem;
     private final Set<String> itemDibawa;
-    private final Map<Barang, Integer> hargaJualBarang;
+    private final Map<Map<Barang, Integer>, Integer> hargaJualBarang;
+    private final List<InventoryChangeListener> listeners = new ArrayList<>();
     private final List<Perk> daftarPerk;
+
 
     public Inventory() {
         this.stokBarang = new HashMap<>();
@@ -18,14 +21,6 @@ public class Inventory {
         this.hargaJualBarang = new HashMap<>();
         this.itemDibawa = new HashSet<>();
         this.daftarPerk = new ArrayList<>();
-    }
-
-    public void tambahItem(Item item) {
-        stokItem.putIfAbsent(item.getNama().toLowerCase(), item);
-    }
-
-    public void tambahBarang(Barang barang) {
-        stokBarang.put(barang, stokBarang.getOrDefault(barang, 0) + 1);
     }
 
     public void setDaftarPerk(List<Perk> perks) {
@@ -37,6 +32,29 @@ public class Inventory {
 
     public List<Perk> getDaftarPerk() {
         return Collections.unmodifiableList(daftarPerk);
+    }
+
+    public void addInventoryChangeListener(InventoryChangeListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeInventoryChangeListener(InventoryChangeListener listener) {
+        listeners.remove(listener);
+    }
+
+    private void notifyInventoryChanged() {
+        for (InventoryChangeListener l : listeners)
+            l.onInventoryChanged();
+    }
+
+    public void tambahItem(Item item) {
+        stokItem.putIfAbsent(item.getNama().toLowerCase(), item);
+        notifyInventoryChanged();
+    }
+
+    public void tambahBarang(Barang barang) {
+        stokBarang.put(barang, stokBarang.getOrDefault(barang, 0) + 1);
+        notifyInventoryChanged();
     }
 
     public List<Barang> getStokBarang() {
@@ -83,6 +101,7 @@ public class Inventory {
             } else {
                 stokBarang.remove(barang);
             }
+            notifyInventoryChanged();
             return true;
         }
         return false;
@@ -97,7 +116,10 @@ public class Inventory {
     }
 
     public boolean hapusItem(String namaItem) {
-        return stokItem.remove(namaItem.toLowerCase()) != null;
+        boolean removed = stokItem.remove(namaItem.toLowerCase()) != null;
+        if (removed)
+            notifyInventoryChanged();
+        return removed;
     }
 
     public int getJumlahItem() {
@@ -113,12 +135,14 @@ public class Inventory {
             } else {
                 stokBarang.remove(barang);
             }
+            notifyInventoryChanged();
         }
     }
 
     public void bawaItem(String namaItem, int kapasitasItem) {
         if (itemDibawa.size() < kapasitasItem && stokItem.containsKey(namaItem.toLowerCase())) {
             itemDibawa.add(namaItem.toLowerCase());
+            notifyInventoryChanged();
         }
     }
 
@@ -140,6 +164,7 @@ public class Inventory {
             bawaItem(namaItem, g.getKapasitasItem());
             sisaItem--;
         }
+        notifyInventoryChanged();
     }
 
     public int kapasitasBarangTersisa(int kapasitasGerobak) {
@@ -182,7 +207,7 @@ public class Inventory {
             } else {
                 barangDibawa.remove(barang);
             }
-
+            notifyInventoryChanged();
             System.out.println("Undo bawa " + barang.getNamaBarang() + ": -" + pengurangan);
         }
     }

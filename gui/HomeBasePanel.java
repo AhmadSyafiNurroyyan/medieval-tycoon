@@ -1,5 +1,6 @@
 package gui;
 
+import interfaces.InventoryChangeListener;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -16,38 +17,25 @@ import model.Barang;
 import model.Inventory;
 
 public class HomeBasePanel extends JPanel {
-    private JButton btn1, btn2, btn3, btn4;
+    private JButton btn1, btn2, btn3, btn4, btn5;
     private Runnable backToGameCallback;
     private JButton backButton;
     private Inventory inventory;
     private JDesktopPane desktopPane; // For internal frames
     private JInternalFrame inventoryFrame; // Replaces gerobakDialog
+    private JInternalFrame gerobakFrame;
     private JTabbedPane tabbedPane;
     private JTable goodsTable;
+    private JTable gerobakTable;
+    private JLabel lblJumlah;
+    private JLabel lblGerobakInfo;
     private Image bgImage;
     private Image tetoImage;
-    private JLabel lblJumlah;
     private int currentSortBy = 0;
     private int currentSortOrder = 0;
 
     public HomeBasePanel() {
         setLayout(null);
-
-        // new Color(245, 222, 179)
-
-        // JPanel upperPanel = new JPanel();
-        // upperPanel.setBackground(new Color(245, 222, 179));
-        // upperPanel.setBounds(0, 0, getWidth(), 50); // Adjust height as needed
-        // upperPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        // add(upperPanel);
-
-        // // Create bottom panel
-        // JPanel bottomPanel = new JPanel();
-        // bottomPanel.setBackground(new Color(245, 222, 179));
-        // bottomPanel.setBounds(0, getHeight() - 50, getWidth(), 50); // Adjust height
-        // as needed
-        // bottomPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        // add(bottomPanel);
 
         Font customFont;
         try {
@@ -65,13 +53,15 @@ public class HomeBasePanel extends JPanel {
 
         // Inisialisasi inventory (sementara, nanti bisa di-set dari luar)
         btn1 = StyledButton.create("Inventory");
-        btn2 = StyledButton.create("Perks");
-        btn3 = StyledButton.create("Gerobak");
+        btn2 = StyledButton.create("Gerobak");
+        btn3 = StyledButton.create("Perks");
         btn4 = StyledButton.create("Settings");
+        btn5 = StyledButton.create("aaa");
         add(btn1);
         add(btn2);
         add(btn3);
         add(btn4);
+        add(btn5);
 
         backButton = StyledButton.create("Kembali", 20, 120, 40);
         backButton.addActionListener(e -> {
@@ -80,19 +70,18 @@ public class HomeBasePanel extends JPanel {
         });
         add(backButton);
 
-        // Add a JDesktopPane to host internal frames
         desktopPane = new JDesktopPane();
-        desktopPane.setOpaque(false); // Let background show through
+        desktopPane.setOpaque(false); 
         add(desktopPane);
-        setComponentZOrder(desktopPane, 0); // Ensure desktopPane is always on top
+        setComponentZOrder(desktopPane, 0);
 
         btn1.addActionListener(e -> showInventoryFrame());
-        btn2.addActionListener(e -> {
-
-        });
+        btn2.addActionListener(e -> showGerobakFrame());
         btn3.addActionListener(e -> {
         });
         btn4.addActionListener(e -> {
+        });
+        btn5.addActionListener(e -> {
         });
 
         try {
@@ -150,16 +139,17 @@ public class HomeBasePanel extends JPanel {
             sortPanel.add(orderCombo);
             goodsPanel.add(sortPanel, BorderLayout.NORTH);
             goodsPanel.add(goodsScroll, BorderLayout.CENTER);
-
-            JButton btnHapus = new JButton("Hapus Barang");
-            btnHapus.setFont(new Font("SansSerif", Font.BOLD, 13));
-            btnHapus.setPreferredSize(new Dimension(123, 32));
+            
+            JButton btnHapus = StyledButton.create("Hapus Barang", 13, 123, 32);
+            JButton btnMoveToGerobak = StyledButton.create("Move to Gerobak", 13, 160, 32);
+            
             lblJumlah = new JLabel("Jumlah barang: " + inventory.getJumlahBarang());
             lblJumlah.setFont(new Font("SansSerif", Font.PLAIN, 14));
             lblJumlah.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 13));
 
             JPanel bawahPanel = new JPanel(new BorderLayout());
             bawahPanel.add(btnHapus, BorderLayout.WEST);
+            bawahPanel.add(btnMoveToGerobak, BorderLayout.CENTER);
             bawahPanel.add(lblJumlah, BorderLayout.EAST);
             goodsPanel.add(bawahPanel, BorderLayout.SOUTH);
 
@@ -180,10 +170,26 @@ public class HomeBasePanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Barang tidak ditemukan.");
                 }
 
-                updateGoodsTable(currentSortBy, currentSortOrder); // refresh tabel dan label
+                updateGoodsTable(currentSortBy, currentSortOrder); 
             });
 
-            tabbedPane.addTab("Barang", goodsPanel);
+            btnMoveToGerobak.addActionListener(e -> {
+                int row = goodsTable.getSelectedRow();
+                if (row == -1) {
+                    JOptionPane.showMessageDialog(this, "Pilih barang terlebih dahulu!", "Peringatan",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                String nama = goodsTable.getValueAt(row, 1).toString();
+                Barang b = new Barang(nama);
+                int jumlah = 1;
+                int kapasitasGerobak = 20;
+                inventory.bawaBarang(b, jumlah, kapasitasGerobak);
+                JOptionPane.showMessageDialog(this, "Barang dipindahkan ke Gerobak.");
+                updateGoodsTable(currentSortBy, currentSortOrder);
+            });
+            
+            tabbedPane.addTab("Goods", goodsPanel);
             // Tab Items (placeholder)
             JPanel itemsPanel = new JPanel();
             itemsPanel.setBackground(new Color(255, 248, 220));
@@ -210,7 +216,102 @@ public class HomeBasePanel extends JPanel {
         inventoryFrame.toFront();
     }
 
+    private void showGerobakFrame() {
+        if (gerobakFrame == null) {
+            gerobakFrame = new JInternalFrame("Gerobak", true, true, true, true);
+            gerobakFrame.setSize(500, 350);
+            gerobakFrame.setLayout(new BorderLayout());
+            gerobakFrame.setVisible(true);
+            gerobakFrame.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(6, 6, 16, 16, new Color(120, 90, 30, 180)),
+                    BorderFactory.createLineBorder(new Color(212, 175, 55), 4)
+            ));
+            gerobakFrame.setOpaque(true);
+            gerobakFrame.getContentPane().setBackground(new Color(255, 248, 220));
+
+            // Table
+            gerobakTable = new JTable();
+            gerobakTable.setRowHeight(36);
+            gerobakTable.getTableHeader().setBackground(new Color(212, 175, 55));
+            gerobakTable.getTableHeader().setForeground(new Color(60, 40, 10));
+            gerobakTable.setBackground(new Color(255, 255, 240));
+            gerobakTable.setForeground(new Color(60, 40, 10));
+            JScrollPane scroll = new JScrollPane(gerobakTable);
+            scroll.getViewport().setBackground(new Color(255, 255, 240));
+            scroll.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 1));
+            gerobakFrame.add(scroll, BorderLayout.CENTER);
+
+            // Info label
+            lblGerobakInfo = new JLabel();
+            lblGerobakInfo.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            lblGerobakInfo.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 13));
+            gerobakFrame.add(lblGerobakInfo, BorderLayout.SOUTH);
+
+            gerobakFrame.addInternalFrameListener(new InternalFrameAdapter() {
+                @Override
+                public void internalFrameClosed(InternalFrameEvent e) {
+                    gerobakFrame = null;
+                }
+            });
+            desktopPane.add(gerobakFrame);
+        }
+        updateGerobakTable();
+        gerobakFrame.setVisible(true);
+        gerobakFrame.toFront();
+    }
+
+    private void updateGerobakTable() {
+        if (gerobakFrame == null || !gerobakFrame.isVisible() || gerobakTable == null) return;
+        String[] cols = {"Icon", "Nama", "Kategori", "Kesegaran", "Harga Beli", "Jumlah"};
+        Map<Barang, Integer> dibawa = inventory.getBarangDibawa();
+        Object[][] data = new Object[dibawa.size()][cols.length];
+        int i = 0;
+        for (Map.Entry<Barang, Integer> entry : dibawa.entrySet()) {
+            Barang b = entry.getKey();
+            int jml = entry.getValue();
+            ImageIcon icon = null;
+            try {
+                Image img = ImageIO.read(new File(
+                        "assets/icons/" + b.getNamaBarang().toLowerCase().replace(' ', '_') + ".png"));
+                icon = new ImageIcon(img.getScaledInstance(32, 32, Image.SCALE_SMOOTH));
+            } catch (IOException ignored) {}
+            data[i][0] = icon;
+            data[i][1] = b.getNamaBarang();
+            data[i][2] = b.getKategori();
+            data[i][3] = b.getKesegaran();
+            data[i][4] = b.getHargaBeli();
+            data[i][5] = jml;
+            i++;
+        }
+        DefaultTableModel model = new DefaultTableModel(data, cols) {
+            @Override
+            public Class<?> getColumnClass(int c) {
+                return c == 0 ? Icon.class : Object.class;
+            }
+            @Override
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        gerobakTable.setModel(model);
+        gerobakTable.setRowHeight(36);
+        gerobakTable.getColumnModel().getColumn(0).setPreferredWidth(40);
+        gerobakTable.getColumnModel().getColumn(0).setCellRenderer((_,value,_,_,_,_) -> {
+            JLabel label = new JLabel();
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setIcon(value instanceof Icon ? (Icon) value : null);
+            return label;
+        });
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int c = 1; c < gerobakTable.getColumnCount(); c++) {
+            gerobakTable.getColumnModel().getColumn(c).setCellRenderer(centerRenderer);
+        }
+        if (lblGerobakInfo != null) {
+            lblGerobakInfo.setText("Total barang di Gerobak: " + dibawa.values().stream().mapToInt(Integer::intValue).sum());
+        }
+    }
+
     private void updateGoodsTable(int sortBy, int order) {
+        if (goodsTable == null) return;
         List<Barang> list = inventory.getStokBarang();
         Map<String, Object[]> map = new LinkedHashMap<>();
         for (Barang b : list) {
@@ -243,7 +344,7 @@ public class HomeBasePanel extends JPanel {
                 Image img = ImageIO.read(new File(
                         "assets/icons/" + b.getNamaBarang().toLowerCase().replace(' ', '_') + ".png"));
                 icon = new ImageIcon(img.getScaledInstance(32, 32, Image.SCALE_SMOOTH));
-            } catch (Exception ignored) {
+            } catch (java.io.IOException ignored) {
             }
             data[i][0] = icon; // hanya ImageIcon, bukan JLabel
             data[i][1] = b.getNamaBarang();
@@ -269,7 +370,7 @@ public class HomeBasePanel extends JPanel {
         goodsTable.getColumnModel().getColumn(0).setPreferredWidth(40);
 
         // Set renderer kolom icon agar menampilkan ImageIcon
-        goodsTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
+        goodsTable.getColumnModel().getColumn(0).setCellRenderer((_,value,_,_,_,_) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
             label.setIcon(value instanceof Icon ? (Icon) value : null);
@@ -293,6 +394,19 @@ public class HomeBasePanel extends JPanel {
 
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;
+        if (inventory != null) {
+            inventory.addInventoryChangeListener(new InventoryChangeListener() {
+                @Override
+                public void onInventoryChanged() {
+                    refreshInventoryAndGerobak();
+                }
+            });
+        }
+    }
+
+    public void refreshInventoryAndGerobak() {
+        updateGoodsTable(currentSortBy, currentSortOrder);
+        updateGerobakTable();
     }
 
     @Override
@@ -304,10 +418,10 @@ public class HomeBasePanel extends JPanel {
         int buttonWidth = (int) (getWidth() * 0.3);
         int areaHeight = getHeight() - panelTop - panelBottom;
         int buttonHeight = (int) (areaHeight * 0.15);
-        int numButtons = 4;
+        int numButtons = 5;
         int spacing = (areaHeight - (numButtons * buttonHeight)) / (numButtons + 1);
         int startY = panelTop + spacing;
-        JButton[] buttons = { btn1, btn2, btn3, btn4 };
+        JButton[] buttons = { btn1, btn2, btn3, btn4, btn5 };
         for (int i = 0; i < numButtons; i++) {
             int y = startY + i * (buttonHeight + spacing);
             buttons[i].setBounds(marginLeft, y, buttonWidth, buttonHeight);
