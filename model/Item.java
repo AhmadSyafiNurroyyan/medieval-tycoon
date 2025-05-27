@@ -12,18 +12,20 @@ public class Item implements Showable, Upgrade {
     private final int biayaUpgrade;
     private boolean isActive;
     private int level;
+    private final String iconPath;
 
     private static final int MAX_LEVEL = 5;
     private static final double CHANCE_PER_LEVEL = 0.1;
     private static final double MAX_CHANCE = 0.5;
 
-    public Item(String nama, String deskripsi, int harga, int biayaUpgrade) {
+    public Item(String nama, String deskripsi, int harga, int biayaUpgrade, String iconPath) {
         this.nama = nama;
         this.deskripsi = deskripsi;
         this.harga = harga;
         this.biayaUpgrade = biayaUpgrade;
         this.level = 0;
         this.isActive = false;
+        this.iconPath = iconPath;
     }
 
     public String getNama() {
@@ -40,6 +42,10 @@ public class Item implements Showable, Upgrade {
 
     public int getBiayaUpgrade() {
         return biayaUpgrade;
+    }
+
+    public String getIconPath() {
+        return iconPath;
     }
 
     public boolean isActive() {
