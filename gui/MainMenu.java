@@ -54,16 +54,36 @@ public class MainMenu extends JFrame {
         GamePanel gamePanel = new GamePanel(player);
         SettingsPanel settingsPanel = new SettingsPanel();
         PauseMenuPanel pauseMenuPanel = new PauseMenuPanel(cardLayout, cardsPanel);
+        HomeBasePanel homeBasePanel = new HomeBasePanel();
         SupplierPanel supplierPanel = new SupplierPanel(gamePanel.getSupplier(), gamePanel.getPlayer());
+        TokoItemPanel tokoItemPanel = new TokoItemPanel(gamePanel.getTokoItem(), gamePanel.getPlayer());
+        TokoPerksPanel tokoPerksPanel = new TokoPerksPanel(gamePanel.getTokoPerks(), gamePanel.getPlayer());
+
         supplierPanel.setBackToGameCallback(() -> {
             cardLayout.show(cardsPanel, "GAME");
             gamePanel.requestFocusInWindow();
         });
-        HomeBasePanel homeBasePanel = new HomeBasePanel();
+
+        tokoItemPanel.setBackToGameCallback(() -> {
+            cardLayout.show(cardsPanel, "GAME");
+            gamePanel.requestFocusInWindow();
+        });
+
+        tokoPerksPanel.setBackToGameCallback(() -> {
+            cardLayout.show(cardsPanel, "GAME");
+            gamePanel.requestFocusInWindow();
+        });
+
         homeBasePanel.setInventory(player.getInventory());
         homeBasePanel.setBackToGameCallback(() -> {
             cardLayout.show(cardsPanel, "GAME");
             gamePanel.requestFocusInWindow();
+        });
+
+        gamePanel.setShowTokoItemPanelCallback(() -> {
+            tokoItemPanel.refresh();
+            cardLayout.show(cardsPanel, "GAME");
+            tokoItemPanel.requestFocusInWindow();
         });
 
         JPanel menuPanel = new JPanel(new BorderLayout());
@@ -185,6 +205,8 @@ public class MainMenu extends JFrame {
         cardsPanel.add(pauseMenuPanel, "PAUSE_MENU");
         cardsPanel.add(newGamePanel, "NEW_GAME");
         cardsPanel.add(supplierPanel, "SUPPLIER");
+        cardsPanel.add(tokoItemPanel, "TOKO ITEM");
+        cardsPanel.add(tokoPerksPanel, "TOKO PERKS");
         cardsPanel.add(homeBasePanel, "HOME_BASE");
         background.add(cardsPanel, BorderLayout.CENTER);
 
@@ -211,6 +233,17 @@ public class MainMenu extends JFrame {
         gamePanel.setShowHomeBasePanelCallback(() -> {
             cardLayout.show(cardsPanel, "HOME_BASE");
             homeBasePanel.requestFocusInWindow();
+        });
+        gamePanel.setShowTokoItemPanelCallback(() -> {
+            cardLayout.show(cardsPanel, "TOKO ITEM");
+            tokoItemPanel.refresh();
+            tokoItemPanel.requestFocusInWindow();
+        });
+
+        gamePanel.setShowTokoPerksPanelCallback(() -> {
+            cardLayout.show(cardsPanel, "TOKO PERKS");
+            tokoItemPanel.refresh();
+            tokoItemPanel.requestFocusInWindow();
         });
 
         setVisible(true);
