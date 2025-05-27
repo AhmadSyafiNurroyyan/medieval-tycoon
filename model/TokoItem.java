@@ -15,12 +15,17 @@ public class TokoItem implements Transaksi<Item>, Showable {
     }
 
     private void inisialisasiItem() {
-        listItem.add(new Item("Hipnotis", "Meningkatkan peluang pembeli tidak menawar", 100_000, 40_000));
-        listItem.add(new Item("Rayuan", "Meningkatkan peluang pembeli membeli dengan harga tinggi", 150_000, 60_000));
-        listItem.add(new Item("Bonus Kesabaran", "Memperlama waktu tunggu pembeli", 120_000, 50_000));
-        listItem.add(new Item("Segarkan Dagangan", "Meningkatkan kesegaran barang dagangan", 200_000, 90_000));
         listItem.add(
-                new Item("Memperbesar Peluang Beli", "Meningkatkan peluang pembeli untuk JADI beli", 180_000, 70_000));
+                new Item("Hipnotis", "Meningkatkan peluang pembeli tidak menawar", 100_000, 40_000, "hipnotis.png"));
+        listItem.add(new Item("Rayuan", "Meningkatkan peluang pembeli membeli dengan harga tinggi", 150_000, 60_000,
+                "rayuan.png"));
+        listItem.add(
+                new Item("Bonus Kesabaran", "Memperlama waktu tunggu pembeli", 120_000, 50_000, "bonus_kesabaran.png"));
+        listItem.add(new Item("Segarkan Dagangan", "Meningkatkan kesegaran barang dagangan", 200_000, 90_000,
+                "segarkan_dagangan.png"));
+        listItem.add(
+                new Item("Memperbesar Peluang Beli", "Meningkatkan peluang pembeli untuk JADI beli", 180_000, 70_000,
+                        "peluang_beli.png"));
     }
 
     @Override
@@ -45,9 +50,20 @@ public class TokoItem implements Transaksi<Item>, Showable {
 
         player.kurangiMoney(item.getHarga());
         player.getInventory()
-                .tambahItem(new Item(item.getNama(), item.getDeskripsi(), item.getHarga(), item.getBiayaUpgrade()));
+                .tambahItem(new Item(item.getNama(), item.getDeskripsi(), item.getHarga(), item.getBiayaUpgrade(),
+                        item.getIconPath()));
         System.out.println("Berhasil membeli item: " + item.getNama());
         return true;
+    }
+
+    public boolean beliItem(Player player, String namaItem) {
+        for (Item item : listItem) {
+            if (item.getNama().equalsIgnoreCase(namaItem)) {
+                return beli(player, item); // panggil method beli yang sudah ada
+            }
+        }
+        System.out.println("Item dengan nama '" + namaItem + "' tidak ditemukan di toko.");
+        return false;
     }
 
     public void upgradeItem(Player player, String namaItem) {
