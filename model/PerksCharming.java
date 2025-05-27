@@ -7,11 +7,12 @@ public class PerksCharming extends Perk {
     public PerksCharming() {
         super(PerkType.CHARMING.getNama(), "Meningkatkan keberhasilan proses tawar menawar", PerkType.CHARMING, 400_000,
                 1.0,
-                150_000);
+                150_000, "charming.png");
     }
 
     public PerksCharming(PerksCharming other) {
-        super(other.nama, other.deskripsi, other.type, other.harga, other.kesaktianAwal, other.biayaUpgrade);
+        super(other.nama, other.deskripsi, other.type, other.harga, other.kesaktianAwal, other.biayaUpgrade,
+                other.iconPath);
         this.level = other.level;
         this.kesaktianSekarang = other.kesaktianSekarang;
         this.isActive = other.isActive;
