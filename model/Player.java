@@ -17,6 +17,7 @@ public class Player {
     private int level;
     private int money;
     private Inventory inventory;
+    private Gerobak gerobak;
     private List<Perk> semuaPerkDimiliki = new ArrayList<>();
     private List<Perk> perkDipilihUntukJualan = new ArrayList<>();
 
@@ -108,13 +109,13 @@ public class Player {
             return false;
         }
 
-        if (perkDipilihUntukJualan.size() >= 2) {
+        if (perkDipilihUntukJualan.size() >= gerobak.getKapasitasPerks()) {
             System.out.println("Maksimal 2 perk saja boleh dibawa saat jualan.");
             return false;
         }
 
         perkDipilihUntukJualan.add(perk);
-        perk.activate(); // aktifkan saat dipilih
+        perk.activate();
         System.out.println("Perk dipilih untuk jualan: " + perk.getName());
         return true;
     }
