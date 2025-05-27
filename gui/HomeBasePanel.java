@@ -1,6 +1,5 @@
 package gui;
 
-import interfaces.InventoryChangeListener;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -21,8 +20,8 @@ public class HomeBasePanel extends JPanel {
     private Runnable backToGameCallback;
     private JButton backButton;
     private Inventory inventory;
-    private JDesktopPane desktopPane; // For internal frames
-    private JInternalFrame inventoryFrame; // Replaces gerobakDialog
+    private JDesktopPane desktopPane;
+    private JInternalFrame inventoryFrame;
     private JInternalFrame gerobakFrame;
     private JTabbedPane tabbedPane;
     private JTable goodsTable;
@@ -40,7 +39,6 @@ public class HomeBasePanel extends JPanel {
         Font customFont;
         try {
             customFont = Font.createFont(Font.TRUETYPE_FONT, new File("assets/fonts/medieval.ttf"));
-
         } catch (FontFormatException | IOException e) {
             customFont = new Font("Serif", Font.BOLD, 24);
         }
@@ -51,18 +49,17 @@ public class HomeBasePanel extends JPanel {
 
         add(titleLabel);
 
-        // Inisialisasi inventory (sementara, nanti bisa di-set dari luar)
         btn1 = StyledButton.create("Inventory");
         btn2 = StyledButton.create("Gerobak");
         btn3 = StyledButton.create("Perks");
-        btn4 = StyledButton.create("Settings");
-        btn5 = StyledButton.create("aaa");
+        btn4 = StyledButton.create("Stats");
+        btn5 = StyledButton.create("Sleep");
         add(btn1);
         add(btn2);
         add(btn3);
         add(btn4);
         add(btn5);
-
+        
         backButton = StyledButton.create("Kembali", 20, 120, 40);
         backButton.addActionListener(e -> {
             if (backToGameCallback != null)
@@ -71,7 +68,7 @@ public class HomeBasePanel extends JPanel {
         add(backButton);
 
         desktopPane = new JDesktopPane();
-        desktopPane.setOpaque(false); 
+        desktopPane.setOpaque(false);
         add(desktopPane);
         setComponentZOrder(desktopPane, 0);
 
@@ -102,20 +99,18 @@ public class HomeBasePanel extends JPanel {
             inventoryFrame.setSize(600, 400);
             inventoryFrame.setVisible(true);
             inventoryFrame.setLayout(new BorderLayout());
-            // Thematic border: gold with shadow, parchment background
             inventoryFrame.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createMatteBorder(6, 6, 16, 16, new Color(120, 90, 30, 180)), // shadow brown
-                    BorderFactory.createLineBorder(new Color(212, 175, 55), 4) // gold
+                    BorderFactory.createMatteBorder(6, 6, 16, 16, new Color(120, 90, 30, 180)),
+                    BorderFactory.createLineBorder(new Color(212, 175, 55), 4)
             ));
             inventoryFrame.setOpaque(true);
-            inventoryFrame.getContentPane().setBackground(new Color(255, 248, 220)); // parchment
+            inventoryFrame.getContentPane().setBackground(new Color(255, 248, 220));
 
             tabbedPane = new JTabbedPane();
             tabbedPane.setBackground(new Color(255, 248, 220));
             tabbedPane.setForeground(new Color(120, 90, 30));
             tabbedPane.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
 
-            // Tab Goods
             JPanel goodsPanel = new JPanel(new BorderLayout());
             goodsPanel.setBackground(new Color(255, 248, 220));
             goodsTable = new JTable();
@@ -126,7 +121,6 @@ public class HomeBasePanel extends JPanel {
             JScrollPane goodsScroll = new JScrollPane(goodsTable);
             goodsScroll.getViewport().setBackground(new Color(255, 255, 240));
             goodsScroll.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 1));
-            // Sort options
             JPanel sortPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             sortPanel.setOpaque(false);
             String[] sortOptions = { "Nama", "Kategori", "Kesegaran", "Harga Beli" };
@@ -190,11 +184,9 @@ public class HomeBasePanel extends JPanel {
             });
             
             tabbedPane.addTab("Goods", goodsPanel);
-            // Tab Items (placeholder)
             JPanel itemsPanel = new JPanel();
             itemsPanel.setBackground(new Color(255, 248, 220));
             tabbedPane.addTab("Items", itemsPanel);
-            // Tab Perks (placeholder)
             JPanel perksPanel = new JPanel();
             perksPanel.setBackground(new Color(255, 248, 220));
             tabbedPane.addTab("Perks", perksPanel);
@@ -229,7 +221,6 @@ public class HomeBasePanel extends JPanel {
             gerobakFrame.setOpaque(true);
             gerobakFrame.getContentPane().setBackground(new Color(255, 248, 220));
 
-            // Table
             gerobakTable = new JTable();
             gerobakTable.setRowHeight(36);
             gerobakTable.getTableHeader().setBackground(new Color(212, 175, 55));
@@ -241,7 +232,6 @@ public class HomeBasePanel extends JPanel {
             scroll.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 1));
             gerobakFrame.add(scroll, BorderLayout.CENTER);
 
-            // Info label
             lblGerobakInfo = new JLabel();
             lblGerobakInfo.setFont(new Font("SansSerif", Font.PLAIN, 14));
             lblGerobakInfo.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 13));
@@ -338,7 +328,6 @@ public class HomeBasePanel extends JPanel {
         for (int i = 0; i < rows.size(); i++) {
             Barang b = (Barang) rows.get(i)[0];
             int jml = (int) rows.get(i)[1];
-            // icon
             ImageIcon icon = null;
             try {
                 Image img = ImageIO.read(new File(
@@ -346,7 +335,7 @@ public class HomeBasePanel extends JPanel {
                 icon = new ImageIcon(img.getScaledInstance(32, 32, Image.SCALE_SMOOTH));
             } catch (java.io.IOException ignored) {
             }
-            data[i][0] = icon; // hanya ImageIcon, bukan JLabel
+            data[i][0] = icon;
             data[i][1] = b.getNamaBarang();
             data[i][2] = b.getKategori();
             data[i][3] = b.getKesegaran();
@@ -369,7 +358,6 @@ public class HomeBasePanel extends JPanel {
         goodsTable.setRowHeight(36);
         goodsTable.getColumnModel().getColumn(0).setPreferredWidth(40);
 
-        // Set renderer kolom icon agar menampilkan ImageIcon
         goodsTable.getColumnModel().getColumn(0).setCellRenderer((_,value,_,_,_,_) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -395,12 +383,7 @@ public class HomeBasePanel extends JPanel {
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;
         if (inventory != null) {
-            inventory.addInventoryChangeListener(new InventoryChangeListener() {
-                @Override
-                public void onInventoryChanged() {
-                    refreshInventoryAndGerobak();
-                }
-            });
+            inventory.addInventoryChangeListener(this::refreshInventoryAndGerobak);
         }
     }
 
@@ -426,11 +409,9 @@ public class HomeBasePanel extends JPanel {
             int y = startY + i * (buttonHeight + spacing);
             buttons[i].setBounds(marginLeft, y, buttonWidth, buttonHeight);
         }
-        // Layout backButton di kanan bawah
         if (backButton != null) {
             backButton.setBounds(getWidth() - 140, getHeight() - 80, 120, 40);
         }
-        // Layout desktopPane to fill the panel
         if (desktopPane != null) {
             desktopPane.setBounds(0, 0, getWidth(), getHeight());
         }
@@ -440,17 +421,14 @@ public class HomeBasePanel extends JPanel {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g.create();
-        // Draw background image if available
         if (bgImage != null) {
             g2d.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
         } else {
             g2d.setColor(Color.WHITE);
             g2d.fillRect(0, 0, getWidth(), getHeight());
         }
-        // Draw upper panel
         g2d.setColor(new Color(245, 222, 179));
         g2d.fillRect(0, 0, getWidth(), 150);
-        // Draw character image if available
         if (tetoImage != null) {
             int maxW = (int) (getWidth() * 0.35);
             int maxH = (int) (getHeight() - 120);
@@ -461,18 +439,8 @@ public class HomeBasePanel extends JPanel {
             int y = 25;
             g2d.drawImage(tetoImage, x, y, w, h, this);
         }
-        // Draw bottom panel
         g2d.setColor(new Color(245, 222, 179));
         g2d.fillRect(0, getHeight() - 100, getWidth(), 100);
         g2d.dispose();
-        // Let Swing paint children (buttons, desktopPane, etc) above
     }
-
-    // public void paintPanel(Graphics g) {
-    // Graphics2D g2d = (Graphics2D) g.create();
-    // g2d.setColor(new Color(245, 222, 179));
-    // g2d.fillRect(0, 0, getWidth(), 100); // Paint upper panel
-    // g2d.fillRect(0, getHeight() - 100, getWidth(), 100); // Paint bottom panel
-    // g2d.dispose();
-    // }
 }
