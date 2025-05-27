@@ -16,10 +16,12 @@ public abstract class Perk implements Upgrade, Showable {
     protected int harga;
     protected int biayaUpgrade;
     protected PerkType type;
+    protected final String iconPath;
 
     public static final int MAX_LEVEL = 5; // maksimal level upgrade 5
 
-    public Perk(String nama, String deskripsi, PerkType type, int harga, double kesaktianAwal, int biayaUpgrade) {
+    public Perk(String nama, String deskripsi, PerkType type, int harga, double kesaktianAwal, int biayaUpgrade,
+            String iconPath) {
         this.nama = nama;
         this.deskripsi = deskripsi;
         this.type = type;
@@ -29,6 +31,7 @@ public abstract class Perk implements Upgrade, Showable {
         this.kesaktianAwal = kesaktianAwal;
         this.kesaktianSekarang = kesaktianAwal;
         this.biayaUpgrade = biayaUpgrade;
+        this.iconPath = iconPath;
     }
 
     public String getName() {
@@ -41,6 +44,10 @@ public abstract class Perk implements Upgrade, Showable {
 
     public PerkType getPerkType() {
         return type;
+    }
+
+    public String getIconPath() {
+        return iconPath;
     }
 
     public void activate() {
