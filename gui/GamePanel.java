@@ -25,8 +25,12 @@ public class GamePanel extends JPanel implements Runnable {
     private Camera camera;
     private TriggerZoneManager triggerZoneManager;
     private Supplier supplier;
+    private TokoItem tokoItem;
+    private TokoPerks tokoPerks;
     private Runnable showSupplierPanelCallback;
     private Runnable showHomeBasePanelCallback;
+    private Runnable showTokoItemPanelCallback;
+    private Runnable showTokoPerksPanelCallback;
 
     public GamePanel(Player player) {
         this.player = player;
@@ -40,14 +44,28 @@ public class GamePanel extends JPanel implements Runnable {
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
         supplier = new Supplier();
-        triggerZoneManager.addZone("supplier", 511, 480, 1054, 575, true, () -> {
+        tokoItem = new TokoItem(player);
+        tokoPerks = new TokoPerks();
+
+        triggerZoneManager.addZone("Supplier", 511, 480, 1054, 575, true, () -> {
             if (showSupplierPanelCallback != null) {
                 SwingUtilities.invokeLater(showSupplierPanelCallback);
             }
         });
-        triggerZoneManager.addZone("home", 68, 32, 217, 205, true, () -> {
+        triggerZoneManager.addZone("Home", 68, 32, 217, 205, true, () -> {
             if (showHomeBasePanelCallback != null) {
                 SwingUtilities.invokeLater(showHomeBasePanelCallback);
+            }
+        });
+        triggerZoneManager.addZone("Toko Item", 511, 288, 1054, 383, true, () -> {
+            if (showTokoItemPanelCallback != null) {
+                SwingUtilities.invokeLater(showTokoItemPanelCallback);
+            }
+        });
+
+        triggerZoneManager.addZone("Toko Perks", 511, 96, 1054, 191, true, () -> {
+            if (showTokoPerksPanelCallback != null) {
+                SwingUtilities.invokeLater(showTokoPerksPanelCallback);
             }
         });
 
@@ -58,11 +76,9 @@ public class GamePanel extends JPanel implements Runnable {
         mapObjectManager.addObject("assets/sprites/objects/tent.png", 230, 1280, true);
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
-            mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop - 140 * i, yshop - 190 * j, true);
+                mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop - 140 * i, yshop - 190 * j, true);
             }
         }
-
-
 
         addKeyListener(new KeyAdapter() {
             @Override
@@ -213,7 +229,23 @@ public class GamePanel extends JPanel implements Runnable {
         this.showHomeBasePanelCallback = cb;
     }
 
+    public void setShowTokoItemPanelCallback(Runnable cb) {
+        this.showTokoItemPanelCallback = cb;
+    }
+
+    public void setShowTokoPerksPanelCallback(Runnable cb) {
+        this.showTokoPerksPanelCallback = cb;
+    }
+
     public Supplier getSupplier() {
         return supplier;
+    }
+
+    public TokoItem getTokoItem() {
+        return tokoItem;
+    }
+
+    public TokoPerks getTokoPerks() {
+        return tokoPerks;
     }
 }
