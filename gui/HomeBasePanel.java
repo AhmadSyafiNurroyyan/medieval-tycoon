@@ -16,7 +16,7 @@ import model.Barang;
 import model.Inventory;
 
 public class HomeBasePanel extends JPanel {
-    private JButton btn1, btn2, btn3, btn4, btn5;
+    private JButton btn1, btn2, btn3, btn4;
     private Runnable backToGameCallback;
     private JButton backButton;
     private Inventory inventory;
@@ -65,15 +65,13 @@ public class HomeBasePanel extends JPanel {
 
         // Inisialisasi inventory (sementara, nanti bisa di-set dari luar)
         btn1 = StyledButton.create("Inventory");
-        btn2 = StyledButton.create("Supplier");
-        btn3 = StyledButton.create("Perks");
+        btn2 = StyledButton.create("Perks");
+        btn3 = StyledButton.create("Gerobak");
         btn4 = StyledButton.create("Settings");
-        btn5 = StyledButton.create("Gerobak");
         add(btn1);
         add(btn2);
         add(btn3);
         add(btn4);
-        add(btn5);
 
         backButton = StyledButton.create("Kembali", 20, 120, 40);
         backButton.addActionListener(e -> {
@@ -95,8 +93,6 @@ public class HomeBasePanel extends JPanel {
         btn3.addActionListener(e -> {
         });
         btn4.addActionListener(e -> {
-        });
-        btn5.addActionListener(e -> {
         });
 
         try {
@@ -154,7 +150,7 @@ public class HomeBasePanel extends JPanel {
             sortPanel.add(orderCombo);
             goodsPanel.add(sortPanel, BorderLayout.NORTH);
             goodsPanel.add(goodsScroll, BorderLayout.CENTER);
-            
+
             JButton btnHapus = new JButton("Hapus Barang");
             btnHapus.setFont(new Font("SansSerif", Font.BOLD, 13));
             btnHapus.setPreferredSize(new Dimension(123, 32));
@@ -186,8 +182,8 @@ public class HomeBasePanel extends JPanel {
 
                 updateGoodsTable(currentSortBy, currentSortOrder); // refresh tabel dan label
             });
-            
-            tabbedPane.addTab("Goods", goodsPanel);
+
+            tabbedPane.addTab("Barang", goodsPanel);
             // Tab Items (placeholder)
             JPanel itemsPanel = new JPanel();
             itemsPanel.setBackground(new Color(255, 248, 220));
@@ -273,7 +269,7 @@ public class HomeBasePanel extends JPanel {
         goodsTable.getColumnModel().getColumn(0).setPreferredWidth(40);
 
         // Set renderer kolom icon agar menampilkan ImageIcon
-        goodsTable.getColumnModel().getColumn(0).setCellRenderer((_,value,_,_,_,_) -> {
+        goodsTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
             label.setIcon(value instanceof Icon ? (Icon) value : null);
@@ -308,10 +304,10 @@ public class HomeBasePanel extends JPanel {
         int buttonWidth = (int) (getWidth() * 0.3);
         int areaHeight = getHeight() - panelTop - panelBottom;
         int buttonHeight = (int) (areaHeight * 0.15);
-        int numButtons = 5;
+        int numButtons = 4;
         int spacing = (areaHeight - (numButtons * buttonHeight)) / (numButtons + 1);
         int startY = panelTop + spacing;
-        JButton[] buttons = { btn1, btn2, btn3, btn4, btn5 };
+        JButton[] buttons = { btn1, btn2, btn3, btn4 };
         for (int i = 0; i < numButtons; i++) {
             int y = startY + i * (buttonHeight + spacing);
             buttons[i].setBounds(marginLeft, y, buttonWidth, buttonHeight);
