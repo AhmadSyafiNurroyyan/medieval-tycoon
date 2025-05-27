@@ -282,7 +282,9 @@ public class HomeBasePanel extends JPanel {
 
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        goodsTable.setDefaultRenderer(Object.class, centerRenderer);
+        for (int i = 1; i < goodsTable.getColumnCount(); i++) {
+            goodsTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
 
         if (lblJumlah != null) {
             lblJumlah.setText("Jumlah barang: " + inventory.getJumlahBarang());

@@ -55,11 +55,14 @@ public class GamePanel extends JPanel implements Runnable {
         // mapObjectManager.addObject("assets/sprites/objects/rock.png", 200, 150);
         int xshop = 935, yshop = 545;
         mapObjectManager.addObject("assets/sprites/objects/house.png", 80, 30, true);
-        mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop, yshop, true);
-        mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop - 140, yshop, true);
-        mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop - 140 - 140, yshop, true);
-        mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop - 140 - 140 - 140, yshop, true);
         mapObjectManager.addObject("assets/sprites/objects/tent.png", 230, 1280, true);
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+            mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop - 140 * i, yshop - 190 * j, true);
+            }
+        }
+
+
 
         addKeyListener(new KeyAdapter() {
             @Override
