@@ -1,0 +1,201 @@
+package gui;
+
+import model.Inventory;
+import model.Item;
+import model.Player;
+import model.TokoItem;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
+
+public class TokoItemPanel extends JPanel {
+
+  private TokoItem toko;
+  private Player player;
+  private JPanel itemsPanel;
+  private JScrollPane scrollPane;
+  private JLabel moneyLabel;
+  private Runnable backToGameCallback;
+  private Inventory inventory;
+  private Runnable updateInventoryCallback;
+
+  public TokoItemPanel() {
+    this(new TokoItem(new Player()), new Player());
+  }
+
+  public TokoItemPanel(TokoItem toko, Player player) {
+    this.toko = toko;
+    this.player = player;
+    setLayout(new BorderLayout());
+    setOpaque(true);
+    setBackground(new Color(245, 222, 179));
+
+    JLabel title = new JLabel("Toko Item", JLabel.CENTER);
+    title.setFont(new Font("Serif", Font.BOLD, 32));
+    title.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+    add(title, BorderLayout.NORTH);
+
+    moneyLabel = new JLabel("Uang: " + player.getMoney() + "G", JLabel.CENTER);
+    moneyLabel.setFont(new Font("Serif", Font.PLAIN, 22));
+
+    itemsPanel = new JPanel();
+    itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.Y_AXIS));
+    itemsPanel.setOpaque(false);
+    populateItems();
+
+    scrollPane = new JScrollPane(itemsPanel);
+    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 40, 10, 40));
+    add(scrollPane, BorderLayout.CENTER);
+
+    JButton backButton = StyledButton.create("Kembali", 20, 120, 40);
+    backButton.addActionListener(e -> {
+      if (backToGameCallback != null) {
+        backToGameCallback.run();
+      }
+    });
+
+    JPanel bottomPanel = new JPanel(new BorderLayout());
+    bottomPanel.setOpaque(false);
+    bottomPanel.add(moneyLabel, BorderLayout.CENTER);
+    bottomPanel.add(backButton, BorderLayout.EAST);
+    add(bottomPanel, BorderLayout.SOUTH);
+  }
+
+  private void populateItems() {
+    itemsPanel.removeAll();
+    List<Item> daftarItem = toko.getDaftarItem();
+    for (Item item : daftarItem) {
+      JPanel itemRow = new JPanel(new GridBagLayout());
+      itemRow.setOpaque(false);
+      GridBagConstraints gbc = new GridBagConstraints();
+      gbc.insets = new Insets(5, 5, 5, 5);
+      gbc.gridy = 0;
+
+      Image icon = new ImageIcon("assets/icons/" + item.getIconPath()).getImage().getScaledInstance(40, 40,
+          Image.SCALE_SMOOTH);
+      ImageIcon scaledIcon = new ImageIcon(icon);
+      JLabel nameLabel = new JLabel(item.getNama(), scaledIcon, JLabel.LEFT);
+      nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
+      gbc.gridx = 0;
+      gbc.anchor = GridBagConstraints.WEST;
+      gbc.weightx = 1;
+      itemRow.add(nameLabel, gbc);
+
+      JLabel hargaLabel = new JLabel(item.getHarga() + "G");
+      hargaLabel.setFont(new Font("Serif", Font.PLAIN, 22));
+      hargaLabel.setPreferredSize(new Dimension(90, 30));
+      gbc.gridx = 1;
+      gbc.anchor = GridBagConstraints.WEST;
+      gbc.weightx = 0;
+      itemRow.add(hargaLabel, gbc);
+
+      gbc.anchor = GridBagConstraints.EAST;
+      JButton minusBtn = StyledButton.create("-", 18, 40, 30);
+      gbc.gridx = 2;
+      itemRow.add(minusBtn, gbc);
+
+      JTextField qtyField = new JTextField("1", 2);
+      qtyField.setHorizontalAlignment(JTextField.CENTER);
+      qtyField.setFont(new Font("Serif", Font.PLAIN, 20));
+      qtyField.setPreferredSize(new Dimension(40, 30));
+      gbc.gridx = 3;
+      itemRow.add(qtyField, gbc);
+
+      JButton plusBtn = StyledButton.create("+", 18, 40, 30);
+      gbc.gridx = 4;
+      itemRow.add(plusBtn, gbc);
+
+      JLabel totalLabel = new JLabel("= " + item.getHarga() + "G");
+      totalLabel.setFont(new Font("Serif", Font.BOLD, 22));
+      totalLabel.setPreferredSize(new Dimension(110, 30));
+      gbc.gridx = 5;
+      itemRow.add(totalLabel, gbc);
+
+      JButton buyButton = StyledButton.create("Beli", 18, 70, 30);
+      gbc.gridx = 6;
+      itemRow.add(buyButton, gbc);
+
+      minusBtn.addActionListener(e -> {
+        int qty = Integer.parseInt(qtyField.getText());
+        if (qty > 1) {
+          qty--;
+        }
+        qtyField.setText(String.valueOf(qty));
+        totalLabel.setText("= " + (item.getHarga() * qty) + "G");
+      });
+      plusBtn.addActionListener(e -> {
+        int qty = Integer.parseInt(qtyField.getText()) + 1;
+        qtyField.setText(String.valueOf(qty));
+        totalLabel.setText("= " + (item.getHarga() * qty) + "G");
+      });
+      qtyField.addActionListener(e -> {
+        int qty;
+        try {
+          qty = Math.max(1, Integer.parseInt(qtyField.getText()));
+        } catch (NumberFormatException ex) {
+          qty = 1;
+        }
+        qtyField.setText(String.valueOf(qty));
+        totalLabel.setText("= " + (item.getHarga() * qty) + "G");
+      });
+
+      buyButton.addActionListener(e -> {
+        int qty;
+        try {
+          qty = Math.max(1, Integer.parseInt(qtyField.getText()));
+        } catch (NumberFormatException ex) {
+          qty = 1;
+        }
+        int totalHarga = item.getHarga() * qty;
+        if (player.getMoney() < totalHarga) {
+          JOptionPane.showMessageDialog(this, "Uang tidak cukup untuk membeli " + item.getNama() + " x" + qty + ".",
+              "Gagal", JOptionPane.ERROR_MESSAGE);
+          return;
+        }
+        boolean success = true;
+        for (int i = 0; i < qty; i++) {
+          if (!toko.beliItem(player, item.getNama())) {
+            success = false;
+            break;
+          } else {
+            if (inventory != null) {
+              inventory.tambahItem(item); // Tambahkan item ke inventory
+            }
+          }
+        }
+        String msg = success ? "Berhasil membeli " + item.getNama() + " x" + qty + "!"
+            : "Gagal membeli " + item.getNama() + ".";
+        JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
+            success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+        moneyLabel.setText("Uang: " + player.getMoney() + "G");
+        if (updateInventoryCallback != null) {
+          updateInventoryCallback.run();
+        }
+      });
+
+      itemRow.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+      itemsPanel.add(itemRow);
+    }
+    itemsPanel.revalidate();
+    itemsPanel.repaint();
+  }
+
+  public void setBackToGameCallback(Runnable cb) {
+    this.backToGameCallback = cb;
+  }
+
+  public void setInventory(Inventory inventory) {
+    this.inventory = inventory;
+  }
+
+  public void setUpdateInventoryCallback(Runnable cb) {
+    this.updateInventoryCallback = cb;
+  }
+
+  public void refresh() {
+    moneyLabel.setText("Uang: " + player.getMoney() + "G");
+    populateItems();
+  }
+}
