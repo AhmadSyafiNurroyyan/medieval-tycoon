@@ -9,6 +9,7 @@ public class Inventory {
     private final Map<String, Item> stokItem;
     private final Set<String> itemDibawa;
     private final Map<Barang, Integer> hargaJualBarang;
+    private final List<Perk> daftarPerk;
 
     public Inventory() {
         this.stokBarang = new HashMap<>();
@@ -16,6 +17,7 @@ public class Inventory {
         this.barangDibawa = new HashMap<>();
         this.hargaJualBarang = new HashMap<>();
         this.itemDibawa = new HashSet<>();
+        this.daftarPerk = new ArrayList<>();
     }
 
     public void tambahItem(Item item) {
@@ -24,6 +26,17 @@ public class Inventory {
 
     public void tambahBarang(Barang barang) {
         stokBarang.put(barang, stokBarang.getOrDefault(barang, 0) + 1);
+    }
+
+    public void setDaftarPerk(List<Perk> perks) {
+        daftarPerk.clear();
+        if (perks != null) {
+            daftarPerk.addAll(perks);
+        }
+    }
+
+    public List<Perk> getDaftarPerk() {
+        return Collections.unmodifiableList(daftarPerk);
     }
 
     public List<Barang> getStokBarang() {
