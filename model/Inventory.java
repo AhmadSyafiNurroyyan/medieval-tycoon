@@ -9,16 +9,14 @@ public class Inventory {
     private final Map<Barang, Integer> barangDibawa;
     private final Map<String, Item> stokItem;
     private final Set<String> itemDibawa;
-    private final Map<Map<Barang, Integer>, Integer> hargaJualBarang;
     private final List<InventoryChangeListener> listeners = new ArrayList<>();
     private final List<Perk> daftarPerk;
-
+    private final Map<BarangKey, Integer> hargaJualBarang = new HashMap<>();
 
     public Inventory() {
         this.stokBarang = new HashMap<>();
         this.stokItem = new HashMap<>();
         this.barangDibawa = new HashMap<>();
-        this.hargaJualBarang = new HashMap<>();
         this.itemDibawa = new HashSet<>();
         this.daftarPerk = new ArrayList<>();
     }
@@ -177,22 +175,53 @@ public class Inventory {
 
     public int kapasitasItemTersisa(int kapasitasItem) {
         return kapasitasItem - itemDibawa.size();
+    }    // Tambahkan inner static class BarangKey
+    public static class BarangKey {
+        private final String nama;
+        private final String kategori;
+        private final int kesegaran;
+        private final int hargaBeli;
+        private final String iconPath;
+        
+        public BarangKey(Barang b) {
+            this.nama = b.getNamaBarang();
+            this.kategori = b.getKategori();
+            this.kesegaran = b.getKesegaran();
+            this.hargaBeli = b.getHargaBeli();
+            this.iconPath = b.getIconPath();
+        }
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            BarangKey that = (BarangKey) o;
+            return kesegaran == that.kesegaran && hargaBeli == that.hargaBeli &&
+                    Objects.equals(nama, that.nama) && Objects.equals(kategori, that.kategori) && Objects.equals(iconPath, that.iconPath);
+        }
+        @Override
+        public int hashCode() {
+            return Objects.hash(nama, kategori, kesegaran, hargaBeli, iconPath);
+        }
     }
 
+    // Ubah setHargaJual dan getHargaJual
     public void setHargaJual(Barang barang, int harga) {
-        hargaJualBarang.put(barang, harga);
+        BarangKey key = new BarangKey(barang);
+        hargaJualBarang.put(key, harga);
     }
-
     public int getHargaJual(Barang barang) {
-        return hargaJualBarang.getOrDefault(barang, 0);
+        BarangKey key = new BarangKey(barang);
+        return hargaJualBarang.getOrDefault(key, 0);
     }
-
-    public Map<Barang, Integer> getBarangDibawa() {
-        return Collections.unmodifiableMap(barangDibawa);
+    
+    // Backward compatibility methods (deprecated)
+    @Deprecated
+    public void setHargaJual(Barang barang, int jumlah, int harga) {
+        setHargaJual(barang, harga);
     }
-
-    public Set<String> getItemDibawa() {
-        return Collections.unmodifiableSet(itemDibawa);
+    @Deprecated
+    public int getHargaJual(Barang barang, int jumlah) {
+        return getHargaJual(barang);
     }
 
     public void undoBawaBarang(Barang barang, int jumlah) {
@@ -210,5 +239,23 @@ public class Inventory {
             notifyInventoryChanged();
             System.out.println("Undo bawa " + barang.getNamaBarang() + ": -" + pengurangan);
         }
+    }
+
+    // Tambah/kurangi barang di gerobak (barangDibawa) secara aman
+    public void tambahBarangDibawa(Barang barang, int jumlah) {
+        barangDibawa.put(barang, barangDibawa.getOrDefault(barang, 0) + jumlah);
+    }
+    public void kurangiBarangDibawa(Barang barang, int jumlah) {
+        int sisa = barangDibawa.getOrDefault(barang, 0) - jumlah;
+        if (sisa > 0) {
+            barangDibawa.put(barang, sisa);
+        } else {
+            barangDibawa.remove(barang);
+        }
+    }
+
+    // Jika ingin tetap expose barangDibawa, gunakan method ini (bisa diubah dari luar)
+    public Map<Barang, Integer> getBarangDibawaMutable() {
+        return barangDibawa;
     }
 }

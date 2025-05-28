@@ -1,5 +1,5 @@
 package model;
 
 public class Homebase {
-    private 
+    // TODO: Implement Homebase functionality
 }

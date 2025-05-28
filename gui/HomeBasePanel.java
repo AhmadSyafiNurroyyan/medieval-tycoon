@@ -25,13 +25,16 @@ public class HomeBasePanel extends JPanel {
     private JInternalFrame gerobakFrame;
     private JTabbedPane tabbedPane;
     private JTable goodsTable;
-    private JTable gerobakTable;
     private JLabel lblJumlah;
     private JLabel lblGerobakInfo;
     private Image bgImage;
     private Image tetoImage;
     private int currentSortBy = 0;
     private int currentSortOrder = 0;
+    private JTable gerobakNoPriceTable;
+    private JTable gerobakWithPriceTable;
+    private JTextField jumlahField;
+    private JTextField hargaField;
 
     public HomeBasePanel() {
         setLayout(null);
@@ -145,9 +148,7 @@ public class HomeBasePanel extends JPanel {
             bawahPanel.add(btnHapus, BorderLayout.WEST);
             bawahPanel.add(btnMoveToGerobak, BorderLayout.CENTER);
             bawahPanel.add(lblJumlah, BorderLayout.EAST);
-            goodsPanel.add(bawahPanel, BorderLayout.SOUTH);
-
-            btnHapus.addActionListener(e -> {
+            goodsPanel.add(bawahPanel, BorderLayout.SOUTH);            btnHapus.addActionListener(e -> {
                 int row = goodsTable.getSelectedRow();
                 if (row == -1) {
                     JOptionPane.showMessageDialog(this, "Pilih barang terlebih dahulu!", "Peringatan",
@@ -155,32 +156,106 @@ public class HomeBasePanel extends JPanel {
                     return;
                 }
 
+                // Get the correct information from the table to find the actual Barang object
                 String nama = goodsTable.getValueAt(row, 1).toString();
-                Barang b = new Barang(nama);
+                String kategori = goodsTable.getValueAt(row, 2).toString();
+                int kesegaran = Integer.parseInt(goodsTable.getValueAt(row, 3).toString());
+                int hargaBeli = Integer.parseInt(goodsTable.getValueAt(row, 4).toString());
+                
+                // Find the actual Barang object in inventory
+                Barang targetBarang = null;
+                for (Barang b : inventory.getStokBarang()) {
+                    if (b.getNamaBarang().equals(nama) && b.getKategori().equals(kategori) && 
+                        b.getKesegaran() == kesegaran && b.getHargaBeli() == hargaBeli) {
+                        targetBarang = b;
+                        break;
+                    }
+                }
 
-                if (inventory.hapusBarang(b)) {
+                if (targetBarang != null && inventory.hapusBarang(targetBarang)) {
                     JOptionPane.showMessageDialog(this, "Barang berhasil dihapus.");
                 } else {
                     JOptionPane.showMessageDialog(this, "Barang tidak ditemukan.");
                 }
 
                 updateGoodsTable(currentSortBy, currentSortOrder); 
-            });
-
-            btnMoveToGerobak.addActionListener(e -> {
+            });            btnMoveToGerobak.addActionListener(e -> {
                 int row = goodsTable.getSelectedRow();
                 if (row == -1) {
                     JOptionPane.showMessageDialog(this, "Pilih barang terlebih dahulu!", "Peringatan",
                             JOptionPane.WARNING_MESSAGE);
                     return;
                 }
+                
+                // Get the correct information from the table to find the actual Barang object
                 String nama = goodsTable.getValueAt(row, 1).toString();
-                Barang b = new Barang(nama);
-                int jumlah = 1;
-                int kapasitasGerobak = 20;
-                inventory.bawaBarang(b, jumlah, kapasitasGerobak);
-                JOptionPane.showMessageDialog(this, "Barang dipindahkan ke Gerobak.");
-                updateGoodsTable(currentSortBy, currentSortOrder);
+                String kategori = goodsTable.getValueAt(row, 2).toString();
+                int kesegaran = Integer.parseInt(goodsTable.getValueAt(row, 3).toString());
+                int hargaBeli = Integer.parseInt(goodsTable.getValueAt(row, 4).toString());
+                int jumlahTersedia = Integer.parseInt(goodsTable.getValueAt(row, 5).toString());
+                
+                // Show quantity input dialog
+                String input = JOptionPane.showInputDialog(
+                    this, 
+                    "Masukkan jumlah yang ingin dipindahkan ke Gerobak:\n(Tersedia: " + jumlahTersedia + " buah)", 
+                    "Input Jumlah", 
+                    JOptionPane.QUESTION_MESSAGE
+                );
+                
+                if (input == null || input.trim().isEmpty()) {
+                    return; // User cancelled or entered empty input
+                }
+                
+                int jumlah;
+                try {
+                    jumlah = Integer.parseInt(input.trim());
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Masukkan angka yang valid!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                if (jumlah <= 0) {
+                    JOptionPane.showMessageDialog(this, "Jumlah harus lebih dari 0!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                if (jumlah > jumlahTersedia) {
+                    JOptionPane.showMessageDialog(this, "Jumlah melebihi stok yang tersedia!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                // Find the actual Barang object in inventory
+                Barang targetBarang = null;
+                for (Barang b : inventory.getStokBarang()) {
+                    if (b.getNamaBarang().equals(nama) && b.getKategori().equals(kategori) && 
+                        b.getKesegaran() == kesegaran && b.getHargaBeli() == hargaBeli) {
+                        targetBarang = b;
+                        break;
+                    }
+                }
+                
+                if (targetBarang != null) {
+                    int kapasitasGerobak = 20; // You might want to get this from a Gerobak object
+                    
+                    // Check if gerobak has enough capacity
+                    int remainingCapacity = inventory.kapasitasBarangTersisa(kapasitasGerobak);
+                    if (jumlah > remainingCapacity) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Kapasitas gerobak tidak cukup! Sisa kapasitas: " + remainingCapacity + " buah", 
+                            "Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    
+                    inventory.bawaBarang(targetBarang, jumlah, kapasitasGerobak);
+                    JOptionPane.showMessageDialog(this, 
+                        "Berhasil memindahkan " + jumlah + " buah " + nama + " ke Gerobak.", 
+                        "Sukses", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                    updateGoodsTable(currentSortBy, currentSortOrder);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Barang tidak ditemukan di inventory.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             });
             
             tabbedPane.addTab("Goods", goodsPanel);
@@ -208,10 +283,83 @@ public class HomeBasePanel extends JPanel {
         inventoryFrame.toFront();
     }
 
+    private void setHargaBarangGerobak() {
+        int selectedRow = gerobakNoPriceTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih barang di daftar kiri terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String namaBarang = gerobakNoPriceTable.getValueAt(selectedRow, 1).toString();
+        String kategori = gerobakNoPriceTable.getValueAt(selectedRow, 2).toString();
+        int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
+        int jumlahTersedia = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 4).toString());
+        int jumlah;
+        int hargaJual;
+        try {
+            jumlah = Integer.parseInt(jumlahField.getText().trim());
+            hargaJual = Integer.parseInt(hargaField.getText().trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Masukkan jumlah dan harga jual yang valid!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (jumlah <= 0 || hargaJual <= 0) {
+            JOptionPane.showMessageDialog(this, "Jumlah dan harga jual harus lebih dari 0!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (jumlah > jumlahTersedia) {
+            JOptionPane.showMessageDialog(this, "Jumlah melebihi stok yang tersedia!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }        // Cari barang di inventory.getBarangDibawa()
+        Barang barangTarget = null;
+        for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
+            if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) && b.getKesegaran() == kesegaran && inventory.getHargaJual(b) <= 0) {
+                barangTarget = b;
+                break;
+            }
+        }
+        if (barangTarget == null) {
+            JOptionPane.showMessageDialog(this, "Barang tidak ditemukan di gerobak!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }        // Set harga jual pada barang (buat objek baru jika perlu)
+        // Pertama, kurangi seluruh jumlah dari barang target
+        inventory.kurangiBarangDibawa(barangTarget, jumlahTersedia);
+        
+        // Buat barang baru dengan harga untuk jumlah yang diminta
+        for (int i = 0; i < jumlah; i++) {
+            Barang baru = new Barang(barangTarget.getNamaBarang(), barangTarget.getKategori(), barangTarget.getHargaBeli(), barangTarget.getIconPath());
+            try {
+                java.lang.reflect.Field f = Barang.class.getDeclaredField("kesegaran");
+                f.setAccessible(true);
+                f.setInt(baru, barangTarget.getKesegaran());
+            } catch (Exception ex) { /* ignore */ }
+            inventory.tambahBarangDibawa(baru, 1);
+            inventory.setHargaJual(baru, hargaJual); // simpan harga jual untuk barang
+        }
+        
+        // Jika masih sisa, tambahkan kembali sisanya tanpa harga
+        int sisa = jumlahTersedia - jumlah;
+        if (sisa > 0) {
+            inventory.tambahBarangDibawa(barangTarget, sisa);
+        }        // Reset input
+        jumlahField.setText("");
+        hargaField.setText("");
+        updateGerobakTables();
+        JOptionPane.showMessageDialog(this, "Harga jual berhasil diset untuk barang!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+        
+        // Debug: print current state
+        System.out.println("Debug: Barang di gerobak setelah set harga:");
+        for (Map.Entry<Barang, Integer> entry : inventory.getBarangDibawaMutable().entrySet()) {
+            Barang b = entry.getKey();
+            int jml = entry.getValue();
+            int harga = inventory.getHargaJual(b);
+            System.out.println("  " + b.getNamaBarang() + " (Kesegaran: " + b.getKesegaran() + ") - Jumlah: " + jml + ", Harga Jual: " + harga);
+        }
+    }
+
     private void showGerobakFrame() {
         if (gerobakFrame == null) {
             gerobakFrame = new JInternalFrame("Gerobak", true, true, true, true);
-            gerobakFrame.setSize(500, 350);
+            gerobakFrame.setSize(800, 400);
             gerobakFrame.setLayout(new BorderLayout());
             gerobakFrame.setVisible(true);
             gerobakFrame.setBorder(BorderFactory.createCompoundBorder(
@@ -221,21 +369,72 @@ public class HomeBasePanel extends JPanel {
             gerobakFrame.setOpaque(true);
             gerobakFrame.getContentPane().setBackground(new Color(255, 248, 220));
 
-            gerobakTable = new JTable();
-            gerobakTable.setRowHeight(36);
-            gerobakTable.getTableHeader().setBackground(new Color(212, 175, 55));
-            gerobakTable.getTableHeader().setForeground(new Color(60, 40, 10));
-            gerobakTable.setBackground(new Color(255, 255, 240));
-            gerobakTable.setForeground(new Color(60, 40, 10));
-            JScrollPane scroll = new JScrollPane(gerobakTable);
-            scroll.getViewport().setBackground(new Color(255, 255, 240));
-            scroll.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 1));
-            gerobakFrame.add(scroll, BorderLayout.CENTER);
-
+            // Panel utama dengan 3 bagian
+            JPanel mainPanel = new JPanel(new GridLayout(1, 3, 10, 0));
+            mainPanel.setBackground(new Color(255, 248, 220));            // Bagian kiri: List barang tanpa harga jual + tombol Move to Inventory
+            JPanel leftPanel = new JPanel(new BorderLayout());
+            leftPanel.setBackground(new Color(255, 248, 220));
+            
+            gerobakNoPriceTable = new JTable();
+            JScrollPane leftScroll = new JScrollPane(gerobakNoPriceTable);
+            leftScroll.getViewport().setBackground(new Color(255, 255, 240));
+            leftScroll.setBorder(BorderFactory.createTitledBorder("Barang Belum Ada Harga Jual"));
+            leftPanel.add(leftScroll, BorderLayout.CENTER);
+            
+            JButton btnMoveToInventory = StyledButton.create("Move to Inventory", 13, 160, 32);
+            btnMoveToInventory.addActionListener(e -> moveFromGerobakToInventory());
+            leftPanel.add(btnMoveToInventory, BorderLayout.SOUTH);
+            
+            mainPanel.add(leftPanel);            // Bagian tengah: Input jumlah, harga jual, tombol set harga
+            JPanel centerPanel = new JPanel();
+            centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+            centerPanel.setBackground(new Color(255, 248, 220));
+            centerPanel.setBorder(BorderFactory.createTitledBorder("Set Harga Jual Barang"));
+            centerPanel.add(Box.createVerticalStrut(30));
+            JLabel jumlahLabel = new JLabel("Jumlah:");
+            jumlahLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            centerPanel.add(jumlahLabel);
+            jumlahField = new JTextField();
+            jumlahField.setMaximumSize(new Dimension(200, 30));
+            jumlahField.setAlignmentX(Component.CENTER_ALIGNMENT);
+            centerPanel.add(jumlahField);
+            centerPanel.add(Box.createVerticalStrut(10));
+            JLabel hargaLabel = new JLabel("Harga Jual:");
+            hargaLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            centerPanel.add(hargaLabel);
+            hargaField = new JTextField();
+            hargaField.setMaximumSize(new Dimension(200, 30));
+            hargaField.setAlignmentX(Component.CENTER_ALIGNMENT);
+            centerPanel.add(hargaField);
+            centerPanel.add(Box.createVerticalStrut(20));
+            JButton setHargaBtn = StyledButton.create("Set Harga Jual", 13, 140, 32);
+            setHargaBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+            centerPanel.add(setHargaBtn);
+            centerPanel.add(Box.createVerticalStrut(10));
+            
+            // Add the total stock label to center panel
             lblGerobakInfo = new JLabel();
             lblGerobakInfo.setFont(new Font("SansSerif", Font.PLAIN, 14));
-            lblGerobakInfo.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 13));
-            gerobakFrame.add(lblGerobakInfo, BorderLayout.SOUTH);
+            lblGerobakInfo.setAlignmentX(Component.CENTER_ALIGNMENT);
+            centerPanel.add(lblGerobakInfo);
+            
+            centerPanel.add(Box.createVerticalGlue());
+            setHargaBtn.addActionListener(e -> setHargaBarangGerobak());
+            mainPanel.add(centerPanel);            // Bagian kanan: List barang sudah ada harga jual + tombol Undo
+            JPanel rightPanel = new JPanel(new BorderLayout());
+            rightPanel.setBackground(new Color(255, 248, 220));
+            
+            gerobakWithPriceTable = new JTable();
+            JScrollPane rightScroll = new JScrollPane(gerobakWithPriceTable);
+            rightScroll.getViewport().setBackground(new Color(255, 255, 240));
+            rightScroll.setBorder(BorderFactory.createTitledBorder("Barang Sudah Ada Harga Jual"));
+            rightPanel.add(rightScroll, BorderLayout.CENTER);
+            
+            JButton btnUndo = StyledButton.create("Undo", 13, 80, 32);
+            btnUndo.addActionListener(e -> undoPriceFromGerobak());
+            rightPanel.add(btnUndo, BorderLayout.SOUTH);
+            
+            mainPanel.add(rightPanel);            gerobakFrame.add(mainPanel, BorderLayout.CENTER);
 
             gerobakFrame.addInternalFrameListener(new InternalFrameAdapter() {
                 @Override
@@ -245,17 +444,21 @@ public class HomeBasePanel extends JPanel {
             });
             desktopPane.add(gerobakFrame);
         }
-        updateGerobakTable();
+        updateGerobakTables();
         gerobakFrame.setVisible(true);
         gerobakFrame.toFront();
     }
 
-    private void updateGerobakTable() {
-        if (gerobakFrame == null || !gerobakFrame.isVisible() || gerobakTable == null) return;
-        String[] cols = {"Icon", "Nama", "Kategori", "Kesegaran", "Harga Beli", "Jumlah"};
-        Map<Barang, Integer> dibawa = inventory.getBarangDibawa();
-        Object[][] data = new Object[dibawa.size()][cols.length];
-        int i = 0;
+    private void updateGerobakTables() {
+        if (gerobakFrame == null || !gerobakFrame.isVisible()) return;
+        String[] cols = {"Icon", "Nama", "Kategori", "Kesegaran", "Jumlah"};
+        String[] colsWithPrice = {"Icon", "Nama", "Kategori", "Kesegaran", "Harga Jual", "Jumlah"};
+        Map<Barang, Integer> dibawa = inventory.getBarangDibawaMutable();
+        java.util.List<Object[]> noPriceRows = new java.util.ArrayList<>();
+        java.util.List<Object[]> withPriceRows = new java.util.ArrayList<>();
+        
+        System.out.println("Debug updateGerobakTables: Checking " + dibawa.size() + " items");
+        
         for (Map.Entry<Barang, Integer> entry : dibawa.entrySet()) {
             Barang b = entry.getKey();
             int jml = entry.getValue();
@@ -265,26 +468,29 @@ public class HomeBasePanel extends JPanel {
                         "assets/icons/" + b.getNamaBarang().toLowerCase().replace(' ', '_') + ".png"));
                 icon = new ImageIcon(img.getScaledInstance(32, 32, Image.SCALE_SMOOTH));
             } catch (IOException ignored) {}
-            data[i][0] = icon;
-            data[i][1] = b.getNamaBarang();
-            data[i][2] = b.getKategori();
-            data[i][3] = b.getKesegaran();
-            data[i][4] = b.getHargaBeli();
-            data[i][5] = jml;
-            i++;
-        }
-        DefaultTableModel model = new DefaultTableModel(data, cols) {
-            @Override
-            public Class<?> getColumnClass(int c) {
-                return c == 0 ? Icon.class : Object.class;
+            int hargaJual = inventory.getHargaJual(b);
+            
+            System.out.println("  Item: " + b.getNamaBarang() + ", Kesegaran: " + b.getKesegaran() + ", Harga Jual: " + hargaJual);
+            
+            if (hargaJual <= 0) {
+                noPriceRows.add(new Object[]{icon, b.getNamaBarang(), b.getKategori(), b.getKesegaran(), jml});
+            } else {
+                withPriceRows.add(new Object[]{icon, b.getNamaBarang(), b.getKategori(), b.getKesegaran(), hargaJual, jml});
             }
+        }
+        
+        System.out.println("Debug: noPriceRows size: " + noPriceRows.size() + ", withPriceRows size: " + withPriceRows.size());
+        
+        DefaultTableModel noPriceModel = new DefaultTableModel(noPriceRows.toArray(Object[][]::new), cols) {
+            @Override
+            public Class<?> getColumnClass(int c) { return c == 0 ? Icon.class : Object.class; }
             @Override
             public boolean isCellEditable(int r, int c) { return false; }
         };
-        gerobakTable.setModel(model);
-        gerobakTable.setRowHeight(36);
-        gerobakTable.getColumnModel().getColumn(0).setPreferredWidth(40);
-        gerobakTable.getColumnModel().getColumn(0).setCellRenderer((_,value,_,_,_,_) -> {
+        gerobakNoPriceTable.setModel(noPriceModel);
+        gerobakNoPriceTable.setRowHeight(36);
+        gerobakNoPriceTable.getColumnModel().getColumn(0).setPreferredWidth(40);
+        gerobakNoPriceTable.getColumnModel().getColumn(0).setCellRenderer((_,value,_,_,_,_) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
             label.setIcon(value instanceof Icon ? (Icon) value : null);
@@ -292,8 +498,28 @@ public class HomeBasePanel extends JPanel {
         });
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        for (int c = 1; c < gerobakTable.getColumnCount(); c++) {
-            gerobakTable.getColumnModel().getColumn(c).setCellRenderer(centerRenderer);
+        for (int c = 1; c < gerobakNoPriceTable.getColumnCount(); c++) {
+            gerobakNoPriceTable.getColumnModel().getColumn(c).setCellRenderer(centerRenderer);
+        }
+        DefaultTableModel withPriceModel = new DefaultTableModel(withPriceRows.toArray(new Object[0][]), colsWithPrice) {
+            @Override
+            public Class<?> getColumnClass(int c) { return c == 0 ? Icon.class : Object.class; }
+            @Override
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        gerobakWithPriceTable.setModel(withPriceModel);
+        gerobakWithPriceTable.setRowHeight(36);
+        gerobakWithPriceTable.getColumnModel().getColumn(0).setPreferredWidth(40);
+        gerobakWithPriceTable.getColumnModel().getColumn(0).setCellRenderer((_,value,_,_,_,_) -> {
+            JLabel label = new JLabel();
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setIcon(value instanceof Icon ? (Icon) value : null);
+            return label;
+        });
+        DefaultTableCellRenderer centerRenderer2 = new DefaultTableCellRenderer();
+        centerRenderer2.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int c = 1; c < gerobakWithPriceTable.getColumnCount(); c++) {
+            gerobakWithPriceTable.getColumnModel().getColumn(c).setCellRenderer(centerRenderer2);
         }
         if (lblGerobakInfo != null) {
             lblGerobakInfo.setText("Total barang di Gerobak: " + dibawa.values().stream().mapToInt(Integer::intValue).sum());
@@ -385,11 +611,158 @@ public class HomeBasePanel extends JPanel {
         if (inventory != null) {
             inventory.addInventoryChangeListener(this::refreshInventoryAndGerobak);
         }
-    }
-
+    }    
     public void refreshInventoryAndGerobak() {
         updateGoodsTable(currentSortBy, currentSortOrder);
-        updateGerobakTable();
+        updateGerobakTables();
+    }    private void moveFromInventoryToGerobak() {
+        if (inventoryFrame != null && inventoryFrame.isVisible() && goodsTable != null) {
+            int row = goodsTable.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Pilih barang dari Inventory terlebih dahulu!", "Peringatan",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            // Get the correct information from the table to find the actual Barang object
+            String nama = goodsTable.getValueAt(row, 1).toString();
+            String kategori = goodsTable.getValueAt(row, 2).toString();
+            int kesegaran = Integer.parseInt(goodsTable.getValueAt(row, 3).toString());
+            int hargaBeli = Integer.parseInt(goodsTable.getValueAt(row, 4).toString());
+            int jumlahTersedia = Integer.parseInt(goodsTable.getValueAt(row, 5).toString());
+            
+            // Show quantity input dialog
+            String input = JOptionPane.showInputDialog(
+                this, 
+                "Masukkan jumlah yang ingin dipindahkan ke Gerobak:\n(Tersedia: " + jumlahTersedia + " buah)", 
+                "Input Jumlah", 
+                JOptionPane.QUESTION_MESSAGE
+            );
+            
+            if (input == null || input.trim().isEmpty()) {
+                return; // User cancelled or entered empty input
+            }
+            
+            int jumlah;
+            try {
+                jumlah = Integer.parseInt(input.trim());
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Masukkan angka yang valid!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (jumlah <= 0) {
+                JOptionPane.showMessageDialog(this, "Jumlah harus lebih dari 0!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (jumlah > jumlahTersedia) {
+                JOptionPane.showMessageDialog(this, "Jumlah melebihi stok yang tersedia!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Find the actual Barang object in inventory
+            Barang targetBarang = null;
+            for (Barang b : inventory.getStokBarang()) {
+                if (b.getNamaBarang().equals(nama) && b.getKategori().equals(kategori) && 
+                    b.getKesegaran() == kesegaran && b.getHargaBeli() == hargaBeli) {
+                    targetBarang = b;
+                    break;
+                }
+            }
+            
+            if (targetBarang != null) {
+                int kapasitasGerobak = 20; // You might want to get this from a Gerobak object
+                
+                // Check if gerobak has enough capacity
+                int remainingCapacity = inventory.kapasitasBarangTersisa(kapasitasGerobak);
+                if (jumlah > remainingCapacity) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Kapasitas gerobak tidak cukup! Sisa kapasitas: " + remainingCapacity + " buah", 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                inventory.bawaBarang(targetBarang, jumlah, kapasitasGerobak);
+                JOptionPane.showMessageDialog(this, 
+                    "Berhasil memindahkan " + jumlah + " buah " + nama + " ke Gerobak.", 
+                    "Sukses", 
+                    JOptionPane.INFORMATION_MESSAGE);
+                updateGoodsTable(currentSortBy, currentSortOrder);
+                updateGerobakTables();
+            } else {
+                JOptionPane.showMessageDialog(this, "Barang tidak ditemukan di inventory.", "Error", JOptionPane.ERROR_MESSAGE);
+            }        } else {
+            JOptionPane.showMessageDialog(this, "Buka Inventory terlebih dahulu untuk memilih barang!", "Peringatan",
+                    JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private void moveFromGerobakToInventory() {
+        int selectedRow = gerobakNoPriceTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih barang dari daftar kiri terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        String namaBarang = gerobakNoPriceTable.getValueAt(selectedRow, 1).toString();
+        String kategori = gerobakNoPriceTable.getValueAt(selectedRow, 2).toString();
+        int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
+        int jumlahTersedia = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 4).toString());
+        
+        // Find the barang in gerobak (without price)
+        Barang barangTarget = null;
+        for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
+            if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) && 
+                b.getKesegaran() == kesegaran && inventory.getHargaJual(b) <= 0) {
+                barangTarget = b;
+                break;
+            }
+        }
+        
+        if (barangTarget != null) {
+            // Move the entire quantity back to inventory
+            inventory.undoBawaBarang(barangTarget, jumlahTersedia);
+            JOptionPane.showMessageDialog(this, "Barang dipindahkan kembali ke Inventory.", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            updateGoodsTable(currentSortBy, currentSortOrder);
+            updateGerobakTables();
+        } else {
+            JOptionPane.showMessageDialog(this, "Barang tidak ditemukan di gerobak!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }    private void undoPriceFromGerobak() {
+        int selectedRow = gerobakWithPriceTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih barang dari daftar kanan terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        String namaBarang = gerobakWithPriceTable.getValueAt(selectedRow, 1).toString();
+        String kategori = gerobakWithPriceTable.getValueAt(selectedRow, 2).toString();
+        int kesegaran = Integer.parseInt(gerobakWithPriceTable.getValueAt(selectedRow, 3).toString());
+        
+        // Find the barang with price in gerobak
+        Barang barangWithPrice = null;
+        for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
+            if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) && 
+                b.getKesegaran() == kesegaran && inventory.getHargaJual(b) > 0) {
+                barangWithPrice = b;
+                break;
+            }
+        }
+        
+        if (barangWithPrice != null) {
+            // Reset the price to 0 for this barang (this will move it back to the left table)
+            inventory.setHargaJual(barangWithPrice, 0);
+            
+            System.out.println("Debug: Undo price for " + barangWithPrice.getNamaBarang() + 
+                " (Kesegaran: " + barangWithPrice.getKesegaran() + "), new price: " + inventory.getHargaJual(barangWithPrice));
+            
+            updateGerobakTables();
+            JOptionPane.showMessageDialog(this, "Harga jual berhasil dihapus dari barang!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "Barang tidak ditemukan!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     @Override
