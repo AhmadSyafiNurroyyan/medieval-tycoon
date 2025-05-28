@@ -321,26 +321,39 @@ public class HomeBasePanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Barang tidak ditemukan di gerobak!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }        // Set harga jual pada barang (buat objek baru jika perlu)
-        // Pertama, kurangi seluruh jumlah dari barang target
-        inventory.kurangiBarangDibawa(barangTarget, jumlahTersedia);
+        // Pertama, kurangi hanya jumlah yang akan diberi harga dari barang target
+        inventory.kurangiBarangDibawa(barangTarget, jumlah);
         
-        // Buat barang baru dengan harga untuk jumlah yang diminta
-        for (int i = 0; i < jumlah; i++) {
-            Barang baru = new Barang(barangTarget.getNamaBarang(), barangTarget.getKategori(), barangTarget.getHargaBeli(), barangTarget.getIconPath());
-            try {
-                java.lang.reflect.Field f = Barang.class.getDeclaredField("kesegaran");
-                f.setAccessible(true);
-                f.setInt(baru, barangTarget.getKesegaran());
-            } catch (Exception ex) { /* ignore */ }
-            inventory.tambahBarangDibawa(baru, 1);
-            inventory.setHargaJual(baru, hargaJual); // simpan harga jual untuk barang
-        }
+        // Buat objek barang baru yang unik untuk item dengan harga
+        // Menggunakan System.nanoTime() untuk memastikan objek baru memiliki hash yang berbeda
+        Barang barangDenganHarga = new Barang(barangTarget.getNamaBarang(), barangTarget.getKategori(), barangTarget.getHargaBeli(), barangTarget.getIconPath()) {
+            // Anonymous class untuk memastikan objek ini unik
+            private final long uniqueId = System.nanoTime();            @Override
+            public boolean equals(Object obj) {
+                // Setiap instance dengan harga adalah unik - hanya equal dengan dirinya sendiri
+                if (this == obj) return true;
+                // Tidak pernah equal dengan objek lain, bahkan jika objek tersebut memiliki properti yang sama
+                return false;
+            }
+            
+            @Override
+            public int hashCode() {
+                // Hash berdasarkan identitas objek + uniqueId
+                return System.identityHashCode(this) + (int)(uniqueId % Integer.MAX_VALUE);
+            }
+        };
         
-        // Jika masih sisa, tambahkan kembali sisanya tanpa harga
-        int sisa = jumlahTersedia - jumlah;
-        if (sisa > 0) {
-            inventory.tambahBarangDibawa(barangTarget, sisa);
-        }        // Reset input
+        try {
+            java.lang.reflect.Field f = Barang.class.getDeclaredField("kesegaran");
+            f.setAccessible(true);
+            f.setInt(barangDenganHarga, barangTarget.getKesegaran());
+        } catch (Exception ex) { /* ignore */ }
+        
+        // Tambahkan barang dengan harga sesuai jumlah yang diminta
+        inventory.tambahBarangDibawa(barangDenganHarga, jumlah);
+        inventory.setHargaJual(barangDenganHarga, hargaJual);
+        
+        // Jika masih sisa, jangan lakukan apa-apa (barang target sudah berkurang sesuai jumlah)// Reset input
         jumlahField.setText("");
         hargaField.setText("");
         updateGerobakTables();

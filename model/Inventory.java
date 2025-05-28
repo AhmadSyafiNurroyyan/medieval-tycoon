@@ -1,7 +1,7 @@
 package model;
 
-import java.util.*;
 import interfaces.InventoryChangeListener;
+import java.util.*;
 
 public class Inventory {
 
@@ -10,8 +10,7 @@ public class Inventory {
     private final Map<String, Item> stokItem;
     private final Set<String> itemDibawa;
     private final List<InventoryChangeListener> listeners = new ArrayList<>();
-    private final List<Perk> daftarPerk;
-    private final Map<BarangKey, Integer> hargaJualBarang = new HashMap<>();
+    private final List<Perk> daftarPerk;    private final Map<Barang, Integer> hargaJualBarang = new HashMap<>();
 
     public Inventory() {
         this.stokBarang = new HashMap<>();
@@ -171,47 +170,16 @@ public class Inventory {
             total += val;
         }
         return kapasitasGerobak - total;
-    }
-
-    public int kapasitasItemTersisa(int kapasitasItem) {
+    }    public int kapasitasItemTersisa(int kapasitasItem) {
         return kapasitasItem - itemDibawa.size();
-    }    // Tambahkan inner static class BarangKey
-    public static class BarangKey {
-        private final String nama;
-        private final String kategori;
-        private final int kesegaran;
-        private final int hargaBeli;
-        private final String iconPath;
-        
-        public BarangKey(Barang b) {
-            this.nama = b.getNamaBarang();
-            this.kategori = b.getKategori();
-            this.kesegaran = b.getKesegaran();
-            this.hargaBeli = b.getHargaBeli();
-            this.iconPath = b.getIconPath();
-        }
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            BarangKey that = (BarangKey) o;
-            return kesegaran == that.kesegaran && hargaBeli == that.hargaBeli &&
-                    Objects.equals(nama, that.nama) && Objects.equals(kategori, that.kategori) && Objects.equals(iconPath, that.iconPath);
-        }
-        @Override
-        public int hashCode() {
-            return Objects.hash(nama, kategori, kesegaran, hargaBeli, iconPath);
-        }
     }
 
     // Ubah setHargaJual dan getHargaJual
     public void setHargaJual(Barang barang, int harga) {
-        BarangKey key = new BarangKey(barang);
-        hargaJualBarang.put(key, harga);
+        hargaJualBarang.put(barang, harga);
     }
     public int getHargaJual(Barang barang) {
-        BarangKey key = new BarangKey(barang);
-        return hargaJualBarang.getOrDefault(key, 0);
+        return hargaJualBarang.getOrDefault(barang, 0);
     }
     
     // Backward compatibility methods (deprecated)

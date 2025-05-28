@@ -73,21 +73,23 @@ public class Barang implements Showable {
         System.out.println(nama);
         System.out.println(iconPath);
         System.out.println("Rp" + hargaBeli);
-    }
-
-    @Override
+    }    @Override
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
         if (obj == null || getClass() != obj.getClass())
             return false;
         Barang barang = (Barang) obj;
-        return nama.equalsIgnoreCase(barang.nama);
+        return Objects.equals(nama, barang.nama) &&
+               Objects.equals(kategori, barang.kategori) &&
+               hargaBeli == barang.hargaBeli &&
+               kesegaran == barang.kesegaran &&
+               Objects.equals(iconPath, barang.iconPath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(nama.toLowerCase());
+        return Objects.hash(nama, kategori, hargaBeli, kesegaran, iconPath);
     }
 
 }
