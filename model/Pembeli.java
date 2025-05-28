@@ -1,9 +1,10 @@
+package model;
+
 public abstract class Pembeli implements Menawar {
     protected String kategori;
     protected double tawarMultiplier;
-    protected double maxTawaran;
-    protected double peluangMuncul; 
-    
+    protected int maxTawaran;
+
     public Pembeli(String kategori, double tawarMultiplier) {
         this.kategori = kategori;
         this.tawarMultiplier = tawarMultiplier;
@@ -22,29 +23,7 @@ public abstract class Pembeli implements Menawar {
     }
 
     public int generateOffer(int hargaJual) {
-        maxTawaran = hargaJual * tawarMultiplier;
-        return (int) maxTawaran;
-    }
-
-    public double getPeluangMuncul() {
-        return peluangMuncul;
-    }
-
-    public static Pembeli buatPembeliAcak() {
-        double r = Math.random();
-        Pembeli[] kemungkinan = {
-            new PembeliTajir(),
-            new PembeliMiskin(),
-            new PembeliStandar()
-        };
-
-        double batas = 0.0;
-        for (Pembeli p : kemungkinan) {
-            batas += p.getPeluangMuncul();
-            if (r < batas) {
-                return p;
-            }
-        }
-        return new PembeliStandar();
+        maxTawaran = (int) (hargaJual * tawarMultiplier);
+        return maxTawaran;
     }
 }
