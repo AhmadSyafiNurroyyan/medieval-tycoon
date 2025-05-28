@@ -1,5 +1,7 @@
 package model;
 
+import interfaces.Menawar;
+
 public class PembeliMiskin extends Pembeli {
     public PembeliMiskin() {
         super("Miskin", 0.45); 
