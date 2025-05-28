@@ -1,8 +1,7 @@
 package model;
 
-import java.util.Objects;
-
 import interfaces.Showable;
+import java.util.Objects;
 
 public class Barang implements Showable {
 

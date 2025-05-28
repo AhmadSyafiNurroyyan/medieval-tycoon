@@ -4,6 +4,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,84 +17,66 @@ import model.Barang;
 import model.Inventory;
 
 public class HomeBasePanel extends JPanel {
-    private JButton btn1, btn2, btn3, btn4, btn5;
+    private JButton btn1, btn2, btn3, btn4, btn5, backButton;
     private Runnable backToGameCallback;
-    private JButton backButton;
     private Inventory inventory;
     private JDesktopPane desktopPane;
-    private JInternalFrame inventoryFrame;
-    private JInternalFrame gerobakFrame;
-    private JTabbedPane tabbedPane;
-    private JTable goodsTable;
-    private JLabel lblJumlah;
-    private JLabel lblGerobakInfo;
-    private Image bgImage;
-    private Image tetoImage;
-    private int currentSortBy = 0;
-    private int currentSortOrder = 0;
-    private JTable gerobakNoPriceTable;
-    private JTable gerobakWithPriceTable;
-    private JTextField jumlahField;
-    private JTextField hargaField;
-
-    public HomeBasePanel() {
+    private JInternalFrame inventoryFrame, gerobakFrame;
+    private JTable goodsTable, gerobakNoPriceTable, gerobakWithPriceTable;
+    private JLabel lblJumlah, lblGerobakInfo;
+    private Image bgImage, tetoImage;
+    private final int currentSortBy = 0, currentSortOrder = 0;
+    private JTextField jumlahField, hargaField;
+    private JTabbedPane tabbedPane;public HomeBasePanel() {
         setLayout(null);
+        initializeComponents();
+        loadImages();
+    }
 
-        Font customFont;
-        try {
-            customFont = Font.createFont(Font.TRUETYPE_FONT, new File("assets/fonts/medieval.ttf"));
-        } catch (FontFormatException | IOException e) {
-            customFont = new Font("Serif", Font.BOLD, 24);
-        }
-
+    private void initializeComponents() {
+        // Title
         JLabel titleLabel = new JLabel("Home Base");
-        titleLabel.setFont(customFont.deriveFont(80f));
+        titleLabel.setFont(loadCustomFont().deriveFont(80f));
         titleLabel.setBounds(20, 15, 100000, 200);
-
         add(titleLabel);
 
+        // Buttons
         btn1 = StyledButton.create("Inventory");
         btn2 = StyledButton.create("Gerobak");
         btn3 = StyledButton.create("Perks");
         btn4 = StyledButton.create("Stats");
         btn5 = StyledButton.create("Sleep");
-        add(btn1);
-        add(btn2);
-        add(btn3);
-        add(btn4);
-        add(btn5);
+        add(btn1); add(btn2); add(btn3); add(btn4); add(btn5);
         
         backButton = StyledButton.create("Kembali", 20, 120, 40);
-        backButton.addActionListener(e -> {
-            if (backToGameCallback != null)
-                backToGameCallback.run();
-        });
+        backButton.addActionListener(e -> { if (backToGameCallback != null) backToGameCallback.run(); });
         add(backButton);
 
+        // Desktop pane
         desktopPane = new JDesktopPane();
         desktopPane.setOpaque(false);
         add(desktopPane);
         setComponentZOrder(desktopPane, 0);
 
+        // Action listeners
         btn1.addActionListener(e -> showInventoryFrame());
         btn2.addActionListener(e -> showGerobakFrame());
-        btn3.addActionListener(e -> {
-        });
-        btn4.addActionListener(e -> {
-        });
-        btn5.addActionListener(e -> {
-        });
+        btn3.addActionListener(e -> {});
+        btn4.addActionListener(e -> {});
+        btn5.addActionListener(e -> {});
+    }
 
+    private Font loadCustomFont() {
         try {
-            bgImage = ImageIO.read(new File("assets/backgrounds/HomeBase.png"));
-        } catch (IOException e) {
-            bgImage = null;
+            return Font.createFont(Font.TRUETYPE_FONT, new File("assets/fonts/medieval.ttf"));
+        } catch (FontFormatException | IOException e) {
+            return new Font("Serif", Font.BOLD, 24);
         }
-        try {
-            tetoImage = ImageIO.read(new File("assets/backgrounds/kasane_teto.png"));
-        } catch (IOException e) {
-            tetoImage = null;
-        }
+    }
+
+    private void loadImages() {
+        try { bgImage = ImageIO.read(new File("assets/backgrounds/HomeBase.png")); } catch (IOException e) { bgImage = null; }
+        try { tetoImage = ImageIO.read(new File("assets/backgrounds/kasane_teto.png")); } catch (IOException e) { tetoImage = null; }
     }
 
     private void showInventoryFrame() {
@@ -246,8 +229,11 @@ public class HomeBasePanel extends JPanel {
                             JOptionPane.ERROR_MESSAGE);
                         return;
                     }
+                      inventory.bawaBarang(targetBarang, jumlah, kapasitasGerobak);
                     
-                    inventory.bawaBarang(targetBarang, jumlah, kapasitasGerobak);
+                    // Merge items with same properties after moving to gerobak
+                    mergeItemsWithSamePropertiesAndPrice();
+                    
                     JOptionPane.showMessageDialog(this, 
                         "Berhasil memindahkan " + jumlah + " buah " + nama + " ke Gerobak.", 
                         "Sukses", 
@@ -348,10 +334,12 @@ public class HomeBasePanel extends JPanel {
             f.setAccessible(true);
             f.setInt(barangDenganHarga, barangTarget.getKesegaran());
         } catch (Exception ex) { /* ignore */ }
-        
-        // Tambahkan barang dengan harga sesuai jumlah yang diminta
+          // Tambahkan barang dengan harga sesuai jumlah yang diminta
         inventory.tambahBarangDibawa(barangDenganHarga, jumlah);
         inventory.setHargaJual(barangDenganHarga, hargaJual);
+        
+        // Merge items with same properties and same price
+        mergeItemsWithSamePropertiesAndPrice();
         
         // Jika masih sisa, jangan lakukan apa-apa (barang target sudah berkurang sesuai jumlah)// Reset input
         jumlahField.setText("");
@@ -471,16 +459,14 @@ public class HomeBasePanel extends JPanel {
         java.util.List<Object[]> withPriceRows = new java.util.ArrayList<>();
         
         System.out.println("Debug updateGerobakTables: Checking " + dibawa.size() + " items");
-        
-        for (Map.Entry<Barang, Integer> entry : dibawa.entrySet()) {
+          for (Map.Entry<Barang, Integer> entry : dibawa.entrySet()) {
             Barang b = entry.getKey();
             int jml = entry.getValue();
-            ImageIcon icon = null;
-            try {
-                Image img = ImageIO.read(new File(
-                        "assets/icons/" + b.getNamaBarang().toLowerCase().replace(' ', '_') + ".png"));
-                icon = new ImageIcon(img.getScaledInstance(32, 32, Image.SCALE_SMOOTH));
-            } catch (IOException ignored) {}
+            ImageIcon icon = GamePanel.getIcon(b.getIconPath(), 32, 32);
+            if (icon == null) {
+                // Fallback: try with item name if iconPath doesn't work
+                icon = GamePanel.getIcon(b.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
+            }
             int hargaJual = inventory.getHargaJual(b);
             
             System.out.println("  Item: " + b.getNamaBarang() + ", Kesegaran: " + b.getKesegaran() + ", Harga Jual: " + hargaJual);
@@ -562,17 +548,14 @@ public class HomeBasePanel extends JPanel {
 
         System.out.println("Jumlah barang di inventory: " + list.size());
 
-        String[] cols = { "Icon", "Nama", "Kategori", "Kesegaran", "Harga Beli", "Jumlah" };
-        Object[][] data = new Object[rows.size()][cols.length];
+        String[] cols = { "Icon", "Nama", "Kategori", "Kesegaran", "Harga Beli", "Jumlah" };        Object[][] data = new Object[rows.size()][cols.length];
         for (int i = 0; i < rows.size(); i++) {
             Barang b = (Barang) rows.get(i)[0];
-            int jml = (int) rows.get(i)[1];
-            ImageIcon icon = null;
-            try {
-                Image img = ImageIO.read(new File(
-                        "assets/icons/" + b.getNamaBarang().toLowerCase().replace(' ', '_') + ".png"));
-                icon = new ImageIcon(img.getScaledInstance(32, 32, Image.SCALE_SMOOTH));
-            } catch (java.io.IOException ignored) {
+            int jml = (int) rows.get(i)[1];            
+            ImageIcon icon = GamePanel.getIcon(b.getIconPath(), 32, 32);
+            if (icon == null) {
+                // Fallback: try with item name if iconPath doesn't work
+                icon = GamePanel.getIcon(b.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
             }
             data[i][0] = icon;
             data[i][1] = b.getNamaBarang();
@@ -696,8 +679,11 @@ public class HomeBasePanel extends JPanel {
                         JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+                  inventory.bawaBarang(targetBarang, jumlah, kapasitasGerobak);
                 
-                inventory.bawaBarang(targetBarang, jumlah, kapasitasGerobak);
+                // Merge items with same properties after moving to gerobak
+                mergeItemsWithSamePropertiesAndPrice();
+                
                 JOptionPane.showMessageDialog(this, 
                     "Berhasil memindahkan " + jumlah + " buah " + nama + " ke Gerobak.", 
                     "Sukses", 
@@ -763,10 +749,12 @@ public class HomeBasePanel extends JPanel {
                 break;
             }
         }
-        
-        if (barangWithPrice != null) {
+          if (barangWithPrice != null) {
             // Reset the price to 0 for this barang (this will move it back to the left table)
             inventory.setHargaJual(barangWithPrice, 0);
+            
+            // Merge items with same properties after undoing price
+            mergeItemsWithSamePropertiesAndPrice();
             
             System.out.println("Debug: Undo price for " + barangWithPrice.getNamaBarang() + 
                 " (Kesegaran: " + barangWithPrice.getKesegaran() + "), new price: " + inventory.getHargaJual(barangWithPrice));
@@ -775,6 +763,53 @@ public class HomeBasePanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Harga jual berhasil dihapus dari barang!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this, "Barang tidak ditemukan!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Merge items in gerobak that have the same properties (nama, kategori, kesegaran, hargaBeli)
+     * and the same selling price. This consolidates duplicate entries.
+     */
+    private void mergeItemsWithSamePropertiesAndPrice() {
+        Map<Barang, Integer> barangDibawa = inventory.getBarangDibawaMutable();
+        Map<String, List<Barang>> groupedItems = new HashMap<>();
+        
+        // Group items by their properties and selling price
+        for (Barang b : barangDibawa.keySet()) {
+            String key = b.getNamaBarang() + "|" + b.getKategori() + "|" + 
+                        b.getKesegaran() + "|" + b.getHargaBeli() + "|" + 
+                        inventory.getHargaJual(b);
+            groupedItems.computeIfAbsent(key, k -> new ArrayList<>()).add(b);
+        }
+        
+        // Merge items that have the same properties and selling price
+        for (List<Barang> similarItems : groupedItems.values()) {
+            if (similarItems.size() > 1) {
+                // Find the total quantity across all similar items
+                int totalQuantity = 0;
+                for (Barang item : similarItems) {
+                    totalQuantity += barangDibawa.get(item);
+                }
+                
+                // Keep the first item and merge all quantities into it
+                Barang keepItem = similarItems.get(0);
+                
+                // Remove all other similar items and add their quantities to the first one
+                for (int i = 1; i < similarItems.size(); i++) {
+                    Barang removeItem = similarItems.get(i);
+                    barangDibawa.remove(removeItem);
+                    // Also remove from price map if it has a price
+                    if (inventory.getHargaJual(removeItem) > 0) {
+                        inventory.setHargaJual(removeItem, 0); // This effectively removes it from price tracking
+                    }
+                }
+                
+                // Set the total quantity for the kept item
+                barangDibawa.put(keepItem, totalQuantity);
+                
+                System.out.println("Merged " + similarItems.size() + " similar items of " + 
+                    keepItem.getNamaBarang() + " with total quantity: " + totalQuantity);
+            }
         }
     }
 

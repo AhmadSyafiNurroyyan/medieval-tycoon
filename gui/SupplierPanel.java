@@ -4,8 +4,8 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.*;
-import model.Player;
 import model.Barang;
+import model.Player;
 import model.Supplier;
 
 public class SupplierPanel extends JPanel {
@@ -64,16 +64,18 @@ public class SupplierPanel extends JPanel {
             itemRow.setOpaque(false);
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(5, 5, 5, 5);
-            gbc.gridy = 0;
-
-            // Formatting nama barang supaya kapital di awal kata
+            gbc.gridy = 0;            // Formatting nama barang supaya kapital di awal kata
             String formattedName = Arrays.stream(barang.getNamaBarang().toLowerCase().split("_"))
                     .map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1))
                     .reduce((a, b) -> a + " " + b).orElse(barang.getNamaBarang());
 
-            // Ambil icon barang, sesuaikan path jika perlu
-            Image icon = new ImageIcon("assets/icons/" + barang.getIconPath()).getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-            ImageIcon scaledIcon = new ImageIcon(icon);
+            // Use preloaded icon from GamePanel
+            ImageIcon scaledIcon = GamePanel.getIcon(barang.getIconPath(), 40, 40);
+            if (scaledIcon == null) {
+                // Fallback to default icon or empty icon
+                scaledIcon = new ImageIcon();
+            }
+            
             JLabel nameLabel = new JLabel(formattedName, scaledIcon, JLabel.LEFT);
             nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
             gbc.gridx = 0;
