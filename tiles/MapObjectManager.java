@@ -13,26 +13,21 @@ import javax.imageio.ImageIO;
  */
 public class MapObjectManager {
     private final List<MapObject> objects = new ArrayList<>();
-    
-    private static class MapObject {
+      private static class MapObject {
         BufferedImage image;
         int x, y;
-        String path;
         boolean collision;
-        MapObject(BufferedImage image, String path, int x, int y, boolean collision) {
+        MapObject(BufferedImage image, int x, int y, boolean collision) {
             this.image = image;
-            this.path = path;
             this.x = x;
             this.y = y;
             this.collision = collision;
         }
     }
-
-
     public void addObject(String imagePath, int x, int y, boolean collision) {
         try {
             BufferedImage img = ImageIO.read(new File(imagePath));
-            objects.add(new MapObject(img, imagePath, x, y, collision));
+            objects.add(new MapObject(img, x, y, collision));
         } catch (IOException e) {
             System.err.println("Failed to load image: " + imagePath);
         }
@@ -55,5 +50,19 @@ public class MapObjectManager {
             }
         }
         return false;
+    }
+
+    /**
+     * Clear all objects from the map
+     */
+    public void clearObjects() {
+        objects.clear();
+    }
+
+    /**
+     * Get the number of objects currently on the map
+     */
+    public int getObjectCount() {
+        return objects.size();
     }
 }

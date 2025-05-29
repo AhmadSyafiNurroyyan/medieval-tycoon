@@ -78,4 +78,11 @@ public class TriggerZoneManager {
     public List<TriggerZone> getAllZones() {
         return new ArrayList<>(zones);
     }
+
+    /**
+     * Clear all trigger zones
+     */
+    public void clearAllZones() {
+        zones.clear();
+    }
 }

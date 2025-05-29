@@ -5,6 +5,7 @@ import debugger.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,9 @@ public class GamePanel extends JPanel implements Runnable {
     private Runnable showTokoItemPanelCallback;
     private Runnable showTokoPerksPanelCallback;
 
+    // Map management
+    private String currentMap = "map1";
+
     // Icon preloading system
     private static final Map<String, ImageIcon> iconCache = new HashMap<>();
     private static final Map<String, ImageIcon> scaledIconCache = new HashMap<>();
@@ -58,45 +62,12 @@ public class GamePanel extends JPanel implements Runnable {
         tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
-        supplier = new Supplier();
+        supplier = new Supplier();        
         tokoItem = new TokoItem(player);
         tokoPerks = new TokoPerks();
 
-        triggerZoneManager.addZone("Supplier", 511, 480, 1054, 575, true, () -> {
-            if (showSupplierPanelCallback != null) {
-                SwingUtilities.invokeLater(showSupplierPanelCallback);
-            }
-        });
-        triggerZoneManager.addZone("Home", 68, 32, 217, 205, true, () -> {
-            if (showHomeBasePanelCallback != null) {
-                SwingUtilities.invokeLater(showHomeBasePanelCallback);
-            }
-        });
-        triggerZoneManager.addZone("Toko Item", 511, 288, 1054, 383, true, () -> {
-            if (showTokoItemPanelCallback != null) {
-                SwingUtilities.invokeLater(showTokoItemPanelCallback);
-            }
-        });
-
-        triggerZoneManager.addZone("Toko Perks", 511, 96, 1054, 191, true, () -> {
-            if (showTokoPerksPanelCallback != null) {
-                SwingUtilities.invokeLater(showTokoPerksPanelCallback);
-            }
-        });
-        triggerZoneManager.addZone("Kota Lain", 0, 671, 92, 959, true, () -> {
-            
-        });
-
-        // mapObjectManager.addObject("assets/sprites/objects/tree.png", 128, 96);
-        // mapObjectManager.addObject("assets/sprites/objects/rock.png", 200, 150);
-        int xshop = 935, yshop = 545;
-        mapObjectManager.addObject("assets/sprites/objects/house.png", 80, 30, true);
-        mapObjectManager.addObject("assets/sprites/objects/tent.png", 230, 1280, true);
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop - 140 * i, yshop - 190 * j, true);
-            }
-        }
+        // Initialize map1 content
+        setupMap1Content();
 
         addKeyListener(new KeyAdapter() {
             @Override
@@ -282,7 +253,12 @@ public class GamePanel extends JPanel implements Runnable {
             return;
         }
 
-        File[] iconFiles = iconsDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"));
+        File[] iconFiles = iconsDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(".png");
+            }
+        });
         if (iconFiles == null)
             return;
 
@@ -374,5 +350,93 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
         return icon;
+    }
+
+    /**
+     * Switch to a different map and move player to specified coordinates
+     */
+    public void switchToMap(String mapName, int newX, int newY) {
+        // Clear existing map objects and trigger zones
+        mapObjectManager.clearObjects();
+        triggerZoneManager.clearAllZones();
+        
+        // Switch the tile map
+        String mapPath = "assets/tiles/" + mapName;
+        tileManager.switchMap(mapPath);
+        currentMap = mapName;
+        
+        // Move player to new coordinates
+        playerMovement.setX(newX);
+        playerMovement.setY(newY);
+        
+        // Setup map-specific objects and trigger zones
+        setupMapContent(mapName);
+        
+        System.out.println("Switched to map: " + mapName + " at coordinates (" + newX + ", " + newY + ")");
+    }
+
+    /**
+     * Setup map-specific objects and trigger zones
+     */
+    private void setupMapContent(String mapName) {
+        if ("map1".equals(mapName)) {
+            setupMap1Content();
+        } else if ("map2".equals(mapName)) {
+            setupMap2Content();
+        }
+    }
+
+    /**
+     * Setup content for map1 (original map)
+     */
+    private void setupMap1Content() {
+        // Setup trigger zones for map1
+        triggerZoneManager.addZone("Supplier", 511, 480, 1054, 575, true, () -> {
+            if (showSupplierPanelCallback != null) {
+                SwingUtilities.invokeLater(showSupplierPanelCallback);
+            }
+        });
+        triggerZoneManager.addZone("Home", 68, 32, 217, 205, true, () -> {
+            if (showHomeBasePanelCallback != null) {
+                SwingUtilities.invokeLater(showHomeBasePanelCallback);
+            }
+        });
+        triggerZoneManager.addZone("Toko Item", 511, 288, 1054, 383, true, () -> {
+            if (showTokoItemPanelCallback != null) {
+                SwingUtilities.invokeLater(showTokoItemPanelCallback);
+            }
+        });
+        triggerZoneManager.addZone("Toko Perks", 511, 96, 1054, 191, true, () -> {
+            if (showTokoPerksPanelCallback != null) {
+                SwingUtilities.invokeLater(showTokoPerksPanelCallback);
+            }
+        });
+        triggerZoneManager.addZone("Kota Lain", 0, 671, 92, 959, true, () -> {
+            switchToMap("map2", 1445, playerMovement.getY());
+        });
+
+        // Setup map objects for map1
+        int xshop = 935, yshop = 545;
+        mapObjectManager.addObject("assets/sprites/objects/house.png", 80, 30, true);
+        mapObjectManager.addObject("assets/sprites/objects/tent.png", 230, 1280, true);
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop - 140 * i, yshop - 190 * j, true);
+            }
+        }
+    }
+
+    /**
+     * Setup content for map2 (new map)
+     */
+    private void setupMap2Content() {
+        // Setup trigger zone to return to map1 on the right edge
+        triggerZoneManager.addZone("Kembali ke Map1", 1500, 671, 1650, 959, true, () -> {
+            switchToMap("map1", 92, playerMovement.getY());
+        });
+
+        // Add some map objects for map2 (you can customize these)
+        // Example: Add some buildings or objects specific to map2
+            
     }
 }

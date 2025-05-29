@@ -11,6 +11,7 @@ public class TileManager {
     private Tile[] tiles;
     private int[][] map;
     private final int tileSize = 32; 
+    private String currentMapPath = "assets/tiles/map1"; // Track current map
 
     public TileManager(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
@@ -85,6 +86,15 @@ public class TileManager {
         }
         int tileNum = map[row][col];
         return tileNum >= 0 && tileNum < tiles.length && tiles[tileNum] != null && tiles[tileNum].hasCollision();
+    }
+
+    public String getCurrentMapPath() {
+        return currentMapPath;
+    }
+
+    public void switchMap(String newMapPath) {
+        currentMapPath = newMapPath;
+        loadMap(newMapPath);
     }
 
     public int getTileSize() {

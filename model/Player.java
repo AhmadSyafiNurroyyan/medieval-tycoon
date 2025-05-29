@@ -1,14 +1,13 @@
 package model;
 
+import enums.PerkType;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.ImageObserver;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import javax.swing.*;
-
-import enums.PerkType;
 
 public class Player {
 
@@ -272,7 +271,7 @@ public class Player {
             }
 
             if (moving) {
-                // debugger.DebugCoordinateLogger.logPlayerCoordinates(this);
+                debugger.DebugCoordinateLogger.logPlayerCoordinates(this);
                 animCount++;
                 if (animCount >= animDelay) {
                     animCount = 0;
@@ -319,6 +318,14 @@ public class Player {
 
         public int getY() {
             return y;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public void setY(int y) {
+            this.y = y;
         }
 
         public int getSpriteWidth() {
