@@ -30,15 +30,18 @@ public class GamePanel extends JPanel implements Runnable {
     private Supplier supplier;
     private TokoItem tokoItem;
     private TokoPerks tokoPerks;
+    private Gerobak gerobak;
     private Runnable showSupplierPanelCallback;
     private Runnable showHomeBasePanelCallback;
     private Runnable showTokoItemPanelCallback;
     private Runnable showTokoPerksPanelCallback;
-    
+
     // Icon preloading system
     private static final Map<String, ImageIcon> iconCache = new HashMap<>();
     private static final Map<String, ImageIcon> scaledIconCache = new HashMap<>();
-    private static boolean iconsLoaded = false;    public GamePanel(Player player) {
+    private static boolean iconsLoaded = false;
+
+    public GamePanel(Player player) {
         this.player = player;
         setBackground(Color.BLACK);
         setFocusable(true);
@@ -253,12 +256,18 @@ public class GamePanel extends JPanel implements Runnable {
         return supplier;
     }
 
+    public Gerobak getGerobak() {
+        return gerobak;
+    }
+
     public TokoItem getTokoItem() {
         return tokoItem;
-    }    public TokoPerks getTokoPerks() {
+    }
+
+    public TokoPerks getTokoPerks() {
         return tokoPerks;
     }
-    
+
     /**
      * Preload all icons from assets/icons directory
      */
@@ -269,50 +278,56 @@ public class GamePanel extends JPanel implements Runnable {
             System.err.println("Icons directory not found: " + iconsDir.getAbsolutePath());
             return;
         }
-        
+
         File[] iconFiles = iconsDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"));
-        if (iconFiles == null) return;
-        
+        if (iconFiles == null)
+            return;
+
         for (File iconFile : iconFiles) {
             try {
                 String filename = iconFile.getName();
                 String iconName = filename.substring(0, filename.lastIndexOf('.'));
-                
+
                 // Load original icon
                 ImageIcon originalIcon = new ImageIcon(iconFile.getAbsolutePath());
                 iconCache.put(iconName, originalIcon);
-                
+
                 // Preload common sizes
                 Image img = originalIcon.getImage();
-                scaledIconCache.put(iconName + "_32x32", new ImageIcon(img.getScaledInstance(32, 32, Image.SCALE_SMOOTH)));
-                scaledIconCache.put(iconName + "_40x40", new ImageIcon(img.getScaledInstance(40, 40, Image.SCALE_SMOOTH)));
-                scaledIconCache.put(iconName + "_36x36", new ImageIcon(img.getScaledInstance(36, 36, Image.SCALE_SMOOTH)));
-                
+                scaledIconCache.put(iconName + "_32x32",
+                        new ImageIcon(img.getScaledInstance(32, 32, Image.SCALE_SMOOTH)));
+                scaledIconCache.put(iconName + "_40x40",
+                        new ImageIcon(img.getScaledInstance(40, 40, Image.SCALE_SMOOTH)));
+                scaledIconCache.put(iconName + "_36x36",
+                        new ImageIcon(img.getScaledInstance(36, 36, Image.SCALE_SMOOTH)));
+
             } catch (Exception e) {
                 System.err.println("Failed to load icon: " + iconFile.getName() + " - " + e.getMessage());
             }
         }
-        System.out.println("Icons preloaded: " + iconCache.size() + " icons with " + scaledIconCache.size() + " scaled versions");
+        System.out.println(
+                "Icons preloaded: " + iconCache.size() + " icons with " + scaledIconCache.size() + " scaled versions");
     }
-    
+
     /**
      * Get icon by name with specified size. Returns cached version if available.
      */
     public static ImageIcon getIcon(String iconName, int width, int height) {
-        if (iconName == null) return null;
-        
+        if (iconName == null)
+            return null;
+
         // Clean the icon name (remove .png extension if present)
         if (iconName.endsWith(".png")) {
             iconName = iconName.substring(0, iconName.lastIndexOf('.'));
         }
-        
+
         String cacheKey = iconName + "_" + width + "x" + height;
-        
+
         // Return cached scaled version if available
         if (scaledIconCache.containsKey(cacheKey)) {
             return scaledIconCache.get(cacheKey);
         }
-        
+
         // Get original icon
         ImageIcon originalIcon = iconCache.get(iconName);
         if (originalIcon == null) {
@@ -325,26 +340,27 @@ public class GamePanel extends JPanel implements Runnable {
                 return null;
             }
         }
-        
+
         // Create and cache scaled version
         Image scaledImg = originalIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImg);
         scaledIconCache.put(cacheKey, scaledIcon);
-        
+
         return scaledIcon;
     }
-    
+
     /**
      * Get icon by name (original size)
      */
     public static ImageIcon getIcon(String iconName) {
-        if (iconName == null) return null;
-        
+        if (iconName == null)
+            return null;
+
         // Clean the icon name
         if (iconName.endsWith(".png")) {
             iconName = iconName.substring(0, iconName.lastIndexOf('.'));
         }
-        
+
         ImageIcon icon = iconCache.get(iconName);
         if (icon == null) {
             // Fallback: try to load from file

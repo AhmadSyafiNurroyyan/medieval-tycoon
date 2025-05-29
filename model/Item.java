@@ -73,6 +73,18 @@ public class Item implements Showable, Upgrade {
         return level >= MAX_LEVEL;
     }
 
+    public int getMaxLevel() {
+        return MAX_LEVEL;
+    }
+
+    public double getMaxChance() {
+        return MAX_CHANCE;
+    }
+
+    public double getChancePerLevel() {
+        return CHANCE_PER_LEVEL;
+    }
+
     @Override
     public boolean upgradeLevel() {
         if (level < MAX_LEVEL) {

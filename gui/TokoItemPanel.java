@@ -20,6 +20,7 @@ public class TokoItemPanel extends JPanel {
   private JLabel moneyLabel;
   private Runnable backToGameCallback;
   private Inventory inventory;
+  private Item item;
   private Runnable updateInventoryCallback;
 
   public TokoItemPanel() {
@@ -196,9 +197,13 @@ public class TokoItemPanel extends JPanel {
         JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
             success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
         moneyLabel.setText("Uang: " + player.getMoney() + "G");
+        // Setelah pembelian berhasil
         if (updateInventoryCallback != null) {
           updateInventoryCallback.run();
         }
+        // Tambahan agar tab upgrade langsung update dan tampil item baru:
+        populateUpgradeItems();
+        tabbedPane.setSelectedIndex(1); // Opsional: pindah ke tab upgrade otomatis
       });
 
       itemRow.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -222,15 +227,13 @@ public class TokoItemPanel extends JPanel {
     } else {
       // Change getAllItems() to getStokItem() here as well
       for (Item item : inventory.getStokItem()) {
-        // This is just a placeholder implementation - real implementation would depend
-        // on your upgrade system
         JPanel itemRow = new JPanel(new GridBagLayout());
         itemRow.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(5, 15, 5, 15); // Lebih lebar jarak antar kolom
         gbc.gridy = 0;
 
-        // Item icon and name
+        // Icon dan nama
         Image icon = new ImageIcon("assets/icons/" + item.getIconPath()).getImage().getScaledInstance(40, 40,
             Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(icon);
@@ -239,53 +242,89 @@ public class TokoItemPanel extends JPanel {
         gbc.gridx = 0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         itemRow.add(nameLabel, gbc);
 
-        // Current level
-        JLabel levelLabel = new JLabel("Level: 1"); // Placeholder - get real level
+        // Level
+        JLabel levelLabel = new JLabel("Level: " + item.getLevel());
         levelLabel.setFont(new Font("Serif", Font.PLAIN, 18));
         gbc.gridx = 1;
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.weightx = 0;
+        gbc.weightx = 0.2;
         itemRow.add(levelLabel, gbc);
 
-        // Upgrade cost
-        int upgradeCost = item.getHarga() * 2; // Placeholder - calculate real cost
-        JLabel costLabel = new JLabel("Biaya: " + upgradeCost + "G");
+        // Biaya upgrade
+        int biayaUpgrade = item.getBiayaUpgrade();
+        JLabel costLabel = new JLabel("Biaya: " + biayaUpgrade + "G");
         costLabel.setFont(new Font("Serif", Font.BOLD, 18));
-        costLabel.setPreferredSize(new Dimension(120, 30));
         gbc.gridx = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.weightx = 0.2;
         itemRow.add(costLabel, gbc);
 
-        // Upgrade button
-        JButton upgradeButton = StyledButton.create("Upgrade", 18, 100, 30);
+        // Tombol Upgrade
+        JButton upgradeButton = StyledButton.create("Upgrade", 18, 90, 30);
         gbc.gridx = 3;
         gbc.anchor = GridBagConstraints.EAST;
+        gbc.weightx = 0;
         itemRow.add(upgradeButton, gbc);
 
         upgradeButton.addActionListener(e -> {
-          if (player.getMoney() < upgradeCost) {
-            JOptionPane.showMessageDialog(this, "Uang tidak cukup untuk upgrade " + item.getNama(),
+          // Gunakan biayaUpgrade dari item untuk menentukan biaya upgrade
+          int biayaUpgradeLocal = item.getBiayaUpgrade();
+
+          // Cek apakah item sudah mencapai level maksimum
+          if (item.isMaxLevel()) {
+            JOptionPane.showMessageDialog(this,
+                "Item " + item.getNama() + " sudah mencapai level maksimum (Level " + item.getMaxLevel() + ").",
+                "Gagal", JOptionPane.INFORMATION_MESSAGE);
+            return;
+          }
+
+          // Cek apakah uang cukup
+          if (player.getMoney() < biayaUpgradeLocal) {
+            JOptionPane.showMessageDialog(this,
+                "Uang tidak cukup untuk upgrade " + item.getNama() + "\n" +
+                    "Biaya upgrade: " + biayaUpgradeLocal + "G",
                 "Gagal", JOptionPane.ERROR_MESSAGE);
             return;
           }
 
-          // Fix: Change addMoney(-upgradeCost) to kurangiMoney(upgradeCost)
-          player.kurangiMoney(upgradeCost);
-          JOptionPane.showMessageDialog(this, "Item " + item.getNama() + " berhasil di-upgrade!",
-              "Sukses", JOptionPane.INFORMATION_MESSAGE);
+          // Kurangi uang player
+          player.kurangiMoney(biayaUpgradeLocal);
+
+          // Upgrade level item
+          boolean success = item.upgradeLevel();
+
+          if (success) {
+            // Tampilkan pesan sukses dengan level baru dan chance
+            JOptionPane.showMessageDialog(this,
+                "Item " + item.getNama() + " berhasil di-upgrade!\n" +
+                    "Level sekarang: " + item.getLevel() + "\n" +
+                    "Chance: " + (int) (item.getChance() * 100) + "%",
+                "Sukses", JOptionPane.INFORMATION_MESSAGE);
+          } else {
+            // Kembalikan uang jika gagal upgrade
+            player.tambahMoney(biayaUpgradeLocal);
+            JOptionPane.showMessageDialog(this,
+                "Gagal upgrade item.",
+                "Gagal", JOptionPane.ERROR_MESSAGE);
+          }
+
+          // Update label uang
           moneyLabel.setText("Uang: " + player.getMoney() + "G");
 
-          // Refresh both panels
+          // Refresh kedua panel
           populateBuyItems();
           populateUpgradeItems();
 
+          // Panggil callback jika ada
           if (updateInventoryCallback != null) {
             updateInventoryCallback.run();
           }
         });
 
-        itemRow.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        itemRow.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20)); // Tambah padding atas-bawah & kiri-kanan
         upgradeItemsPanel.add(itemRow);
       }
     }
@@ -299,7 +338,6 @@ public class TokoItemPanel extends JPanel {
 
   public void setInventory(Inventory inventory) {
     this.inventory = inventory;
-    // Refresh the upgrade panel since it depends on inventory
     populateUpgradeItems();
   }
 

@@ -10,25 +10,15 @@ public class Inventory {
     private final Map<String, Item> stokItem;
     private final Set<String> itemDibawa;
     private final List<InventoryChangeListener> listeners = new ArrayList<>();
-    private final List<Perk> daftarPerk;    private final Map<Barang, Integer> hargaJualBarang = new HashMap<>();
+    private final Map<Barang, Integer> hargaJualBarang = new HashMap<>();
+    private Gerobak gerobak;
 
     public Inventory() {
         this.stokBarang = new HashMap<>();
         this.stokItem = new HashMap<>();
         this.barangDibawa = new HashMap<>();
         this.itemDibawa = new HashSet<>();
-        this.daftarPerk = new ArrayList<>();
-    }
-
-    public void setDaftarPerk(List<Perk> perks) {
-        daftarPerk.clear();
-        if (perks != null) {
-            daftarPerk.addAll(perks);
-        }
-    }
-
-    public List<Perk> getDaftarPerk() {
-        return Collections.unmodifiableList(daftarPerk);
+        this.gerobak = new Gerobak();
     }
 
     public void addInventoryChangeListener(InventoryChangeListener listener) {
@@ -66,6 +56,28 @@ public class Inventory {
 
     public List<Item> getStokItem() {
         return new ArrayList<>(stokItem.values());
+    }
+
+    public List<Item> getItemDibawa() {
+        List<Item> itemsDibawa = new ArrayList<>();
+        for (String namaItem : itemDibawa) {
+            Item item = stokItem.get(namaItem);
+            if (item != null) {
+                itemsDibawa.add(item);
+            }
+        }
+        return itemsDibawa;
+    }
+
+    // Tambahkan method untuk undo bawa item
+    public boolean undoBawaItem(String namaItem) {
+        String namaItemLower = namaItem.toLowerCase();
+        if (itemDibawa.contains(namaItemLower)) {
+            itemDibawa.remove(namaItemLower);
+            notifyInventoryChanged();
+            return true;
+        }
+        return false;
     }
 
     public Item getItem(String namaItem) {
@@ -136,11 +148,24 @@ public class Inventory {
         }
     }
 
-    public void bawaItem(String namaItem, int kapasitasItem) {
-        if (itemDibawa.size() < kapasitasItem && stokItem.containsKey(namaItem.toLowerCase())) {
-            itemDibawa.add(namaItem.toLowerCase());
-            notifyInventoryChanged();
+    public boolean bawaItem(String namaItem, int kapasitasGerobak) {
+        // Find the item in the inventory
+        Item targetItem = null;
+        for (Item item : stokItem.values()) {
+            if (item.getNama().equals(namaItem)) {
+                targetItem = item;
+                break;
+            }
         }
+
+        if (targetItem != null && itemDibawa.size() < kapasitasGerobak) {
+            // Remove from inventory stock
+            stokItem.remove(targetItem.getNama().toLowerCase());
+            // Add to gerobak
+            itemDibawa.add(targetItem.getNama().toLowerCase());
+            return true;
+        }
+        return false;
     }
 
     public void bawaOtomatisSemua(Gerobak g) {
@@ -164,13 +189,19 @@ public class Inventory {
         notifyInventoryChanged();
     }
 
+    public int getJumlahItemDiGerobak() {
+        return itemDibawa.size();
+    }
+
     public int kapasitasBarangTersisa(int kapasitasGerobak) {
         int total = 0;
         for (int val : barangDibawa.values()) {
             total += val;
         }
         return kapasitasGerobak - total;
-    }    public int kapasitasItemTersisa(int kapasitasItem) {
+    }
+
+    public int kapasitasItemTersisa(int kapasitasItem) {
         return kapasitasItem - itemDibawa.size();
     }
 
@@ -178,15 +209,17 @@ public class Inventory {
     public void setHargaJual(Barang barang, int harga) {
         hargaJualBarang.put(barang, harga);
     }
+
     public int getHargaJual(Barang barang) {
         return hargaJualBarang.getOrDefault(barang, 0);
     }
-    
+
     // Backward compatibility methods (deprecated)
     @Deprecated
     public void setHargaJual(Barang barang, int jumlah, int harga) {
         setHargaJual(barang, harga);
     }
+
     @Deprecated
     public int getHargaJual(Barang barang, int jumlah) {
         return getHargaJual(barang);
@@ -213,6 +246,7 @@ public class Inventory {
     public void tambahBarangDibawa(Barang barang, int jumlah) {
         barangDibawa.put(barang, barangDibawa.getOrDefault(barang, 0) + jumlah);
     }
+
     public void kurangiBarangDibawa(Barang barang, int jumlah) {
         int sisa = barangDibawa.getOrDefault(barang, 0) - jumlah;
         if (sisa > 0) {
@@ -222,8 +256,18 @@ public class Inventory {
         }
     }
 
-    // Jika ingin tetap expose barangDibawa, gunakan method ini (bisa diubah dari luar)
+    // Jika ingin tetap expose barangDibawa, gunakan method ini (bisa diubah dari
+    // luar)
     public Map<Barang, Integer> getBarangDibawaMutable() {
         return barangDibawa;
+    }
+
+    public Gerobak getGerobak() {
+        return gerobak;
+    }
+
+    public Gerobak setGerobak(Gerobak gerobak) {
+        this.gerobak = gerobak;
+        return this.gerobak;
     }
 }
