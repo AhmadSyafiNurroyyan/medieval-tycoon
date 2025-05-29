@@ -1,14 +1,14 @@
 package model;
 
 import enums.PerkType;
-import interfaces.Transaksi;
+import exceptions.PerkConversionException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TokoPerks implements Transaksi<Perk> {
+public class TokoPerks {
 
     private Map<PerkType, Perk> daftarPerk;
 
@@ -36,33 +36,6 @@ public class TokoPerks implements Transaksi<Perk> {
         }
     }
 
-    @Override
-    public boolean beli(Player player, Perk perk) {
-        if (perk == null) {
-            System.out.println("Perk tidak valid.");
-            return false;
-        }
-
-        if (player.hasPerk(perk.getPerkType())) {
-            System.out.println("Perk sudah dimiliki.");
-            return false;
-        }
-
-        if (player.getMoney() >= perk.getHarga()) {
-            player.kurangiMoney(perk.getHarga());
-
-            // Clone agar tidak share object
-            Perk perkBaru = clonePerk(perk);
-            player.addPerk(perkBaru);
-
-            System.out.println("Berhasil membeli perk " + perk.getName());
-            return true;
-        } else {
-            System.out.println("Uang tidak cukup.");
-            return false;
-        }
-    }
-
     public boolean upgrade(Player player, Perk perk) {
         if (perk == null || !player.getSemuaPerkDimiliki().contains(perk)) {
             System.out.println("Perk tidak dimiliki.");
@@ -73,7 +46,6 @@ public class TokoPerks implements Transaksi<Perk> {
         if (player.getMoney() >= biaya) {
             if (perk.upgradeLevel()) {
                 player.kurangiMoney(biaya);
-                System.out.println("Upgrade berhasil ke level " + perk.getLevel());
                 return true;
             } else {
                 System.out.println("Level sudah maksimum.");
@@ -86,35 +58,49 @@ public class TokoPerks implements Transaksi<Perk> {
     }
 
     public boolean convert(Player player, Perk perkSaatIni, PerkType targetType) {
-        if (perkSaatIni == null || !player.getSemuaPerkDimiliki().contains(perkSaatIni)) {
-            System.out.println("Perk tidak dimiliki.");
-            return false;
-        }
-
-        if (!perkSaatIni.canConvertTo(targetType)) {
-            System.out.println("Konversi tidak diizinkan.");
-            return false;
-        }
-
         Perk targetBase = daftarPerk.get(targetType);
         if (targetBase == null) {
-            System.out.println("Perk target tidak ditemukan.");
-            return false;
+            throw new RuntimeException("Perk target tidak ditemukan.");
         }
 
         Perk perkTarget = clonePerk(targetBase);
         int biaya = perkTarget.getHarga();
 
+        if (perkSaatIni == null) {
+            if (player.getSemuaPerkDimiliki().size() >= 2) {
+                throw new RuntimeException("Slot perk sudah penuh.");
+            }
+            if (player.hasPerk(targetType)) {
+                throw new RuntimeException("Perk sudah dimiliki.");
+            }
+            if (player.getMoney() >= biaya) {
+                player.kurangiMoney(biaya);
+                perkTarget.resetUpgrade();
+                player.addPerk(perkTarget);
+                return true;
+            } else {
+                throw new RuntimeException("Uang tidak cukup untuk konversi.");
+            }
+        }
+
+        if (!player.getSemuaPerkDimiliki().contains(perkSaatIni)) {
+            throw new RuntimeException("Perk yang ingin diganti tidak dimiliki.");
+        }
+        if (!perkSaatIni.canConvertTo(targetType)) {
+            throw new PerkConversionException(
+                    "Konversi dari " + perkSaatIni.getPerkType() + " ke " + targetType + " tidak diperbolehkan.");
+        }
+        if (player.hasPerk(targetType)) {
+            throw new RuntimeException("Perk sudah dimiliki.");
+        }
         if (player.getMoney() >= biaya) {
             player.kurangiMoney(biaya);
             perkTarget.resetUpgrade();
             player.removePerk(perkSaatIni);
             player.addPerk(perkTarget);
-            System.out.println("Konversi berhasil ke perk " + perkTarget.getName());
             return true;
         } else {
-            System.out.println("Uang tidak cukup untuk konversi.");
-            return false;
+            throw new RuntimeException("Uang tidak cukup untuk konversi.");
         }
     }
 

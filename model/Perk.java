@@ -105,6 +105,7 @@ public abstract class Perk implements Upgrade, Showable {
         } else if (this.type == PerkType.ACTIVE && targetType == PerkType.ELEGAN) {
             return true;
         }
+        resetUpgrade();
         return false;
     }
 
@@ -113,7 +114,6 @@ public abstract class Perk implements Upgrade, Showable {
             throw new PerkConversionException("Konversi dari " + type + " ke " + targetType + " tidak diperbolehkan.");
         }
         this.type = targetType;
-        resetUpgrade();
     }
 
     @Override

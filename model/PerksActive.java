@@ -5,8 +5,8 @@ import enums.PerkType;
 public class PerksActive extends Perk {
 
     public PerksActive() {
-        super(PerkType.ACTIVE.getNama(), "Meningkatkan peluang untuk bertemu pembeli.", PerkType.ACTIVE, 500_000, 1.0,
-                200_000, "active.png");
+        super(PerkType.ACTIVE.getNama(), "Meningkatkan peluang untuk bertemu pembeli.", PerkType.ACTIVE, 50_000, 1.0,
+                20_000, "active.png");
     }
 
     public PerksActive(PerksActive other) {
@@ -27,6 +27,7 @@ public class PerksActive extends Perk {
     public boolean upgradeLevel() {
         if (!isMaxLevel()) {
             level++;
+            System.out.println("Level sekarang: " + level); // Tambahkan ini
             kesaktianSekarang += 0.5;
             return true;
         }

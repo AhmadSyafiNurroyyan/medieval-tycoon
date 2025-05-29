@@ -12,8 +12,11 @@ public class TokoItemPanel extends JPanel {
 
   private TokoItem toko;
   private Player player;
-  private JPanel itemsPanel;
-  private JScrollPane scrollPane;
+  private JPanel buyItemsPanel;
+  private JPanel upgradeItemsPanel;
+  private JTabbedPane tabbedPane;
+  private JScrollPane buyScrollPane;
+  private JScrollPane upgradeScrollPane;
   private JLabel moneyLabel;
   private Runnable backToGameCallback;
   private Inventory inventory;
@@ -38,15 +41,37 @@ public class TokoItemPanel extends JPanel {
     moneyLabel = new JLabel("Uang: " + player.getMoney() + "G", JLabel.CENTER);
     moneyLabel.setFont(new Font("Serif", Font.PLAIN, 22));
 
-    itemsPanel = new JPanel();
-    itemsPanel.setLayout(new BoxLayout(itemsPanel, BoxLayout.Y_AXIS));
-    itemsPanel.setOpaque(false);
-    populateItems();
+    // Create tabbed pane for Buy and Upgrade menus
+    tabbedPane = new JTabbedPane();
+    tabbedPane.setFont(new Font("Serif", Font.BOLD, 18));
 
-    scrollPane = new JScrollPane(itemsPanel);
-    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-    scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 40, 10, 40));
-    add(scrollPane, BorderLayout.CENTER);
+    // Buy panel
+    buyItemsPanel = new JPanel();
+    buyItemsPanel.setLayout(new BoxLayout(buyItemsPanel, BoxLayout.Y_AXIS));
+    buyItemsPanel.setOpaque(false);
+
+    buyScrollPane = new JScrollPane(buyItemsPanel);
+    buyScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+    buyScrollPane.setBorder(BorderFactory.createEmptyBorder(10, 40, 10, 40));
+
+    // Upgrade panel
+    upgradeItemsPanel = new JPanel();
+    upgradeItemsPanel.setLayout(new BoxLayout(upgradeItemsPanel, BoxLayout.Y_AXIS));
+    upgradeItemsPanel.setOpaque(false);
+
+    upgradeScrollPane = new JScrollPane(upgradeItemsPanel);
+    upgradeScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+    upgradeScrollPane.setBorder(BorderFactory.createEmptyBorder(10, 40, 10, 40));
+
+    // Add tabs
+    tabbedPane.addTab("Beli Item", buyScrollPane);
+    tabbedPane.addTab("Upgrade Item", upgradeScrollPane);
+
+    add(tabbedPane, BorderLayout.CENTER);
+
+    // Populate the panels
+    populateBuyItems();
+    populateUpgradeItems();
 
     JButton backButton = StyledButton.create("Kembali", 20, 120, 40);
     backButton.addActionListener(e -> {
@@ -62,8 +87,8 @@ public class TokoItemPanel extends JPanel {
     add(bottomPanel, BorderLayout.SOUTH);
   }
 
-  private void populateItems() {
-    itemsPanel.removeAll();
+  private void populateBuyItems() {
+    buyItemsPanel.removeAll();
     List<Item> daftarItem = toko.getDaftarItem();
     for (Item item : daftarItem) {
       JPanel itemRow = new JPanel(new GridBagLayout());
@@ -124,11 +149,13 @@ public class TokoItemPanel extends JPanel {
         qtyField.setText(String.valueOf(qty));
         totalLabel.setText("= " + (item.getHarga() * qty) + "G");
       });
+
       plusBtn.addActionListener(e -> {
         int qty = Integer.parseInt(qtyField.getText()) + 1;
         qtyField.setText(String.valueOf(qty));
         totalLabel.setText("= " + (item.getHarga() * qty) + "G");
       });
+
       qtyField.addActionListener(e -> {
         int qty;
         try {
@@ -175,10 +202,95 @@ public class TokoItemPanel extends JPanel {
       });
 
       itemRow.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-      itemsPanel.add(itemRow);
+      buyItemsPanel.add(itemRow);
     }
-    itemsPanel.revalidate();
-    itemsPanel.repaint();
+    buyItemsPanel.revalidate();
+    buyItemsPanel.repaint();
+  }
+
+  private void populateUpgradeItems() {
+    upgradeItemsPanel.removeAll();
+
+    // Change getAllItems() to getStokItem() to match the Inventory class
+    if (inventory == null || inventory.getStokItem().isEmpty()) {
+      JPanel messagePanel = new JPanel();
+      messagePanel.setOpaque(false);
+      JLabel noItemsLabel = new JLabel("Tidak ada item yang dapat di-upgrade");
+      noItemsLabel.setFont(new Font("Serif", Font.ITALIC, 22));
+      messagePanel.add(noItemsLabel);
+      upgradeItemsPanel.add(messagePanel);
+    } else {
+      // Change getAllItems() to getStokItem() here as well
+      for (Item item : inventory.getStokItem()) {
+        // This is just a placeholder implementation - real implementation would depend
+        // on your upgrade system
+        JPanel itemRow = new JPanel(new GridBagLayout());
+        itemRow.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.gridy = 0;
+
+        // Item icon and name
+        Image icon = new ImageIcon("assets/icons/" + item.getIconPath()).getImage().getScaledInstance(40, 40,
+            Image.SCALE_SMOOTH);
+        ImageIcon scaledIcon = new ImageIcon(icon);
+        JLabel nameLabel = new JLabel(item.getNama(), scaledIcon, JLabel.LEFT);
+        nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
+        gbc.gridx = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.weightx = 1;
+        itemRow.add(nameLabel, gbc);
+
+        // Current level
+        JLabel levelLabel = new JLabel("Level: 1"); // Placeholder - get real level
+        levelLabel.setFont(new Font("Serif", Font.PLAIN, 18));
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.weightx = 0;
+        itemRow.add(levelLabel, gbc);
+
+        // Upgrade cost
+        int upgradeCost = item.getHarga() * 2; // Placeholder - calculate real cost
+        JLabel costLabel = new JLabel("Biaya: " + upgradeCost + "G");
+        costLabel.setFont(new Font("Serif", Font.BOLD, 18));
+        costLabel.setPreferredSize(new Dimension(120, 30));
+        gbc.gridx = 2;
+        itemRow.add(costLabel, gbc);
+
+        // Upgrade button
+        JButton upgradeButton = StyledButton.create("Upgrade", 18, 100, 30);
+        gbc.gridx = 3;
+        gbc.anchor = GridBagConstraints.EAST;
+        itemRow.add(upgradeButton, gbc);
+
+        upgradeButton.addActionListener(e -> {
+          if (player.getMoney() < upgradeCost) {
+            JOptionPane.showMessageDialog(this, "Uang tidak cukup untuk upgrade " + item.getNama(),
+                "Gagal", JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+
+          // Fix: Change addMoney(-upgradeCost) to kurangiMoney(upgradeCost)
+          player.kurangiMoney(upgradeCost);
+          JOptionPane.showMessageDialog(this, "Item " + item.getNama() + " berhasil di-upgrade!",
+              "Sukses", JOptionPane.INFORMATION_MESSAGE);
+          moneyLabel.setText("Uang: " + player.getMoney() + "G");
+
+          // Refresh both panels
+          populateBuyItems();
+          populateUpgradeItems();
+
+          if (updateInventoryCallback != null) {
+            updateInventoryCallback.run();
+          }
+        });
+
+        itemRow.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        upgradeItemsPanel.add(itemRow);
+      }
+    }
+    upgradeItemsPanel.revalidate();
+    upgradeItemsPanel.repaint();
   }
 
   public void setBackToGameCallback(Runnable cb) {
@@ -187,6 +299,8 @@ public class TokoItemPanel extends JPanel {
 
   public void setInventory(Inventory inventory) {
     this.inventory = inventory;
+    // Refresh the upgrade panel since it depends on inventory
+    populateUpgradeItems();
   }
 
   public void setUpdateInventoryCallback(Runnable cb) {
@@ -195,6 +309,7 @@ public class TokoItemPanel extends JPanel {
 
   public void refresh() {
     moneyLabel.setText("Uang: " + player.getMoney() + "G");
-    populateItems();
+    populateBuyItems();
+    populateUpgradeItems();
   }
 }
