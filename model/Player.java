@@ -86,7 +86,10 @@ public class Player {
     }
 
     public void addPerk(Perk perk) {
-        semuaPerkDimiliki.add(perk);
+        // Jangan replace perk yang sudah ada, hanya tambah yang baru
+        if (!hasPerk(perk.getPerkType()) && semuaPerkDimiliki.size() < 2) {
+            semuaPerkDimiliki.add(perk);
+        }
     }
 
     public void removePerk(Perk perk) {
@@ -136,7 +139,7 @@ public class Player {
         }
         return false;
     }
-    
+
     public class PlayerMovement {
 
         private int x = 885, y = 729;
@@ -152,30 +155,30 @@ public class Player {
             for (int d = 0; d < sprites.length; d++) {
                 for (int f = 0; f < sprites[d].length; f++) {
                     sprites[d][f] = new ImageIcon(
-                            getClass().getResource("../assets/sprites/dir" + d + "_" + f + ".png")
-                    ).getImage();
+                            getClass().getResource("../assets/sprites/dir" + d + "_" + f + ".png")).getImage();
                 }
             }
         }
 
         // public void update() {
-        //     boolean moving = false;
-        //     if (up)    { y -= speed; direction = 3; moving = true; }
-        //     if (down)  { y += speed; direction = 0; moving = true; }
-        //     if (left)  { x -= speed; direction = 1; moving = true; }
-        //     if (right) { x += speed; direction = 2; moving = true; }
-        //     if (moving) {
-        //         gui.DebugCoordinateLogger.logPlayerCoordinates(this);
-        //         animCount++;
-        //         if (animCount >= animDelay) {
-        //             animCount = 0;
-        //             frameIndex = (frameIndex + 1) % sprites[direction].length;
-        //         }
-        //     } else {
-        //         frameIndex = 0;
-        //     }
+        // boolean moving = false;
+        // if (up) { y -= speed; direction = 3; moving = true; }
+        // if (down) { y += speed; direction = 0; moving = true; }
+        // if (left) { x -= speed; direction = 1; moving = true; }
+        // if (right) { x += speed; direction = 2; moving = true; }
+        // if (moving) {
+        // gui.DebugCoordinateLogger.logPlayerCoordinates(this);
+        // animCount++;
+        // if (animCount >= animDelay) {
+        // animCount = 0;
+        // frameIndex = (frameIndex + 1) % sprites[direction].length;
         // }
-        public void update(int mapWidth, int mapHeight, int tileSize, tiles.MapObjectManager mapObjectManager, tiles.TileManager tileManager) {
+        // } else {
+        // frameIndex = 0;
+        // }
+        // }
+        public void update(int mapWidth, int mapHeight, int tileSize, tiles.MapObjectManager mapObjectManager,
+                tiles.TileManager tileManager) {
             boolean moving = false;
             int nextX = x, nextY = y;
             if (up) {
@@ -196,10 +199,10 @@ public class Player {
             int size = spriteWidth;
             int offset = 32;
             int[][] corners = {
-                {nextX - halfW, nextY - halfH}, // top-left
-                {nextX - halfW + size - 1, nextY - halfH}, // top-right
-                {nextX - halfW, nextY - halfH + size - 1 + (down ? offset : 0)}, // bottom-left
-                {nextX - halfW + size - 1 + (right ? offset : 0), nextY - halfH + size - 1 + (down ? offset : 0)} // bottom-right
+                    { nextX - halfW, nextY - halfH }, // top-left
+                    { nextX - halfW + size - 1, nextY - halfH }, // top-right
+                    { nextX - halfW, nextY - halfH + size - 1 + (down ? offset : 0) }, // bottom-left
+                    { nextX - halfW + size - 1 + (right ? offset : 0), nextY - halfH + size - 1 + (down ? offset : 0) } // bottom-right
             };
 
             boolean blockedByMap = false;
@@ -269,7 +272,7 @@ public class Player {
             }
 
             if (moving) {
-                //debugger.DebugCoordinateLogger.logPlayerCoordinates(this);
+                // debugger.DebugCoordinateLogger.logPlayerCoordinates(this);
                 animCount++;
                 if (animCount >= animDelay) {
                     animCount = 0;
@@ -345,8 +348,7 @@ public class Player {
                 g.drawImage(
                         playerSkin,
                         x, y,
-                        this
-                );
+                        this);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setFont(nametagFont);
 
@@ -357,7 +359,8 @@ public class Player {
                 int nameY = y - 10;
 
                 g2d.setColor(new Color(0, 0, 0, 128));
-                g2d.fillRoundRect(nameX - 4, nameY - metrics.getHeight() + 4, nameWidth + 8, metrics.getHeight() + 2, 5, 5);
+                g2d.fillRoundRect(nameX - 4, nameY - metrics.getHeight() + 4, nameWidth + 8, metrics.getHeight() + 2, 5,
+                        5);
 
                 g2d.setColor(Color.WHITE);
                 g2d.drawString(username, nameX, nameY);

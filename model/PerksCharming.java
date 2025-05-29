@@ -5,9 +5,9 @@ import enums.PerkType;
 public class PerksCharming extends Perk {
 
     public PerksCharming() {
-        super(PerkType.CHARMING.getNama(), "Meningkatkan keberhasilan proses tawar menawar", PerkType.CHARMING, 400_000,
+        super(PerkType.CHARMING.getNama(), "Meningkatkan keberhasilan proses tawar menawar", PerkType.CHARMING, 40_000,
                 1.0,
-                150_000, "charming.png");
+                15_000, "charming.png");
     }
 
     public PerksCharming(PerksCharming other) {
@@ -28,6 +28,7 @@ public class PerksCharming extends Perk {
     public boolean upgradeLevel() {
         if (!isMaxLevel()) {
             level++;
+            System.out.println("Level sekarang: " + level); // Tambahkan ini
             kesaktianSekarang += 0.5;
             return true;
         }
