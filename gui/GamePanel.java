@@ -83,6 +83,9 @@ public class GamePanel extends JPanel implements Runnable {
                 SwingUtilities.invokeLater(showTokoPerksPanelCallback);
             }
         });
+        triggerZoneManager.addZone("Kota Lain", 0, 671, 92, 959, true, () -> {
+            
+        });
 
         // mapObjectManager.addObject("assets/sprites/objects/tree.png", 128, 96);
         // mapObjectManager.addObject("assets/sprites/objects/rock.png", 200, 150);

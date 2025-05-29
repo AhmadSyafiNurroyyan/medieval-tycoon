@@ -157,9 +157,7 @@ public class HomeBasePanel extends JPanel {
             bawahPanel.add(btnHapus, BorderLayout.WEST);
             bawahPanel.add(btnMoveToGerobak, BorderLayout.CENTER);
             bawahPanel.add(lblJumlah, BorderLayout.EAST);
-            goodsPanel.add(bawahPanel, BorderLayout.SOUTH);
-
-            btnHapus.addActionListener(_ -> {
+            goodsPanel.add(bawahPanel, BorderLayout.SOUTH);            btnHapus.addActionListener(_ -> {
                 int row = goodsTable.getSelectedRow();
                 if (row == -1) {
                     JOptionPane.showMessageDialog(this, "Pilih barang terlebih dahulu!", "Peringatan",
@@ -185,11 +183,10 @@ public class HomeBasePanel extends JPanel {
 
                 if (targetBarang != null && inventory.hapusBarang(targetBarang)) {
                     JOptionPane.showMessageDialog(this, "Barang berhasil dihapus.");
+                    refreshInventoryAndGerobak();
                 } else {
                     JOptionPane.showMessageDialog(this, "Barang tidak ditemukan.");
                 }
-
-                updateGoodsTable(currentSortBy, currentSortOrder);
             });
 
             btnMoveToGerobak.addActionListener(_ -> {
@@ -264,13 +261,11 @@ public class HomeBasePanel extends JPanel {
                     inventory.bawaBarang(targetBarang, jumlah, kapasitasGerobak);
 
                     // Merge items with same properties after moving to gerobak
-                    mergeItemsWithSamePropertiesAndPrice();
-
-                    JOptionPane.showMessageDialog(this,
+                    mergeItemsWithSamePropertiesAndPrice();                    JOptionPane.showMessageDialog(this,
                             "Berhasil memindahkan " + jumlah + " buah " + nama + " ke Gerobak.",
                             "Sukses",
                             JOptionPane.INFORMATION_MESSAGE);
-                    updateGoodsTable(currentSortBy, currentSortOrder);
+                    refreshInventoryAndGerobak();
                 } else {
                     JOptionPane.showMessageDialog(this, "Barang tidak ditemukan di inventory.", "Error",
                             JOptionPane.ERROR_MESSAGE);
@@ -367,31 +362,104 @@ public class HomeBasePanel extends JPanel {
             // Pastikan inventory juga tahu tentang gerobak
             inventory.setGerobak(gerobak);
         }
-    }
-
-    // Method untuk update goods table
+    }    // Method untuk update goods table
     private void updateGoodsTable(int sortBy, int sortOrder) {
         if (goodsTable == null || inventory == null)
             return;
 
-        // TODO: Implement goods table update logic based on sortBy and sortOrder
-        // This is a placeholder - you need to implement the actual sorting logic
-        DefaultTableModel model = new DefaultTableModel();
+        List<Barang> stokBarang = inventory.getStokBarang();
+        
+        // Group similar items and count them
+        Map<String, Map<String, Object>> groupedItems = new LinkedHashMap<>();
+        for (Barang barang : stokBarang) {
+            String key = barang.getNamaBarang() + "|" + barang.getKategori() + "|" + 
+                        barang.getKesegaran() + "|" + barang.getHargaBeli();
+            
+            if (groupedItems.containsKey(key)) {
+                Map<String, Object> itemData = groupedItems.get(key);
+                itemData.put("jumlah", (Integer) itemData.get("jumlah") + 1);
+            } else {
+                Map<String, Object> itemData = new HashMap<>();
+                itemData.put("barang", barang);
+                itemData.put("jumlah", 1);
+                groupedItems.put(key, itemData);
+            }
+        }
+        
+        // Convert to array for table
+        String[] columnNames = {"Icon", "Nama", "Kategori", "Kesegaran", "Harga Beli", "Jumlah"};
+        Object[][] data = new Object[groupedItems.size()][columnNames.length];
+        
+        int row = 0;
+        for (Map<String, Object> itemData : groupedItems.values()) {
+            Barang barang = (Barang) itemData.get("barang");
+            
+            // Get icon
+            ImageIcon icon = GamePanel.getIcon("assets/icons/" + barang.getIconPath(), 32, 32);
+            if (icon == null) {
+                icon = GamePanel.getIcon(barang.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
+            }
+            
+            data[row][0] = icon;
+            data[row][1] = barang.getNamaBarang();
+            data[row][2] = barang.getKategori();
+            data[row][3] = barang.getKesegaran();
+            data[row][4] = barang.getHargaBeli();
+            data[row][5] = itemData.get("jumlah");
+            row++;
+        }
+        
+        // Apply sorting if needed
+        // TODO: Implement sorting logic based on sortBy and sortOrder parameters
+        
+        DefaultTableModel model = new DefaultTableModel(data, columnNames) {
+            @Override
+            public Class<?> getColumnClass(int c) {
+                return c == 0 ? Icon.class : Object.class;
+            }
+            
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+        
         goodsTable.setModel(model);
+        goodsTable.setRowHeight(36);
+        
+        // Set column widths
+        goodsTable.getColumnModel().getColumn(0).setPreferredWidth(40);  // Icon
+        goodsTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Nama
+        goodsTable.getColumnModel().getColumn(2).setPreferredWidth(80);  // Kategori
+        goodsTable.getColumnModel().getColumn(3).setPreferredWidth(60);  // Kesegaran
+        goodsTable.getColumnModel().getColumn(4).setPreferredWidth(80);  // Harga Beli
+        goodsTable.getColumnModel().getColumn(5).setPreferredWidth(60);  // Jumlah
+        
+        // Set renderers
+        goodsTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
+            JLabel label = new JLabel();
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setIcon(value instanceof Icon ? (Icon) value : null);
+            return label;
+        });
+        
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int i = 1; i < columnNames.length; i++) {
+            goodsTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
 
         // Update the count label
         if (lblJumlah != null) {
             lblJumlah.setText("Jumlah barang: " + inventory.getJumlahBarang());
         }
-    }
-
-    // Method untuk update gerobak tables
+    }    // Method untuk update gerobak tables
     private void updateGerobakTables() {
         if (inventory == null)
             return;
 
-        // TODO: Implement gerobak tables update logic
-        // Update both gerobakNoPriceTable and gerobakWithPriceTable
+        updateGerobakNoPriceTable();
+        updateGerobakWithPriceTable();
 
         // Update info label
         if (lblGerobakInfo != null) {
@@ -401,6 +469,165 @@ public class HomeBasePanel extends JPanel {
                 totalBarang += jumlah;
             }
             lblGerobakInfo.setText("Total barang di gerobak: " + totalBarang);
+        }
+    }
+    
+    private void updateGerobakNoPriceTable() {
+        if (gerobakNoPriceTable == null || inventory == null)
+            return;
+            
+        Map<Barang, Integer> barangDibawa = inventory.getBarangDibawaMutable();
+        
+        // Filter items without price (harga jual <= 0)
+        List<Map<String, Object>> itemsWithoutPrice = new ArrayList<>();
+        for (Map.Entry<Barang, Integer> entry : barangDibawa.entrySet()) {
+            Barang barang = entry.getKey();
+            int jumlah = entry.getValue();
+            int hargaJual = inventory.getHargaJual(barang);
+            
+            if (hargaJual <= 0) {
+                Map<String, Object> itemData = new HashMap<>();
+                itemData.put("barang", barang);
+                itemData.put("jumlah", jumlah);
+                itemsWithoutPrice.add(itemData);
+            }
+        }
+        
+        String[] columnNames = {"Icon", "Nama", "Kategori", "Kesegaran", "Jumlah"};
+        Object[][] data = new Object[itemsWithoutPrice.size()][columnNames.length];
+        
+        for (int i = 0; i < itemsWithoutPrice.size(); i++) {
+            Map<String, Object> itemData = itemsWithoutPrice.get(i);
+            Barang barang = (Barang) itemData.get("barang");
+            
+            // Get icon
+            ImageIcon icon = GamePanel.getIcon("assets/icons/" + barang.getIconPath(), 32, 32);
+            if (icon == null) {
+                icon = GamePanel.getIcon(barang.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
+            }
+            
+            data[i][0] = icon;
+            data[i][1] = barang.getNamaBarang();
+            data[i][2] = barang.getKategori();
+            data[i][3] = barang.getKesegaran();
+            data[i][4] = itemData.get("jumlah");
+        }
+        
+        DefaultTableModel model = new DefaultTableModel(data, columnNames) {
+            @Override
+            public Class<?> getColumnClass(int c) {
+                return c == 0 ? Icon.class : Object.class;
+            }
+            
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+        
+        gerobakNoPriceTable.setModel(model);
+        gerobakNoPriceTable.setRowHeight(36);
+        
+        // Set column widths
+        gerobakNoPriceTable.getColumnModel().getColumn(0).setPreferredWidth(40);  // Icon
+        gerobakNoPriceTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Nama
+        gerobakNoPriceTable.getColumnModel().getColumn(2).setPreferredWidth(80);  // Kategori
+        gerobakNoPriceTable.getColumnModel().getColumn(3).setPreferredWidth(60);  // Kesegaran
+        gerobakNoPriceTable.getColumnModel().getColumn(4).setPreferredWidth(60);  // Jumlah
+        
+        // Set renderers
+        gerobakNoPriceTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
+            JLabel label = new JLabel();
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setIcon(value instanceof Icon ? (Icon) value : null);
+            return label;
+        });
+        
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int i = 1; i < columnNames.length; i++) {
+            gerobakNoPriceTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
+    }
+    
+    private void updateGerobakWithPriceTable() {
+        if (gerobakWithPriceTable == null || inventory == null)
+            return;
+            
+        Map<Barang, Integer> barangDibawa = inventory.getBarangDibawaMutable();
+        
+        // Filter items with price (harga jual > 0)
+        List<Map<String, Object>> itemsWithPrice = new ArrayList<>();
+        for (Map.Entry<Barang, Integer> entry : barangDibawa.entrySet()) {
+            Barang barang = entry.getKey();
+            int jumlah = entry.getValue();
+            int hargaJual = inventory.getHargaJual(barang);
+            
+            if (hargaJual > 0) {
+                Map<String, Object> itemData = new HashMap<>();
+                itemData.put("barang", barang);
+                itemData.put("jumlah", jumlah);
+                itemData.put("hargaJual", hargaJual);
+                itemsWithPrice.add(itemData);
+            }
+        }
+        
+        String[] columnNames = {"Icon", "Nama", "Kategori", "Kesegaran", "Jumlah", "Harga Jual"};
+        Object[][] data = new Object[itemsWithPrice.size()][columnNames.length];
+        
+        for (int i = 0; i < itemsWithPrice.size(); i++) {
+            Map<String, Object> itemData = itemsWithPrice.get(i);
+            Barang barang = (Barang) itemData.get("barang");
+            
+            // Get icon
+            ImageIcon icon = GamePanel.getIcon("assets/icons/" + barang.getIconPath(), 32, 32);
+            if (icon == null) {
+                icon = GamePanel.getIcon(barang.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
+            }
+            
+            data[i][0] = icon;
+            data[i][1] = barang.getNamaBarang();
+            data[i][2] = barang.getKategori();
+            data[i][3] = barang.getKesegaran();
+            data[i][4] = itemData.get("jumlah");
+            data[i][5] = itemData.get("hargaJual") + "G";
+        }
+        
+        DefaultTableModel model = new DefaultTableModel(data, columnNames) {
+            @Override
+            public Class<?> getColumnClass(int c) {
+                return c == 0 ? Icon.class : Object.class;
+            }
+            
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+        
+        gerobakWithPriceTable.setModel(model);
+        gerobakWithPriceTable.setRowHeight(36);
+        
+        // Set column widths
+        gerobakWithPriceTable.getColumnModel().getColumn(0).setPreferredWidth(40);  // Icon
+        gerobakWithPriceTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Nama
+        gerobakWithPriceTable.getColumnModel().getColumn(2).setPreferredWidth(80);  // Kategori
+        gerobakWithPriceTable.getColumnModel().getColumn(3).setPreferredWidth(60);  // Kesegaran
+        gerobakWithPriceTable.getColumnModel().getColumn(4).setPreferredWidth(60);  // Jumlah
+        gerobakWithPriceTable.getColumnModel().getColumn(5).setPreferredWidth(80);  // Harga Jual
+        
+        // Set renderers
+        gerobakWithPriceTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
+            JLabel label = new JLabel();
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setIcon(value instanceof Icon ? (Icon) value : null);
+            return label;
+        });
+        
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int i = 1; i < columnNames.length; i++) {
+            gerobakWithPriceTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
     }
 
@@ -959,15 +1186,12 @@ public class HomeBasePanel extends JPanel {
                 barangTarget = b;
                 break;
             }
-        }
-
-        if (barangTarget != null) {
+        }        if (barangTarget != null) {
             // Move the entire quantity back to inventory
             inventory.undoBawaBarang(barangTarget, jumlahTersedia);
             JOptionPane.showMessageDialog(this, "Barang dipindahkan kembali ke Inventory.", "Sukses",
                     JOptionPane.INFORMATION_MESSAGE);
-            updateGoodsTable(currentSortBy, currentSortOrder);
-            updateGerobakTables();
+            refreshInventoryAndGerobak();
         } else {
             JOptionPane.showMessageDialog(this, "Barang tidak ditemukan di gerobak!", "Error",
                     JOptionPane.ERROR_MESSAGE);
