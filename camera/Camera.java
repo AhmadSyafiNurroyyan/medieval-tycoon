@@ -1,8 +1,8 @@
 package camera;
 
+import MapManager.TileManager;
 import gui.GamePanel;
 import model.Player.PlayerMovement;
-import tiles.TileManager;
 
 public class Camera {
     private int x, y; 

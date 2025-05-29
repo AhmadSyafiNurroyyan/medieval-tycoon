@@ -176,8 +176,8 @@ public class Player {
         // frameIndex = 0;
         // }
         // }
-        public void update(int mapWidth, int mapHeight, int tileSize, tiles.MapObjectManager mapObjectManager,
-                tiles.TileManager tileManager) {
+        public void update(int mapWidth, int mapHeight, int tileSize, MapManager.MapObjectManager mapObjectManager,
+                MapManager.TileManager tileManager) {
             boolean moving = false;
             int nextX = x, nextY = y;
             if (up) {

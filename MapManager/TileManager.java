@@ -1,4 +1,4 @@
-package tiles;
+package MapManager;
 
 import gui.GamePanel;
 import java.awt.*;

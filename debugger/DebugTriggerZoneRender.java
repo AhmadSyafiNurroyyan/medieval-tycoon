@@ -1,8 +1,8 @@
 package debugger;
 
-import java.awt.*;
+import MapManager.TriggerZoneManager;
 import camera.Camera;
-import tiles.TriggerZoneManager;
+import java.awt.*;
 
 
 public class DebugTriggerZoneRender {

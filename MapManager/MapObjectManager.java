@@ -1,4 +1,4 @@
-package tiles;
+package MapManager;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

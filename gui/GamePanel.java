@@ -10,13 +10,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.*;
+
+import MapManager.MapObjectManager;
+import MapManager.RandomTriggerZoneManager;
+import MapManager.TileManager;
+import MapManager.TriggerZoneManager;
 import model.*;
 import model.Player.PlayerMovement;
 import model.Player.PlayerSkin;
-import tiles.MapObjectManager;
-import tiles.TileManager;
-import tiles.TriggerZoneManager;
-//import debugger.DebugCoordinateLogger;
 
 public class GamePanel extends JPanel implements Runnable {
     private Player player;
@@ -28,6 +29,7 @@ public class GamePanel extends JPanel implements Runnable {
     private TileManager tileManager;
     private Camera camera;
     private TriggerZoneManager triggerZoneManager;
+    private RandomTriggerZoneManager randomTriggerZoneManager;
     private Supplier supplier;
     private TokoItem tokoItem;
     private TokoPerks tokoPerks;
@@ -62,6 +64,7 @@ public class GamePanel extends JPanel implements Runnable {
         tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
+        randomTriggerZoneManager = new RandomTriggerZoneManager();
         supplier = new Supplier();        
         tokoItem = new TokoItem(player);
         tokoPerks = new TokoPerks();
@@ -74,9 +77,9 @@ public class GamePanel extends JPanel implements Runnable {
             public void keyPressed(KeyEvent e) {
                 playerMovement.keyPressed(e.getKeyCode());
                 if (e.getKeyCode() == KeyEvent.VK_E) {
-                    List<tiles.TriggerZoneManager.TriggerZone> zones = triggerZoneManager
+                    List<MapManager.TriggerZoneManager.TriggerZone> zones = triggerZoneManager
                             .getZonesAt(playerMovement.getX(), playerMovement.getY());
-                    for (tiles.TriggerZoneManager.TriggerZone zone : zones) {
+                    for (MapManager.TriggerZoneManager.TriggerZone zone : zones) {
                         zone.trigger();
                     }
                 }
@@ -355,10 +358,10 @@ public class GamePanel extends JPanel implements Runnable {
     /**
      * Switch to a different map and move player to specified coordinates
      */
-    public void switchToMap(String mapName, int newX, int newY) {
-        // Clear existing map objects and trigger zones
+    public void switchToMap(String mapName, int newX, int newY) {        // Clear existing map objects and trigger zones
         mapObjectManager.clearObjects();
         triggerZoneManager.clearAllZones();
+        randomTriggerZoneManager.clearZones();
         
         // Switch the tile map
         String mapPath = "assets/tiles/" + mapName;
@@ -424,9 +427,7 @@ public class GamePanel extends JPanel implements Runnable {
                 mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop - 140 * i, yshop - 190 * j, true);
             }
         }
-    }
-
-    /**
+    }    /**
      * Setup content for map2 (new map)
      */
     private void setupMap2Content() {
@@ -435,8 +436,10 @@ public class GamePanel extends JPanel implements Runnable {
             switchToMap("map1", 92, playerMovement.getY());
         });
 
-        // Add some map objects for map2 (you can customize these)
-        // Example: Add some buildings or objects specific to map2
-            
+        // Generate random trigger zones for map2
+        // Constraint: x between 0-1150, y between 0-1450
+        randomTriggerZoneManager.generateRandomZones(0, 1150, 0, 1450, triggerZoneManager);
+        
+        System.out.println("Map2 setup complete with " + randomTriggerZoneManager.getZoneCount() + " random zones");
     }
 }
