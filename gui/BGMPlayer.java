@@ -6,17 +6,21 @@ import java.io.IOException;
 
 /**
  * BGM Player untuk memainkan background music dengan looping
- * Hanya akan memainkan BGM saat di HomeBase
+ * Mendukung HomeBase BGM dan Map BGM
  */
 public class BGMPlayer {
   private static BGMPlayer instance;
   private Clip currentClip;
   private boolean isEnabled = true;
   private boolean isPlayingHomeBaseBGM = false;
-  private String currentBGMPath = null; // BGM paths - HomeBase.wav is the primary file (Java natively supports WAV),
+  private boolean isPlayingMapBGM = false;
+  private String currentBGMPath = null;
+
+  // BGM paths
   private static final String HOME_BASE_BGM_PATH_1 = "assets/bgm/HomeBase.wav"; // File baru yang sudah diconvert -
                                                                                 // primary
   private static final String HOME_BASE_BGM_PATH_2 = "assets/bgm/med.wav"; // Fallback file
+  private static final String MAP_BGM_PATH = "assets/bgm/MapUtama.wav"; // Map BGM
 
   // ...existing code...
 
@@ -39,27 +43,54 @@ public class BGMPlayer {
    */
   public void playHomeBaseBGM() {
     if (!isEnabled || isPlayingHomeBaseBGM) {
-      System.out.println("BGM not starting: enabled=" + isEnabled + ", already playing=" + isPlayingHomeBaseBGM);
+      System.out
+          .println("HomeBase BGM not starting: enabled=" + isEnabled + ", already playing=" + isPlayingHomeBaseBGM);
       return;
     }
 
     System.out.println("Attempting to start HomeBase BGM...");
 
-    // Try to play wav file first, then mp3 as fallback
+    // Try to play wav file first, then fallback
     String bgmPath = HOME_BASE_BGM_PATH_1;
     File bgmFile = new File(bgmPath);
     if (!bgmFile.exists()) {
       System.out.println("Primary HomeBase BGM file not found, trying fallback: " + bgmPath);
-      // Try wav file as fallback
       bgmPath = HOME_BASE_BGM_PATH_2;
       bgmFile = new File(bgmPath);
 
       if (!bgmFile.exists()) {
-        System.err.println("BGM files not found: " + HOME_BASE_BGM_PATH_1 + " or " + HOME_BASE_BGM_PATH_2);
+        System.err.println("HomeBase BGM files not found: " + HOME_BASE_BGM_PATH_1 + " or " + HOME_BASE_BGM_PATH_2);
         return;
       }
     }
 
+    playBGM(bgmPath, true, false);
+  }
+
+  /**
+   * Play Map BGM with looping
+   */
+  public void playMapBGM() {
+    if (!isEnabled || isPlayingMapBGM) {
+      System.out.println("Map BGM not starting: enabled=" + isEnabled + ", already playing=" + isPlayingMapBGM);
+      return;
+    }
+
+    System.out.println("Attempting to start Map BGM...");
+
+    File bgmFile = new File(MAP_BGM_PATH);
+    if (!bgmFile.exists()) {
+      System.err.println("Map BGM file not found: " + MAP_BGM_PATH);
+      return;
+    }
+
+    playBGM(MAP_BGM_PATH, false, true);
+  }
+
+  /**
+   * Internal method to play BGM
+   */
+  private void playBGM(String bgmPath, boolean isHomeBase, boolean isMap) {
     System.out.println("Found BGM file: " + bgmPath);
 
     try {
@@ -67,7 +98,7 @@ public class BGMPlayer {
       stopBGM();
 
       // Load and play the BGM
-      AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(bgmFile);
+      AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(bgmPath));
       currentClip = AudioSystem.getClip();
       currentClip.open(audioInputStream);
 
@@ -75,10 +106,13 @@ public class BGMPlayer {
       currentClip.loop(Clip.LOOP_CONTINUOUSLY);
       currentClip.start();
 
-      isPlayingHomeBaseBGM = true;
+      // Set flags
+      isPlayingHomeBaseBGM = isHomeBase;
+      isPlayingMapBGM = isMap;
       currentBGMPath = bgmPath;
 
-      System.out.println("Started playing HomeBase BGM: " + bgmPath);
+      String bgmType = isHomeBase ? "HomeBase" : "Map";
+      System.out.println("Started playing " + bgmType + " BGM: " + bgmPath);
 
     } catch (UnsupportedAudioFileException e) {
       System.err.println("Unsupported audio format: " + bgmPath);
@@ -106,6 +140,7 @@ public class BGMPlayer {
       System.out.println("Stopped BGM: " + currentBGMPath);
     }
     isPlayingHomeBaseBGM = false;
+    isPlayingMapBGM = false;
     currentBGMPath = null;
   }
 
@@ -119,10 +154,26 @@ public class BGMPlayer {
   }
 
   /**
+   * Stop Map BGM specifically
+   */
+  public void stopMapBGM() {
+    if (isPlayingMapBGM) {
+      stopBGM();
+    }
+  }
+
+  /**
    * Check if HomeBase BGM is currently playing
    */
   public boolean isPlayingHomeBaseBGM() {
     return isPlayingHomeBaseBGM && currentClip != null && currentClip.isRunning();
+  }
+
+  /**
+   * Check if Map BGM is currently playing
+   */
+  public boolean isPlayingMapBGM() {
+    return isPlayingMapBGM && currentClip != null && currentClip.isRunning();
   }
 
   /**

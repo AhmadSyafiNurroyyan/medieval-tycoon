@@ -70,9 +70,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         backButton = StyledButton.create("Kembali", 20, 120, 40);
         backButton.addActionListener(_ -> {
             if (backToGameCallback != null) {
-                // Stop BGM when leaving HomeBase
-                System.out.println("HomeBasePanel: Back button clicked - stopping BGM");
+                // Stop HomeBase BGM and start Map BGM when returning to game
+                System.out.println("HomeBasePanel: Back button clicked - stopping HomeBase BGM and starting Map BGM");
                 BGMPlayer.getInstance().stopHomeBaseBGM();
+                BGMPlayer.getInstance().playMapBGM();
                 backToGameCallback.run();
             }
         });
@@ -1667,7 +1668,9 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
      * Called when HomeBase panel becomes visible (starts BGM)
      */
     public void onPanelShown() {
-        System.out.println("HomeBasePanel: onPanelShown() called - starting BGM");
+        System.out.println("HomeBasePanel: onPanelShown() called - starting HomeBase BGM");
+        // Stop Map BGM if playing and start HomeBase BGM
+        BGMPlayer.getInstance().stopMapBGM();
         BGMPlayer.getInstance().playHomeBaseBGM();
     }
 
@@ -1675,8 +1678,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
      * Called when HomeBase panel is hidden (stops BGM)
      */
     public void onPanelHidden() {
-        System.out.println("HomeBasePanel: onPanelHidden() called - stopping BGM");
+        System.out.println("HomeBasePanel: onPanelHidden() called - stopping HomeBase BGM and starting Map BGM");
         BGMPlayer.getInstance().stopHomeBaseBGM();
+        // Start Map BGM when leaving HomeBase
+        BGMPlayer.getInstance().playMapBGM();
     }
 
     /**

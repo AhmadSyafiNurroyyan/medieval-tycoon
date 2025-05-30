@@ -78,6 +78,8 @@ public class MainMenu extends JFrame {
 
         homeBasePanel.setInventory(player.getInventory());
         homeBasePanel.setBackToGameCallback(() -> {
+            System.out.println("MainMenu: Switching back to game from HomeBase");
+            homeBasePanel.onPanelHidden(); // Stop HomeBase BGM and start Map BGM
             cardLayout.show(cardsPanel, "GAME");
             gamePanel.requestFocusInWindow();
         });
@@ -152,11 +154,13 @@ public class MainMenu extends JFrame {
 
         inputBoxPanel.add(inputContent);
         newGamePanel.add(inputBoxPanel, BorderLayout.CENTER);
-
         createGameButton.addActionListener(e -> {
             String username = userField.getText().trim();
             if (!username.isEmpty()) {
                 gamePanel.getPlayer().setUsername(username);
+                // Start Map BGM when game begins
+                System.out.println("MainMenu: Starting new game - initializing Map BGM");
+                BGMPlayer.getInstance().playMapBGM();
                 cardLayout.show(cardsPanel, "GAME");
                 gamePanel.requestFocusInWindow();
             } else {
