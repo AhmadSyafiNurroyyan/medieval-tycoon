@@ -52,7 +52,9 @@ public class Inventory {
             }
         }
         return result;
-    }    public List<Item> getStokItem() {
+    }
+
+    public List<Item> getStokItem() {
         List<Item> result = new ArrayList<>();
         for (Map.Entry<String, Item> entry : stokItem.entrySet()) {
             // Only include items that are NOT in the gerobak
@@ -99,12 +101,14 @@ public class Inventory {
                 iterator.remove();
             }
         }
+        notifyInventoryChanged();
     }
 
     public void kurangiKesegaranSemua() {
         for (Barang barang : stokBarang.keySet()) {
             barang.kurangiKesegaran();
         }
+        notifyInventoryChanged();
     }
 
     public boolean hapusBarang(Barang barang) {
@@ -151,7 +155,9 @@ public class Inventory {
             }
             notifyInventoryChanged();
         }
-    }    public boolean bawaItem(String namaItem, int kapasitasGerobak) {
+    }
+
+    public boolean bawaItem(String namaItem, int kapasitasGerobak) {
         String namaItemLower = namaItem.toLowerCase();
         System.out.println("bawaItem called: " + namaItem + ", kapasitasGerobak=" + kapasitasGerobak);
         System.out.println("stokItem: " + stokItem.keySet());
@@ -257,8 +263,6 @@ public class Inventory {
         }
     }
 
-    // Jika ingin tetap expose barangDibawa, gunakan method ini (bisa diubah dari
-    // luar)
     public Map<Barang, Integer> getBarangDibawaMutable() {
         return barangDibawa;
     }

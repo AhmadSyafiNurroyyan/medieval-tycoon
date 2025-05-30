@@ -98,6 +98,7 @@ public class TokoItemPanel extends JPanel {
       gbc.insets = new Insets(5, 5, 5, 5);
       gbc.gridy = 0;
 
+      // Icon dan nama item
       Image icon = new ImageIcon("assets/icons/" + item.getIconPath()).getImage().getScaledInstance(40, 40,
           Image.SCALE_SMOOTH);
       ImageIcon scaledIcon = new ImageIcon(icon);
@@ -108,102 +109,56 @@ public class TokoItemPanel extends JPanel {
       gbc.weightx = 1;
       itemRow.add(nameLabel, gbc);
 
+      // Label harga item
       JLabel hargaLabel = new JLabel(item.getHarga() + "G");
-      hargaLabel.setFont(new Font("Serif", Font.PLAIN, 22));
-      hargaLabel.setPreferredSize(new Dimension(90, 30));
+      hargaLabel.setFont(new Font("Serif", Font.BOLD, 22));
+      hargaLabel.setPreferredSize(new Dimension(120, 30));
       gbc.gridx = 1;
-      gbc.anchor = GridBagConstraints.WEST;
+      gbc.anchor = GridBagConstraints.CENTER;
       gbc.weightx = 0;
       itemRow.add(hargaLabel, gbc);
 
-      gbc.anchor = GridBagConstraints.EAST;
-      JButton minusBtn = StyledButton.create("-", 18, 40, 30);
-      gbc.gridx = 2;
-      itemRow.add(minusBtn, gbc);
-
-      JTextField qtyField = new JTextField("1", 2);
-      qtyField.setHorizontalAlignment(JTextField.CENTER);
-      qtyField.setFont(new Font("Serif", Font.PLAIN, 20));
-      qtyField.setPreferredSize(new Dimension(40, 30));
-      gbc.gridx = 3;
-      itemRow.add(qtyField, gbc);
-
-      JButton plusBtn = StyledButton.create("+", 18, 40, 30);
-      gbc.gridx = 4;
-      itemRow.add(plusBtn, gbc);
-
-      JLabel totalLabel = new JLabel("= " + item.getHarga() + "G");
-      totalLabel.setFont(new Font("Serif", Font.BOLD, 22));
-      totalLabel.setPreferredSize(new Dimension(110, 30));
-      gbc.gridx = 5;
-      itemRow.add(totalLabel, gbc);
-
+      // Tombol beli
       JButton buyButton = StyledButton.create("Beli", 18, 70, 30);
-      gbc.gridx = 6;
+      gbc.gridx = 2;
+      gbc.anchor = GridBagConstraints.EAST;
       itemRow.add(buyButton, gbc);
 
-      minusBtn.addActionListener(e -> {
-        int qty = Integer.parseInt(qtyField.getText());
-        if (qty > 1) {
-          qty--;
-        }
-        qtyField.setText(String.valueOf(qty));
-        totalLabel.setText("= " + (item.getHarga() * qty) + "G");
-      });
-
-      plusBtn.addActionListener(e -> {
-        int qty = Integer.parseInt(qtyField.getText()) + 1;
-        qtyField.setText(String.valueOf(qty));
-        totalLabel.setText("= " + (item.getHarga() * qty) + "G");
-      });
-
-      qtyField.addActionListener(e -> {
-        int qty;
-        try {
-          qty = Math.max(1, Integer.parseInt(qtyField.getText()));
-        } catch (NumberFormatException ex) {
-          qty = 1;
-        }
-        qtyField.setText(String.valueOf(qty));
-        totalLabel.setText("= " + (item.getHarga() * qty) + "G");
-      });
-
+      // Action listener untuk tombol beli
       buyButton.addActionListener(e -> {
-        int qty;
-        try {
-          qty = Math.max(1, Integer.parseInt(qtyField.getText()));
-        } catch (NumberFormatException ex) {
-          qty = 1;
-        }
-        int totalHarga = item.getHarga() * qty;
-        if (player.getMoney() < totalHarga) {
-          JOptionPane.showMessageDialog(this, "Uang tidak cukup untuk membeli " + item.getNama() + " x" + qty + ".",
+        // Cek apakah uang player cukup
+        if (player.getMoney() < item.getHarga()) {
+          JOptionPane.showMessageDialog(this, 
+              "Uang tidak cukup untuk membeli " + item.getNama() + ".",
               "Gagal", JOptionPane.ERROR_MESSAGE);
           return;
         }
-        boolean success = true;
-        for (int i = 0; i < qty; i++) {
-          if (!toko.beliItem(player, item.getNama())) {
-            success = false;
-            break;
-          } else {
-            if (inventory != null) {
-              inventory.tambahItem(item); // Tambahkan item ke inventory
-            }
-          }
+        
+        // Lakukan pembelian
+        boolean success = toko.beliItem(player, item.getNama());
+        
+        // Tambahkan item ke inventory jika berhasil
+        if (success && inventory != null) {
+          inventory.tambahItem(item);
         }
-        String msg = success ? "Berhasil membeli " + item.getNama() + " x" + qty + "!"
+        
+        // Tampilkan pesan hasil pembelian
+        String msg = success ? "Berhasil membeli " + item.getNama() + "!"
             : "Gagal membeli " + item.getNama() + ".";
         JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
             success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+            
+        // Update tampilan uang player
         moneyLabel.setText("Uang: " + player.getMoney() + "G");
-        // Setelah pembelian berhasil
+        
+        // Panggil callback jika ada
         if (updateInventoryCallback != null) {
           updateInventoryCallback.run();
         }
-        // Tambahan agar tab upgrade langsung update dan tampil item baru:
+        
+        // Update tab upgrade dan pindah ke tab tersebut
         populateUpgradeItems();
-        tabbedPane.setSelectedIndex(1); // Opsional: pindah ke tab upgrade otomatis
+        tabbedPane.setSelectedIndex(1);
       });
 
       itemRow.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));

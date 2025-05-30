@@ -148,17 +148,22 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             sortPanel.add(orderCombo);
             goodsPanel.add(sortPanel, BorderLayout.NORTH);
             goodsPanel.add(goodsScroll, BorderLayout.CENTER);
-
-            JButton btnHapus = StyledButton.create("Hapus Barang", 13, 123, 32);
-            JButton btnMoveToGerobak = StyledButton.create("Move to Gerobak", 13, 160, 32);
+            JButton btnHapus = StyledButton.create("Hapus Barang", 14, 150, 38);
+            JButton btnMoveToGerobak = StyledButton.create("Move to Gerobak", 14, 180, 38);
+            JButton btnBersihkanBusuk = StyledButton.create("Bersihkan Barang Busuk", 14, 180, 38);
 
             lblJumlah = new JLabel("Jumlah barang: " + (inventory != null ? inventory.getJumlahBarang() : 0));
             lblJumlah.setFont(new Font("SansSerif", Font.PLAIN, 14));
-            lblJumlah.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 13));
+            lblJumlah.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 13)); // Create a panel for the buttons with
+                                                                                // better layout
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            buttonPanel.setOpaque(false);
+            buttonPanel.add(btnHapus);
+            buttonPanel.add(btnMoveToGerobak);
+            buttonPanel.add(btnBersihkanBusuk);
 
             JPanel bawahPanel = new JPanel(new BorderLayout());
-            bawahPanel.add(btnHapus, BorderLayout.WEST);
-            bawahPanel.add(btnMoveToGerobak, BorderLayout.CENTER);
+            bawahPanel.add(buttonPanel, BorderLayout.WEST);
             bawahPanel.add(lblJumlah, BorderLayout.EAST);
             goodsPanel.add(bawahPanel, BorderLayout.SOUTH);
             btnHapus.addActionListener(_ -> {
@@ -248,7 +253,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                         targetBarang = b;
                         break;
                     }
-                }                if (targetBarang != null) {
+                }
+                if (targetBarang != null) {
                     // Get the actual gerobak capacity from inventory
                     int kapasitasGerobak = 20; // Default fallback
                     if (inventory.getGerobak() != null) {
@@ -276,6 +282,28 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                 } else {
                     JOptionPane.showMessageDialog(this, "Barang tidak ditemukan di inventory.", "Error",
                             JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
+            btnBersihkanBusuk.addActionListener(_ -> {
+                if (inventory == null) {
+                    JOptionPane.showMessageDialog(this, "Inventory tidak tersedia!", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                int confirm = JOptionPane.showConfirmDialog(this,
+                        "Apakah anda yakin ingin menghapus semua barang busuk dari inventory?",
+                        "Konfirmasi Bersihkan Barang Busuk",
+                        JOptionPane.YES_NO_OPTION);
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    inventory.bersihkanBarangBusuk();
+                    JOptionPane.showMessageDialog(this,
+                            "Semua barang busuk telah dihapus dari inventory.",
+                            "Sukses",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    refreshInventoryAndGerobak();
                 }
             });
 
@@ -311,15 +339,13 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
             // Buat panel untuk tombol-tombol di sebelah kiri
             JPanel leftButtonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-            leftButtonsPanel.setOpaque(false);
-
-            // Tombol Hapus Item
-            JButton deleteItemBtn = StyledButton.create("Hapus Item", 13, 120, 32);
+            leftButtonsPanel.setOpaque(false);            // Tombol Hapus Item
+            JButton deleteItemBtn = StyledButton.create("Hapus Item", 14, 150, 38);
             deleteItemBtn.addActionListener(_ -> deleteSelectedItem(itemsTable));
             leftButtonsPanel.add(deleteItemBtn);
 
             // Tombol Move to Gerobak
-            JButton moveItemToGerobakBtn = StyledButton.create("Move to Gerobak", 13, 150, 32);
+            JButton moveItemToGerobakBtn = StyledButton.create("Move to Gerobak", 14, 180, 38);
             moveItemToGerobakBtn.addActionListener(_ -> moveItemToGerobak(itemsTable));
             leftButtonsPanel.add(moveItemToGerobakBtn);
 
@@ -1704,8 +1730,9 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
             JLabel nextLevelLabel = new JLabel("Next Level: " + (currentGerobak.getLevel() + 1));
             nextLevelLabel.setFont(new Font("Serif", Font.PLAIN, 12));
-            nextLevelLabel.setForeground(new Color(100, 70, 20));            nextLevelLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
+            nextLevelLabel.setForeground(new Color(100, 70, 20));
+            nextLevelLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
             JButton upgradeButton = StyledButton.create("Upgrade Gerobak", 14, 150, 35);
             upgradeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -1723,7 +1750,9 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         headerPanel.add(upgradePanel, BorderLayout.EAST);
 
         return headerPanel;
-    }    /**
+    }
+
+    /**
      * Upgrade the gerobak to the next level if possible
      */
     private void upgradeGerobak(Gerobak gerobak, int biayaUpgrade) {
@@ -1740,18 +1769,19 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
         // Recalculate the actual current upgrade cost
         int actualUpgradeCost = gerobak.getBiayaUpgrade();
-        
+
         // Check if the player has enough money
         if (player.getMoney() < actualUpgradeCost) {
             JOptionPane.showMessageDialog(this,
-                    "Uang tidak cukup untuk upgrade!\nBiaya: " + actualUpgradeCost + "G\nUang Anda: " + player.getMoney() + "G",
+                    "Uang tidak cukup untuk upgrade!\nBiaya: " + actualUpgradeCost + "G\nUang Anda: "
+                            + player.getMoney() + "G",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
-        }        // Perform the upgrade
+        } // Perform the upgrade
         boolean upgradeSuccess = gerobak.upgradeLevel();
         if (upgradeSuccess) {
             player.kurangiMoney(actualUpgradeCost);
-            
+
             // Make sure the inventory's gerobak is also updated
             if (inventory != null) {
                 inventory.setGerobak(gerobak);
@@ -1764,10 +1794,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                 gerobakFrame.dispose();
                 gerobakFrame = null;
             }
-            
+
             // Refresh the displays
             refreshInventoryAndGerobak();
-            
+
             // Reopen the gerobak frame if it was open before
             if (wasGerobakFrameVisible) {
                 showGerobakFrame();
@@ -1775,8 +1805,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
             JOptionPane.showMessageDialog(this,
                     "Gerobak berhasil di-upgrade ke Level " + gerobak.getLevel() + "!\n" +
-                    "Kapasitas Barang: " + gerobak.getKapasitasBarang() + "\n" +
-                    "Kapasitas Item: " + gerobak.getKapasitasItem(),
+                            "Kapasitas Barang: " + gerobak.getKapasitasBarang() + "\n" +
+                            "Kapasitas Item: " + gerobak.getKapasitasItem(),
                     "Sukses", JOptionPane.INFORMATION_MESSAGE);
 
             // Also update UI elements from other panels that might show player money
