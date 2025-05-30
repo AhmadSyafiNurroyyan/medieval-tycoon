@@ -17,16 +17,19 @@ import model.Barang;
 import model.Gerobak;
 import model.Inventory;
 import model.Item;
+import model.Perk;
 import model.Player;
 import interfaces.InventoryChangeListener;
+import model.PerksManagement;
 
 public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private JButton btn1, btn2, btn3, btn4, btn5, backButton;
     private Runnable backToGameCallback;
     private Inventory inventory;
     private Player player;
+    private PerksManagement perksManagement;
     private JDesktopPane desktopPane;
-    private JInternalFrame inventoryFrame, gerobakFrame;
+    private JInternalFrame inventoryFrame, gerobakFrame, perksFrame;
     private JTable goodsTable, gerobakNoPriceTable, gerobakWithPriceTable;
     // Tambah field untuk item gerobak table
     private JTable itemGerobakTable;
@@ -39,6 +42,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
     public HomeBasePanel(Player player) {
         this.player = player;
+        this.perksManagement = new PerksManagement();
         setLayout(null);
         initializeComponents();
         loadImages();
@@ -75,13 +79,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         desktopPane = new JDesktopPane();
         desktopPane.setOpaque(false);
         add(desktopPane);
-        setComponentZOrder(desktopPane, 0);
-
-        // Action listeners
+        setComponentZOrder(desktopPane, 0); // Action listeners
         btn1.addActionListener(_ -> showInventoryFrame());
         btn2.addActionListener(_ -> showGerobakFrame());
-        btn3.addActionListener(_ -> {
-        });
+        btn3.addActionListener(_ -> showPerksFrame());
         btn4.addActionListener(_ -> {
         });
         btn5.addActionListener(_ -> {
@@ -339,7 +340,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
             // Buat panel untuk tombol-tombol di sebelah kiri
             JPanel leftButtonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-            leftButtonsPanel.setOpaque(false);            // Tombol Hapus Item
+            leftButtonsPanel.setOpaque(false); // Tombol Hapus Item
             JButton deleteItemBtn = StyledButton.create("Hapus Item", 14, 150, 38);
             deleteItemBtn.addActionListener(_ -> deleteSelectedItem(itemsTable));
             leftButtonsPanel.add(deleteItemBtn);
@@ -1819,6 +1820,268 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             JOptionPane.showMessageDialog(this,
                     "Gagal melakukan upgrade. Gerobak mungkin sudah mencapai level maksimal.",
                     "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void showPerksFrame() {
+        if (perksFrame == null) {
+            perksFrame = new JInternalFrame("Perks", true, true, true, true);
+            perksFrame.setSize(800, 500);
+            perksFrame.setVisible(true);
+            perksFrame.setLayout(new BorderLayout());
+            perksFrame.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(6, 6, 16, 16, new Color(120, 90, 30, 180)),
+                    BorderFactory.createLineBorder(new Color(212, 175, 55), 4)));
+            perksFrame.setOpaque(true);
+            perksFrame.getContentPane().setBackground(new Color(255, 248, 220));
+
+            // Header panel
+            JPanel headerPanel = new JPanel(new BorderLayout());
+            headerPanel.setBackground(new Color(255, 248, 220));
+            headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+
+            JLabel titleLabel = new JLabel("Perks yang Dimiliki", JLabel.CENTER);
+            titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
+            titleLabel.setForeground(new Color(120, 90, 30));
+            headerPanel.add(titleLabel, BorderLayout.CENTER);
+
+            // Money display
+            JLabel moneyLabel = new JLabel("Uang: " + player.getMoney() + "G", JLabel.RIGHT);
+            moneyLabel.setFont(new Font("Serif", Font.PLAIN, 18));
+            moneyLabel.setForeground(new Color(120, 90, 30));
+            headerPanel.add(moneyLabel, BorderLayout.EAST);
+
+            perksFrame.add(headerPanel, BorderLayout.NORTH);
+
+            // Main content panel
+            JPanel mainPanel = new JPanel(new BorderLayout());
+            mainPanel.setBackground(new Color(255, 248, 220));
+
+            // Perks table
+            JTable perksTable = new JTable();
+            perksTable.getTableHeader().setBackground(new Color(212, 175, 55));
+            perksTable.getTableHeader().setForeground(new Color(60, 40, 10));
+            perksTable.setBackground(new Color(255, 255, 240));
+            perksTable.setForeground(new Color(60, 40, 10));
+            perksTable.setRowHeight(50);
+
+            updatePerksTable(perksTable);
+
+            JScrollPane perksScroll = new JScrollPane(perksTable);
+            perksScroll.getViewport().setBackground(new Color(255, 255, 240));
+            perksScroll.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 1));
+            mainPanel.add(perksScroll, BorderLayout.CENTER);
+
+            // Action buttons panel
+            JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+            actionPanel.setBackground(new Color(255, 248, 220));
+
+            JButton activateButton = StyledButton.create("Activate", 14, 150, 35);
+            JButton deactivateButton = StyledButton.create("Deactivate", 14, 120, 35);
+            JButton refreshButton = StyledButton.create("Refresh", 14, 100, 35);
+
+            activateButton.addActionListener(_ -> {
+                int selectedRow = perksTable.getSelectedRow();
+                if (selectedRow == -1) {
+                    JOptionPane.showMessageDialog(this, "Pilih perk terlebih dahulu!", "Peringatan",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                String perkName = perksTable.getValueAt(selectedRow, 1).toString().split(" \\(")[0];
+
+                // Find the perk by name
+                List<Perk> ownedPerks = perksManagement.getPerkYangDimiliki(player);
+                Perk selectedPerk = null;
+                for (Perk perk : ownedPerks) {
+                    if (perk.getName().equals(perkName)) {
+                        selectedPerk = perk;
+                        break;
+                    }
+                }
+
+                if (selectedPerk != null) {
+                    if (perksManagement.pilihPerkUntukJualan(player, selectedPerk)) {
+                        JOptionPane.showMessageDialog(this,
+                                "Perk " + selectedPerk.getName() + " berhasil diaktifkan untuk trading!",
+                                "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                        updatePerksTable(perksTable);
+                    } else {
+                        JOptionPane.showMessageDialog(this,
+                                "Gagal mengaktifkan perk. Mungkin slot trading sudah penuh atau perk sudah aktif.",
+                                "Gagal", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
+
+            deactivateButton.addActionListener(_ -> {
+                int selectedRow = perksTable.getSelectedRow();
+                if (selectedRow == -1) {
+                    JOptionPane.showMessageDialog(this, "Pilih perk terlebih dahulu!", "Peringatan",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                String perkName = perksTable.getValueAt(selectedRow, 1).toString().split(" \\(")[0];
+
+                // Find the perk by name
+                List<Perk> tradingPerks = player.getPerkDipilihUntukJualan();
+                Perk selectedPerk = null;
+                for (Perk perk : tradingPerks) {
+                    if (perk.getName().equals(perkName)) {
+                        selectedPerk = perk;
+                        break;
+                    }
+                }
+
+                if (selectedPerk != null) {
+                    selectedPerk.deactivate();
+                    player.getPerkDipilihUntukJualan().remove(selectedPerk);
+                    JOptionPane.showMessageDialog(this,
+                            "Perk " + selectedPerk.getName() + " berhasil dinonaktifkan dari trading!",
+                            "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                    updatePerksTable(perksTable);
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Perk tidak sedang aktif untuk trading.",
+                            "Info", JOptionPane.INFORMATION_MESSAGE);
+                }
+            });
+
+            refreshButton.addActionListener(_ -> {
+                updatePerksTable(perksTable);
+                moneyLabel.setText("Uang: " + player.getMoney() + "G");
+            });
+
+            actionPanel.add(activateButton);
+            actionPanel.add(deactivateButton);
+            actionPanel.add(refreshButton);
+
+            mainPanel.add(actionPanel, BorderLayout.SOUTH);
+            perksFrame.add(mainPanel, BorderLayout.CENTER);
+
+            // Add frame listener to clean up when closed
+            perksFrame.addInternalFrameListener(new InternalFrameAdapter() {
+                @Override
+                public void internalFrameClosed(InternalFrameEvent e) {
+                    perksFrame = null;
+                }
+            });
+
+            desktopPane.add(perksFrame);
+        }
+
+        // Update the table and money display when showing the frame
+        if (perksFrame.getContentPane().getComponentCount() > 0) {
+            // Find and update table
+            updatePerksFrameContent();
+        }
+
+        perksFrame.setVisible(true);
+        perksFrame.toFront();
+    }
+
+    private void updatePerksTable(JTable perksTable) {
+        List<Perk> ownedPerks = perksManagement.getPerkYangDimiliki(player);
+        List<Perk> tradingPerks = player.getPerkDipilihUntukJualan();
+
+        String[] columns = { "Icon", "Name & Level", "Type", "Power", "Trading Status", "Description" };
+        Object[][] data = new Object[ownedPerks.size()][columns.length];
+
+        for (int i = 0; i < ownedPerks.size(); i++) {
+            Perk perk = ownedPerks.get(i);
+
+            // Load icon
+            ImageIcon icon = GamePanel.getIcon(perk.getIconPath(), 32, 32);
+            if (icon == null) {
+                icon = GamePanel.getIcon("default_perk", 32, 32);
+            }
+
+            data[i][0] = icon;
+            data[i][1] = perk.getName() + " (Lv." + perk.getLevel() + ")";
+            data[i][2] = perk.getPerkType().toString();
+            data[i][3] = String.format("%.1f", perk.getKesaktianSekarang());
+            data[i][4] = tradingPerks.contains(perk) ? "Active for Trading" : "Inactive";
+            data[i][5] = perk.getDeskripsi();
+        }
+
+        DefaultTableModel model = new DefaultTableModel(data, columns) {
+            @Override
+            public Class<?> getColumnClass(int c) {
+                return c == 0 ? Icon.class : Object.class;
+            }
+
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+
+        perksTable.setModel(model);
+
+        // Set column widths
+        perksTable.getColumnModel().getColumn(0).setPreferredWidth(50); // Icon
+        perksTable.getColumnModel().getColumn(1).setPreferredWidth(150); // Name & Level
+        perksTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Type
+        perksTable.getColumnModel().getColumn(3).setPreferredWidth(80); // Power
+        perksTable.getColumnModel().getColumn(4).setPreferredWidth(120); // Trading Status
+        perksTable.getColumnModel().getColumn(5).setPreferredWidth(300); // Description
+
+        // Set cell renderers
+        perksTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
+            JLabel label = new JLabel();
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            label.setIcon(value instanceof Icon ? (Icon) value : null);
+            return label;
+        });
+
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int i = 1; i <= 4; i++) {
+            perksTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
+
+        // Left align description
+        DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
+        leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        perksTable.getColumnModel().getColumn(5).setCellRenderer(leftRenderer);
+    }
+
+    private void updatePerksFrameContent() {
+        if (perksFrame == null || !perksFrame.isVisible())
+            return;
+
+        // Find the money label and update it
+        updateMoneyInPerksFrame(perksFrame.getContentPane());
+
+        // Find the table and update it
+        updateTableInPerksFrame(perksFrame.getContentPane());
+    }
+
+    private void updateMoneyInPerksFrame(Container container) {
+        for (Component comp : container.getComponents()) {
+            if (comp instanceof JPanel) {
+                updateMoneyInPerksFrame((Container) comp);
+            } else if (comp instanceof JLabel) {
+                JLabel label = (JLabel) comp;
+                if (label.getText().startsWith("Uang:")) {
+                    label.setText("Uang: " + player.getMoney() + "G");
+                }
+            }
+        }
+    }
+
+    private void updateTableInPerksFrame(Container container) {
+        for (Component comp : container.getComponents()) {
+            if (comp instanceof JScrollPane) {
+                Component view = ((JScrollPane) comp).getViewport().getView();
+                if (view instanceof JTable) {
+                    updatePerksTable((JTable) view);
+                    return;
+                }
+            } else if (comp instanceof JPanel) {
+                updateTableInPerksFrame((Container) comp);
+            }
         }
     }
 }
