@@ -4,6 +4,9 @@ import gui.DialogSystem;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+import model.Pembeli;
+import model.PerkEffectManager;
+import model.Player;
 
 /**
  * Manages random trigger zones with non-overlapping placement
@@ -16,9 +19,15 @@ public class RandomTriggerZoneManager {
     private static final int MIN_SPACING = 20; // Minimum spacing between zones
     
     private final List<Rectangle> placedZones;
-    private DialogSystem dialogSystem;    public RandomTriggerZoneManager() {
+    private final List<Pembeli> zoneBuyers; // List of Pembeli for each zone
+    private DialogSystem dialogSystem;
+    private Player player;
+    
+    public RandomTriggerZoneManager() {
         this.placedZones = new ArrayList<>();
+        this.zoneBuyers = new ArrayList<>();
         this.dialogSystem = null;
+        this.player = null;
     }
     
     /**
@@ -27,6 +36,13 @@ public class RandomTriggerZoneManager {
      */
     public void setDialogSystem(DialogSystem dialogSystem) {
         this.dialogSystem = dialogSystem;
+    }
+    
+    /**
+     * Set the player for perk-based buyer generation
+     */
+    public void setPlayer(Player player) {
+        this.player = player;
     }
     
     /**
@@ -39,6 +55,7 @@ public class RandomTriggerZoneManager {
      */
     public void generateRandomZones(int minX, int maxX, int minY, int maxY, TriggerZoneManager triggerZoneManager) {
         placedZones.clear();
+        zoneBuyers.clear();
           // Generate random number of zones
         int numZones = (int)(Math.random() * (MAX_ZONES - MIN_ZONES + 1)) + MIN_ZONES;
         System.out.println("Generating " + numZones + " random trigger zones...");
@@ -65,6 +82,9 @@ public class RandomTriggerZoneManager {
                     triggerZoneManager.addZone(zoneId, x, y, x + width, y + height, true, () -> {
                         handleRandomZoneTriggered(zoneId, x, y, width, height);
                     });
+                      // Generate Pembeli for this zone
+                    Pembeli pembeli = (player != null) ? PerkEffectManager.createBuyerWithPerks(player) : Pembeli.buatPembeliAcak();
+                    zoneBuyers.add(pembeli);
                     
                     placed = true;
                     successfullyPlaced++;
@@ -102,23 +122,20 @@ public class RandomTriggerZoneManager {
      * Handle when a random zone is triggered
      */
     private void handleRandomZoneTriggered(String zoneId, int x, int y, int width, int height) {
-        // Generate random effects when zone is triggered
-        String[] messages = {
-            "Kamu menemukan koin emas!",
-            "Area kosong yang misterius...",
-            "Tempat yang tenang untuk beristirahat",
-            "Daerah yang tampak tidak biasa",
-            "Kamu merasakan energi aneh di sini",
-            "Tempat yang sempurna untuk berdagang",
-            "Area yang penuh dengan kemungkinan"
-        };
-          String randomMessage = messages[(int)(Math.random() * messages.length)];
-        
-        // Use dialog system if available, otherwise fall back to console
-        if (dialogSystem != null) {
-            dialogSystem.showDialog(randomMessage);
+        // Find the index of the zone
+        int idx = -1;
+        for (int i = 0; i < placedZones.size(); i++) {
+            Rectangle r = placedZones.get(i);
+            if (r.x == x && r.y == y && r.width == width && r.height == height) {
+                idx = i;
+                break;
+            }
+        }        Pembeli pembeli = (idx != -1) ? getPembeliForZone(idx) : null;
+        if (dialogSystem != null && pembeli != null) {
+            dialogSystem.setPembeli(pembeli);
+            dialogSystem.showPembeliDialog();
         } else {
-            System.out.println("[" + zoneId + "] " + randomMessage + " at (" + x + ", " + y + ") size: " + width + "x" + height);
+            System.out.println("Cannot show dialog: dialogSystem=" + (dialogSystem != null) + ", pembeli=" + (pembeli != null));
         }
         
         // Optional: You can add more effects here like:
@@ -126,6 +143,16 @@ public class RandomTriggerZoneManager {
         // - Add money
         // - Trigger special events
         // - Play sound effects
+    }
+    
+    /**
+     * Get Pembeli for a given zone index
+     */
+    public Pembeli getPembeliForZone(int index) {
+        if (index >= 0 && index < zoneBuyers.size()) {
+            return zoneBuyers.get(index);
+        }
+        return null;
     }
     
     /**
