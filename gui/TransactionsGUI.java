@@ -12,7 +12,7 @@ import model.Pembeli;
 import model.Perk;
 import model.Player;
 
-public class DialogSystem extends JPanel {
+public class TransactionsGUI extends JPanel {
     // Base constants for scaling
     private Image tetoImage;
     private Image neuvilletteImage;
@@ -25,9 +25,6 @@ public class DialogSystem extends JPanel {
     private static final Color BORDER_COLOR = new Color(212, 175, 55);
     private static final Color TEXT_COLOR = new Color(60, 40, 10);
     private static final Color SHADOW_COLOR = new Color(120, 90, 30, 80);
-    private static final Color BUTTON_BG = new Color(139, 69, 19);
-    private static final Color BUTTON_HOVER = new Color(160, 82, 45);
-    private static final Color BUTTON_TEXT = Color.WHITE;
     
     private Pembeli currentPembeli;
     private Image pembeliImage;
@@ -38,9 +35,7 @@ public class DialogSystem extends JPanel {
     private boolean showTradingInterface = false;
     private Barang selectedBarang;
     private int offerPrice = 0;
-    private int finalPrice = 0;
     private boolean negotiationPhase = false;
-    private boolean transactionComplete = false;
     
     // Trading buttons
     private JButton sellButton;
@@ -52,15 +47,12 @@ public class DialogSystem extends JPanel {
     // Top UI buttons for all dialogs
     private JButton useItemButton;
     private JButton cartButton;
-
-    // Helper to layout and toggle top buttons
-    private void toggleTopButtons(boolean show) {
-        layoutTopButtons();
-        useItemButton.setVisible(show);
-        cartButton.setVisible(show);
-    }
-
-    public DialogSystem(JPanel parentPanel) {
+    
+    // --- Gerobak dialog integration ---
+    private JDialog gerobakDialog;
+    private JTable gerobakWithPriceTable;
+    
+    public TransactionsGUI(JPanel parentPanel) {
         this.parentPanel = parentPanel;
         this.isVisible = false;
         this.currentMessage = "";
@@ -82,7 +74,7 @@ public class DialogSystem extends JPanel {
         useItemButton.setVisible(false);
         cartButton.setVisible(false);
         useItemButton.addActionListener(e -> System.out.println("DEBUG: Use Item clicked"));
-        cartButton.addActionListener(e -> System.out.println("DEBUG: Check Cart clicked"));
+        cartButton.addActionListener(e -> showGerobakFrame());
     }
     
     private void loadTetoImage() {
@@ -103,15 +95,19 @@ public class DialogSystem extends JPanel {
     public void showDialog(String message) {
         this.currentMessage = message;
         this.isVisible = true;
+        
         if (parentPanel != null) {
             if (getParent() != parentPanel) {
                 parentPanel.add(this);
                 parentPanel.setComponentZOrder(this, 0);
             }
+            
             setBounds(0, 0, parentPanel.getWidth(), parentPanel.getHeight());
             setVisible(true);
             // Layout and show top buttons
-            toggleTopButtons(true);
+            layoutTopButtons();
+            useItemButton.setVisible(true);
+            cartButton.setVisible(true);
             parentPanel.repaint();
         }
     }
@@ -120,8 +116,12 @@ public class DialogSystem extends JPanel {
         this.isVisible = false;
         setVisible(false);
         // Hide top buttons
-        toggleTopButtons(false);
-        if (parentPanel != null) parentPanel.repaint();
+        useItemButton.setVisible(false);
+        cartButton.setVisible(false);
+        
+        if (parentPanel != null) {
+            parentPanel.repaint();
+        }
     }
     
     public boolean isDialogVisible() {
@@ -359,11 +359,17 @@ public class DialogSystem extends JPanel {
     @Override
     public void setBounds(int x, int y, int width, int height) {
         super.setBounds(x, y, width, height);
+        // Trigger repaint when bounds change to update dynamic scaling
         if (isVisible) {
             repaint();
             // Update top buttons layout
-            toggleTopButtons(true);
-            if (showTradingInterface && !negotiationPhase) createTradingButtons();
+            layoutTopButtons();
+            useItemButton.setVisible(true);
+            cartButton.setVisible(true);
+            // Recreate trading buttons to keep them centered if trading interface is active (only outside negotiation)
+            if (showTradingInterface && !negotiationPhase) {
+                createTradingButtons();
+            }
         }
     }
       /**
@@ -427,7 +433,11 @@ public class DialogSystem extends JPanel {
         // Sell Button - always centered
         sellButton = StyledButton.create("Start Selling", 20, tradingWidth, buttonHeight);
         sellButton.setBounds(centerX - tradingWidth / 2, startY, tradingWidth, buttonHeight);
-        sellButton.addActionListener(e -> startSelling());
+        sellButton.addActionListener(new java.awt.event.ActionListener() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                startSelling();
+            }
+        });
         add(sellButton);
         System.out.println("DEBUG: sellButton created and added");
 
@@ -443,7 +453,11 @@ public class DialogSystem extends JPanel {
         acceptButton = StyledButton.create("Accept", 16, buttonWidth, buttonHeight);
         acceptButton.setBounds(centerX - tradingWidth / 2, startY + buttonHeight + buttonGap + fieldHeight + buttonGap, buttonWidth, buttonHeight);
         acceptButton.setVisible(false);
-        acceptButton.addActionListener(e -> acceptOffer());
+        acceptButton.addActionListener(new java.awt.event.ActionListener() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                acceptOffer();
+            }
+        });
         add(acceptButton);
         System.out.println("DEBUG: acceptButton created and added");
 
@@ -451,7 +465,11 @@ public class DialogSystem extends JPanel {
         counterOfferButton = StyledButton.create("Counter", 16, buttonWidth, buttonHeight);
         counterOfferButton.setBounds(centerX + (buttonGap / 2), startY + buttonHeight + buttonGap + fieldHeight + buttonGap, buttonWidth, buttonHeight);
         counterOfferButton.setVisible(false);
-        counterOfferButton.addActionListener(e -> counterOffer());
+        counterOfferButton.addActionListener(new java.awt.event.ActionListener() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                counterOffer();
+            }
+        });
         add(counterOfferButton);
         System.out.println("DEBUG: counterOfferButton created and added");
 
@@ -460,7 +478,11 @@ public class DialogSystem extends JPanel {
         declineButton.setBackground(Color.RED.darker());
         declineButton.setBounds(centerX - tradingWidth / 2, startY + buttonHeight * 2 + buttonGap * 3 + fieldHeight, tradingWidth, buttonHeight);
         declineButton.setVisible(false);
-        declineButton.addActionListener(e -> declineOffer());
+        declineButton.addActionListener(new java.awt.event.ActionListener() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+                declineOffer();
+            }
+        });
         add(declineButton);
         System.out.println("DEBUG: declineButton created and added");
     }
@@ -610,7 +632,6 @@ public class DialogSystem extends JPanel {
             }
             
             currentMessage = String.format("Transaksi berhasil! Kamu mendapat %d koin.", offerPrice);
-            transactionComplete = true;
             
             // Deaktifkan item consumable setelah digunakan
             deactivateConsumableItems();
@@ -626,8 +647,7 @@ public class DialogSystem extends JPanel {
       private void counterOffer() {
         try {
             int counterPrice = Integer.parseInt(priceField.getText());
-            finalPrice = counterPrice;
-              if (currentPembeli.putuskanTransaksi(counterPrice)) {
+            if (currentPembeli.putuskanTransaksi(counterPrice)) {
                 currentPlayer.tambahMoney(counterPrice);
                 
                 // Hapus barang dari gerobak (barangDibawa), bukan dari inventory utama
@@ -642,7 +662,6 @@ public class DialogSystem extends JPanel {
                 }
                 
                 currentMessage = String.format("Counter offer diterima! Kamu mendapat %d koin.", counterPrice);
-                transactionComplete = true;
                 
                 deactivateConsumableItems();
             } else {
@@ -699,5 +718,109 @@ public class DialogSystem extends JPanel {
         int y = margin;
         useItemButton.setBounds(startX, y, buttonWidth, buttonHeight);
         cartButton.setBounds(startX + buttonWidth + spacing, y, buttonWidth, buttonHeight);
+    }
+    
+    private void showGerobakFrame() {
+        if (gerobakDialog != null && gerobakDialog.isShowing()) {
+            gerobakDialog.toFront();
+            return;
+        }
+        // Create non-modal dialog for gerobak
+        Window owner = SwingUtilities.getWindowAncestor(this);
+        gerobakDialog = new JDialog(owner, "Gerobak - Barang Sudah Ada Harga Jual", false);
+        gerobakDialog.setSize(600, 350);
+        gerobakDialog.setLayout(new BorderLayout());
+        gerobakDialog.getContentPane().setBackground(DIALOG_BG);
+
+        // Table for barang with price
+        gerobakWithPriceTable = new JTable();
+        JScrollPane rightScroll = new JScrollPane(gerobakWithPriceTable);
+        rightScroll.getViewport().setBackground(new Color(255, 255, 240));
+        rightScroll.setBorder(BorderFactory.createTitledBorder("Barang Sudah Ada Harga Jual"));
+        gerobakDialog.add(rightScroll, BorderLayout.CENTER);
+
+        // Close button
+        JButton closeBtn = StyledButton.create("Tutup", 14, 100, 32);
+        closeBtn.addActionListener(_ -> gerobakDialog.dispose());
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        btnPanel.setOpaque(false);
+        btnPanel.add(closeBtn);
+        gerobakDialog.add(btnPanel, BorderLayout.SOUTH);
+
+        // Show dialog centered on owner
+        gerobakDialog.setLocationRelativeTo(owner);
+        updateGerobakWithPriceTable();
+        gerobakDialog.setVisible(true);
+    }
+
+    private void updateGerobakWithPriceTable() {
+        if (gerobakWithPriceTable == null || currentPlayer == null || currentPlayer.getInventory() == null)
+            return;
+        Map<Barang, Integer> barangDibawa = currentPlayer.getInventory().getBarangDibawaMutable();
+        // Filter items with price (harga jual > 0)
+        java.util.List<java.util.Map<String, Object>> itemsWithPrice = new java.util.ArrayList<>();
+        for (Map.Entry<Barang, Integer> entry : barangDibawa.entrySet()) {
+            Barang barang = entry.getKey();
+            int jumlah = entry.getValue();
+            int hargaJual = currentPlayer.getInventory().getHargaJual(barang);
+            if (hargaJual > 0) {
+                java.util.Map<String, Object> itemData = new java.util.HashMap<>();
+                itemData.put("barang", barang);
+                itemData.put("jumlah", jumlah);
+                itemData.put("hargaJual", hargaJual);
+                itemsWithPrice.add(itemData);
+            }
+        }
+        String[] columnNames = { "Icon", "Nama", "Kategori", "Kesegaran", "Jumlah", "Harga Jual" };
+        Object[][] data = new Object[itemsWithPrice.size()][columnNames.length];
+        for (int i = 0; i < itemsWithPrice.size(); i++) {
+            java.util.Map<String, Object> itemData = itemsWithPrice.get(i);
+            Barang barang = (Barang) itemData.get("barang");
+            // Get icon from cache
+            ImageIcon icon = GamePanel.getIcon(barang.getIconPath(), 32, 32);
+            if (icon == null) {
+                icon = GamePanel.getIcon(barang.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
+            }
+            data[i][0] = icon;
+            data[i][1] = barang.getNamaBarang();
+            data[i][2] = barang.getKategori();
+            data[i][3] = barang.getKesegaran();
+            data[i][4] = itemData.get("jumlah");
+            data[i][5] = itemData.get("hargaJual") + "G";
+        }
+        javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel(data, columnNames) {
+            @Override
+            public Class<?> getColumnClass(int c) {
+                return c == 0 ? Icon.class : Object.class;
+            }
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+        gerobakWithPriceTable.setModel(model);
+        gerobakWithPriceTable.setRowHeight(36);
+        // Set column widths
+        gerobakWithPriceTable.getColumnModel().getColumn(0).setPreferredWidth(40); // Icon
+        gerobakWithPriceTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Nama
+        gerobakWithPriceTable.getColumnModel().getColumn(2).setPreferredWidth(80); // Kategori
+        gerobakWithPriceTable.getColumnModel().getColumn(3).setPreferredWidth(60); // Kesegaran
+        gerobakWithPriceTable.getColumnModel().getColumn(4).setPreferredWidth(60); // Jumlah
+        gerobakWithPriceTable.getColumnModel().getColumn(5).setPreferredWidth(80); // Harga Jual
+        // Set renderers (use anonymous class to avoid unused parameter warnings)
+        gerobakWithPriceTable.getColumnModel().getColumn(0).setCellRenderer(new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                JLabel label = new JLabel();
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+                label.setIcon(value instanceof Icon ? (Icon) value : null);
+                return label;
+            }
+        });
+        javax.swing.table.DefaultTableCellRenderer centerRenderer = new javax.swing.table.DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int i = 1; i < columnNames.length; i++) {
+            gerobakWithPriceTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
     }
 }

@@ -1,6 +1,6 @@
 package MapManager;
 
-import gui.DialogSystem;
+import gui.TransactionsGUI;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ public class RandomTriggerZoneManager {
     
     private final List<Rectangle> placedZones;
     private final List<Pembeli> zoneBuyers; // List of Pembeli for each zone
-    private DialogSystem dialogSystem;
+    private TransactionsGUI dialogSystem;
     private Player player;
     
     public RandomTriggerZoneManager() {
@@ -34,7 +34,7 @@ public class RandomTriggerZoneManager {
      * Set the dialog system for displaying messages
      * @param dialogSystem the DialogSystem instance to use
      */
-    public void setDialogSystem(DialogSystem dialogSystem) {
+    public void setDialogSystem(TransactionsGUI dialogSystem) {
         this.dialogSystem = dialogSystem;
     }
     

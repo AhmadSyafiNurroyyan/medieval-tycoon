@@ -30,7 +30,7 @@ public class GamePanel extends JPanel implements Runnable {
     private Camera camera;
     private TriggerZoneManager triggerZoneManager;
     private RandomTriggerZoneManager randomTriggerZoneManager;
-    private DialogSystem dialogSystem;
+    private TransactionsGUI dialogSystem;
     private Supplier supplier;
     private TokoItem tokoItem;
     private TokoPerks tokoPerks;
@@ -65,7 +65,7 @@ public class GamePanel extends JPanel implements Runnable {
         PlayerSkin = player.createNametag();        tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
-        dialogSystem = new DialogSystem(this);
+        dialogSystem = new TransactionsGUI(this);
         dialogSystem.setPlayer(player); // Set player untuk DialogSystem
         randomTriggerZoneManager = new RandomTriggerZoneManager();
         randomTriggerZoneManager.setDialogSystem(dialogSystem);
