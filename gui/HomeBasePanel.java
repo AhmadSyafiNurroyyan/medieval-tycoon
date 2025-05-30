@@ -17,11 +17,14 @@ import model.Barang;
 import model.Gerobak;
 import model.Inventory;
 import model.Item;
+import model.Player;
+import interfaces.InventoryChangeListener;
 
-public class HomeBasePanel extends JPanel {
+public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private JButton btn1, btn2, btn3, btn4, btn5, backButton;
     private Runnable backToGameCallback;
     private Inventory inventory;
+    private Player player;
     private JDesktopPane desktopPane;
     private JInternalFrame inventoryFrame, gerobakFrame;
     private JTable goodsTable, gerobakNoPriceTable, gerobakWithPriceTable;
@@ -33,9 +36,9 @@ public class HomeBasePanel extends JPanel {
     private JTextField jumlahField, hargaField;
     private JTabbedPane tabbedPane;
     private Gerobak gerobak;
-    private Barang barang;
 
-    public HomeBasePanel() {
+    public HomeBasePanel(Player player) {
+        this.player = player;
         setLayout(null);
         initializeComponents();
         loadImages();
@@ -245,10 +248,12 @@ public class HomeBasePanel extends JPanel {
                         targetBarang = b;
                         break;
                     }
-                }
-
-                if (targetBarang != null) {
-                    int kapasitasGerobak = 20; // You might want to get this from a Gerobak object
+                }                if (targetBarang != null) {
+                    // Get the actual gerobak capacity from inventory
+                    int kapasitasGerobak = 20; // Default fallback
+                    if (inventory.getGerobak() != null) {
+                        kapasitasGerobak = inventory.getGerobak().getKapasitasBarang();
+                    }
 
                     // Check if gerobak has enough capacity
                     int remainingCapacity = inventory.kapasitasBarangTersisa(kapasitasGerobak);
@@ -352,16 +357,125 @@ public class HomeBasePanel extends JPanel {
         updateGoodsTable(0, 0);
         inventoryFrame.setVisible(true);
         inventoryFrame.toFront();
-    }    public void initializeWithGerobak(Gerobak gerobak) {
+    }
+
+    public void initializeWithGerobak(Gerobak gerobak) {
         System.out.println("Debug initializeWithGerobak:");
-        System.out.println("  - Received gerobak: " + (gerobak != null ? "exists (level=" + gerobak.getLevel() + ")" : "null"));
+        System.out.println(
+                "  - Received gerobak: " + (gerobak != null ? "exists (level=" + gerobak.getLevel() + ")" : "null"));
         System.out.println("  - Current inventory: " + (inventory != null ? "exists" : "null"));
-        
+
         this.gerobak = gerobak;
         if (inventory != null) {
             System.out.println("  - Setting gerobak in inventory");
             inventory.setGerobak(gerobak);
-            System.out.println("  - Inventory gerobak after set: " + (inventory.getGerobak() != null ? "exists" : "null"));
+            System.out.println(
+                    "  - Inventory gerobak after set: " + (inventory.getGerobak() != null ? "exists" : "null"));
+        }
+    }
+
+    @Override
+    public void onInventoryChanged() {
+        // Refresh semua tabel ketika inventory berubah
+        SwingUtilities.invokeLater(() -> {
+            System.out.println("Debug: onInventoryChanged triggered - refreshing UI");
+            refreshInventoryAndGerobak();
+
+            // Update items table juga jika sedang terbuka
+            if (inventoryFrame != null && inventoryFrame.isVisible()) {
+                updateItemsTableInCurrentTab();
+            }
+
+            // Update item gerobak table jika gerobak frame terbuka
+            if (gerobakFrame != null && gerobakFrame.isVisible()) {
+                updateItemGerobakTable();
+            }
+        });
+    }
+
+    /**
+     * Update items table in current tab when inventory frame is open
+     */
+    private void updateItemsTableInCurrentTab() {
+        if (inventoryFrame == null || !inventoryFrame.isVisible()) {
+            return;
+        }
+
+        // Find the tabbed pane
+        JTabbedPane tabPane = null;
+        for (Component c : inventoryFrame.getContentPane().getComponents()) {
+            if (c instanceof JTabbedPane) {
+                tabPane = (JTabbedPane) c;
+                break;
+            }
+        }
+
+        if (tabPane == null || tabPane.getTabCount() <= 1) {
+            return;
+        }
+
+        // Get the Items tab (index 1)
+        Component itemsTab = tabPane.getComponentAt(1);
+        if (!(itemsTab instanceof JPanel)) {
+            return;
+        }
+
+        // Find the items table, count label, and filter combo
+        JTable itemsTable = null;
+        JLabel countLabel = null;
+        JComboBox<?> filterCombo = null;
+
+        // Search for components in the items tab
+        for (Component c : ((JPanel) itemsTab).getComponents()) {
+            if (c instanceof JScrollPane) {
+                Component view = ((JScrollPane) c).getViewport().getView();
+                if (view instanceof JTable) {
+                    itemsTable = (JTable) view;
+                }
+            } else if (c instanceof JPanel) {
+                // Search in nested panels
+                searchForItemsComponents((JPanel) c, new ComponentHolder(countLabel, filterCombo));
+                if (componentHolder.countLabel != null)
+                    countLabel = componentHolder.countLabel;
+                if (componentHolder.filterCombo != null)
+                    filterCombo = componentHolder.filterCombo;
+            }
+        }
+
+        // Update the table if we found all necessary components
+        if (itemsTable != null && countLabel != null) {
+            int filterIndex = filterCombo != null ? filterCombo.getSelectedIndex() : 0;
+            updateItemsTable(itemsTable, countLabel, filterIndex);
+            System.out.println("Debug: Items table updated automatically via InventoryChangeListener");
+        }
+    }
+
+    // Helper class to hold component references
+    private static class ComponentHolder {
+        JLabel countLabel;
+        JComboBox<?> filterCombo;
+
+        ComponentHolder(JLabel countLabel, JComboBox<?> filterCombo) {
+            this.countLabel = countLabel;
+            this.filterCombo = filterCombo;
+        }
+    }
+
+    // We need to add this field at class level
+    private ComponentHolder componentHolder = new ComponentHolder(null, null);
+
+    /**
+     * Recursively search for items table components
+     */
+    private void searchForItemsComponents(JPanel panel, ComponentHolder holder) {
+        for (Component comp : panel.getComponents()) {
+            if (comp instanceof JLabel && ((JLabel) comp).getText().startsWith("Jumlah item")) {
+                holder.countLabel = (JLabel) comp;
+            } else if (comp instanceof JComboBox) {
+                holder.filterCombo = (JComboBox<?>) comp;
+            } else if (comp instanceof JPanel) {
+                searchForItemsComponents((JPanel) comp, holder);
+            }
         }
     }
 
@@ -748,8 +862,11 @@ public class HomeBasePanel extends JPanel {
 
     private void showGerobakFrame() {
         if (gerobakFrame == null) {
+            // Create header panel with level info and upgrade button
+            JPanel headerPanel = createGerobakHeaderPanel();
+
             gerobakFrame = new JInternalFrame("Gerobak", true, true, true, true);
-            gerobakFrame.setSize(1000, 500); // Perbesar ukuran untuk accommodate tabs
+            gerobakFrame.setSize(1000, 550); // Increased height for header
             gerobakFrame.setLayout(new BorderLayout());
             gerobakFrame.setVisible(true);
             gerobakFrame.setBorder(BorderFactory.createCompoundBorder(
@@ -757,6 +874,9 @@ public class HomeBasePanel extends JPanel {
                     BorderFactory.createLineBorder(new Color(212, 175, 55), 4)));
             gerobakFrame.setOpaque(true);
             gerobakFrame.getContentPane().setBackground(new Color(255, 248, 220));
+
+            // Add header panel at the top
+            gerobakFrame.add(headerPanel, BorderLayout.NORTH);
 
             // Buat tabbed pane untuk gerobak
             JTabbedPane gerobakTabs = new JTabbedPane();
@@ -998,6 +1118,7 @@ public class HomeBasePanel extends JPanel {
         }
 
         if (gerobakTabs != null && gerobakTabs.getTabCount() > 1) {
+            // Get the Items tab
             Component itemTab = gerobakTabs.getComponentAt(1);
             if (itemTab instanceof JPanel) {
                 // Cari label info
@@ -1072,7 +1193,7 @@ public class HomeBasePanel extends JPanel {
                 // Get the Items tab
                 Component itemsTab = tabPane.getComponentAt(1);
                 if (itemsTab instanceof JPanel) {
-                    // Find the table
+                    // Find the table and count label
                     JTable itemsTable = null;
                     JLabel countLabel = null;
                     JComboBox<?> filterCombo = null;
@@ -1123,13 +1244,15 @@ public class HomeBasePanel extends JPanel {
                 targetItem = item;
                 break;
             }
-        }        if (targetItem == null) {
+        }
+        if (targetItem == null) {
             JOptionPane.showMessageDialog(this, "Item tidak ditemukan di inventory.", "Error",
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Use inventory.getGerobak() instead of this.gerobak to ensure we get the correct gerobak object
+        // Use inventory.getGerobak() instead of this.gerobak to ensure we get the
+        // correct gerobak object
         Gerobak inventoryGerobak = inventory.getGerobak();
         if (inventoryGerobak != null) {
             kapasitasItem = inventoryGerobak.getKapasitasItem();
@@ -1139,8 +1262,10 @@ public class HomeBasePanel extends JPanel {
 
         // Tambahkan debug ini:
         System.out.println("Debug moveItemToGerobak:");
-        System.out.println("  - this.gerobak: " + (gerobak != null ? "exists (level=" + gerobak.getLevel() + ")" : "null"));
-        System.out.println("  - inventory.gerobak: " + (inventoryGerobak != null ? "exists (level=" + inventoryGerobak.getLevel() + ")" : "null"));
+        System.out.println(
+                "  - this.gerobak: " + (gerobak != null ? "exists (level=" + gerobak.getLevel() + ")" : "null"));
+        System.out.println("  - inventory.gerobak: "
+                + (inventoryGerobak != null ? "exists (level=" + inventoryGerobak.getLevel() + ")" : "null"));
         System.out.println("  - kapasitasItem: " + kapasitasItem);
         System.out.println("  - totalItemDiGerobak: " + totalItemDiGerobak);
 
@@ -1149,7 +1274,7 @@ public class HomeBasePanel extends JPanel {
                     "Kapasitas gerobak untuk item penuh! Sisa kapasitas: " + (kapasitasItem - totalItemDiGerobak),
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
-        }        // Add this before the bawaItem call for debugging
+        } // Add this before the bawaItem call for debugging
         System.out.println("Debug: Moving item " + namaItem);
         System.out.println("Debug: Current items in gerobak: " + totalItemDiGerobak);
         System.out.println("Debug: Gerobak capacity: " + kapasitasItem);
@@ -1264,7 +1389,7 @@ public class HomeBasePanel extends JPanel {
             String key = b.getNamaBarang() + "|" + b.getKategori() + "|" +
                     b.getKesegaran() + "|" + b.getHargaBeli() + "|" +
                     inventory.getHargaJual(b);
-            groupedItems.computeIfAbsent(key, k -> new ArrayList<>()).add(b);
+            groupedItems.computeIfAbsent(key, _ -> new ArrayList<>()).add(b);
         }
 
         // Merge items that have the same properties and selling price
@@ -1508,10 +1633,162 @@ public class HomeBasePanel extends JPanel {
     }
 
     public void setInventory(Inventory inventory) {
+        // Remove listener dari inventory lama jika ada
+        if (this.inventory != null) {
+            this.inventory.removeInventoryChangeListener(this);
+        }
+
         this.inventory = inventory;
+
+        // Tambahkan listener ke inventory baru
+        if (inventory != null) {
+            inventory.addInventoryChangeListener(this);
+            System.out.println("Debug: InventoryChangeListener added to inventory");
+        }
     }
 
     public void setBackToGameCallback(Runnable callback) {
         this.backToGameCallback = callback;
+    }
+
+    /**
+     * Creates header panel with gerobak level info and upgrade functionality
+     */
+    private JPanel createGerobakHeaderPanel() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(255, 248, 220));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+
+        // Left side - Level info
+        JPanel levelInfoPanel = new JPanel();
+        levelInfoPanel.setLayout(new BoxLayout(levelInfoPanel, BoxLayout.Y_AXIS));
+        levelInfoPanel.setBackground(new Color(255, 248, 220));
+        final Gerobak currentGerobak = inventory != null ? inventory.getGerobak()
+                : (gerobak != null ? gerobak : new Gerobak());
+
+        JLabel levelLabel = new JLabel("Level: " + currentGerobak.getLevel());
+        levelLabel.setFont(new Font("Serif", Font.BOLD, 18));
+        levelLabel.setForeground(new Color(120, 90, 30));
+
+        JLabel capacityBarangLabel = new JLabel("Kapasitas Barang: " + currentGerobak.getKapasitasBarang());
+        capacityBarangLabel.setFont(new Font("Serif", Font.PLAIN, 14));
+        capacityBarangLabel.setForeground(new Color(120, 90, 30));
+
+        JLabel capacityItemLabel = new JLabel("Kapasitas Item: " + currentGerobak.getKapasitasItem());
+        capacityItemLabel.setFont(new Font("Serif", Font.PLAIN, 14));
+        capacityItemLabel.setForeground(new Color(120, 90, 30));
+
+        levelInfoPanel.add(levelLabel);
+        levelInfoPanel.add(capacityBarangLabel);
+        levelInfoPanel.add(capacityItemLabel);
+
+        // Right side - Upgrade section
+        JPanel upgradePanel = new JPanel();
+        upgradePanel.setLayout(new BoxLayout(upgradePanel, BoxLayout.Y_AXIS));
+        upgradePanel.setBackground(new Color(255, 248, 220));
+        upgradePanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        if (currentGerobak.isMaxLevel()) {
+            JLabel maxLevelLabel = new JLabel("LEVEL MAKSIMAL");
+            maxLevelLabel.setFont(new Font("Serif", Font.BOLD, 16));
+            maxLevelLabel.setForeground(new Color(180, 120, 30));
+            maxLevelLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            upgradePanel.add(maxLevelLabel);
+        } else {
+            int upgradeCost = currentGerobak.getBiayaUpgrade();
+
+            JLabel upgradeCostLabel = new JLabel("Biaya Upgrade: " + upgradeCost + "G");
+            upgradeCostLabel.setFont(new Font("Serif", Font.PLAIN, 14));
+            upgradeCostLabel.setForeground(new Color(120, 90, 30));
+            upgradeCostLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            JLabel nextLevelLabel = new JLabel("Next Level: " + (currentGerobak.getLevel() + 1));
+            nextLevelLabel.setFont(new Font("Serif", Font.PLAIN, 12));
+            nextLevelLabel.setForeground(new Color(100, 70, 20));            nextLevelLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            JButton upgradeButton = StyledButton.create("Upgrade Gerobak", 14, 150, 35);
+            upgradeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            // Add action listener for upgrade
+            upgradeButton.addActionListener(_ -> upgradeGerobak(currentGerobak, currentGerobak.getBiayaUpgrade()));
+
+            upgradePanel.add(nextLevelLabel);
+            upgradePanel.add(Box.createVerticalStrut(5));
+            upgradePanel.add(upgradeCostLabel);
+            upgradePanel.add(Box.createVerticalStrut(5));
+            upgradePanel.add(upgradeButton);
+        }
+
+        headerPanel.add(levelInfoPanel, BorderLayout.WEST);
+        headerPanel.add(upgradePanel, BorderLayout.EAST);
+
+        return headerPanel;
+    }    /**
+     * Upgrade the gerobak to the next level if possible
+     */
+    private void upgradeGerobak(Gerobak gerobak, int biayaUpgrade) {
+        if (player == null)
+            return;
+
+        // Check if already at max level
+        if (gerobak.isMaxLevel()) {
+            JOptionPane.showMessageDialog(this,
+                    "Gerobak sudah mencapai level maksimal!",
+                    "Info", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // Recalculate the actual current upgrade cost
+        int actualUpgradeCost = gerobak.getBiayaUpgrade();
+        
+        // Check if the player has enough money
+        if (player.getMoney() < actualUpgradeCost) {
+            JOptionPane.showMessageDialog(this,
+                    "Uang tidak cukup untuk upgrade!\nBiaya: " + actualUpgradeCost + "G\nUang Anda: " + player.getMoney() + "G",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }        // Perform the upgrade
+        boolean upgradeSuccess = gerobak.upgradeLevel();
+        if (upgradeSuccess) {
+            player.kurangiMoney(actualUpgradeCost);
+            
+            // Make sure the inventory's gerobak is also updated
+            if (inventory != null) {
+                inventory.setGerobak(gerobak);
+            }
+
+            // Completely close and reopen the gerobak frame if it's open
+            boolean wasGerobakFrameVisible = false;
+            if (gerobakFrame != null && gerobakFrame.isVisible()) {
+                wasGerobakFrameVisible = true;
+                gerobakFrame.dispose();
+                gerobakFrame = null;
+            }
+            
+            // Refresh the displays
+            refreshInventoryAndGerobak();
+            
+            // Reopen the gerobak frame if it was open before
+            if (wasGerobakFrameVisible) {
+                showGerobakFrame();
+            }
+
+            JOptionPane.showMessageDialog(this,
+                    "Gerobak berhasil di-upgrade ke Level " + gerobak.getLevel() + "!\n" +
+                    "Kapasitas Barang: " + gerobak.getKapasitasBarang() + "\n" +
+                    "Kapasitas Item: " + gerobak.getKapasitasItem(),
+                    "Sukses", JOptionPane.INFORMATION_MESSAGE);
+
+            // Also update UI elements from other panels that might show player money
+            if (backToGameCallback != null) {
+                // This will signal the main game to update money displays
+                // Note: If there's a more direct way to update money displays, use that instead
+                System.out.println("Debug: Signaling game to refresh money display");
+            }
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "Gagal melakukan upgrade. Gerobak mungkin sudah mencapai level maksimal.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

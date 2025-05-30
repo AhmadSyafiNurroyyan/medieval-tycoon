@@ -50,11 +50,10 @@ public class MainMenu extends JFrame {
         CardLayout cardLayout = new CardLayout();
         JPanel cardsPanel = new JPanel(cardLayout);
         cardsPanel.setOpaque(false);
-
         GamePanel gamePanel = new GamePanel(player);
         SettingsPanel settingsPanel = new SettingsPanel();
         PauseMenuPanel pauseMenuPanel = new PauseMenuPanel(cardLayout, cardsPanel);
-        HomeBasePanel homeBasePanel = new HomeBasePanel();
+        HomeBasePanel homeBasePanel = new HomeBasePanel(player);
         SupplierPanel supplierPanel = new SupplierPanel(gamePanel.getSupplier(), gamePanel.getPlayer());
         TokoItemPanel tokoItemPanel = new TokoItemPanel(gamePanel.getTokoItem(), gamePanel.getPlayer());
         TokoPerksPanel tokoPerksPanel = new TokoPerksPanel(gamePanel.getTokoPerks(), gamePanel.getPlayer());
