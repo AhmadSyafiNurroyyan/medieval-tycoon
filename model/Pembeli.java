@@ -49,5 +49,5 @@ public abstract class Pembeli implements Menawar {
             }
         }
         return new PembeliStandar();
-    }
+    }
 }
