@@ -50,6 +50,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     public GamePanel(Player player) {
         this.player = player;
+        this.gerobak = new Gerobak();
         setBackground(Color.BLACK);
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
@@ -365,23 +366,23 @@ public class GamePanel extends JPanel implements Runnable {
     /**
      * Switch to a different map and move player to specified coordinates
      */
-    public void switchToMap(String mapName, int newX, int newY) {        // Clear existing map objects and trigger zones
+    public void switchToMap(String mapName, int newX, int newY) { // Clear existing map objects and trigger zones
         mapObjectManager.clearObjects();
         triggerZoneManager.clearAllZones();
         randomTriggerZoneManager.clearZones();
-        
+
         // Switch the tile map
         String mapPath = "assets/tiles/" + mapName;
         tileManager.switchMap(mapPath);
         currentMap = mapName;
-        
+
         // Move player to new coordinates
         playerMovement.setX(newX);
         playerMovement.setY(newY);
-        
+
         // Setup map-specific objects and trigger zones
         setupMapContent(mapName);
-        
+
         System.out.println("Switched to map: " + mapName + " at coordinates (" + newX + ", " + newY + ")");
     }
 
@@ -434,7 +435,9 @@ public class GamePanel extends JPanel implements Runnable {
                 mapObjectManager.addObject("assets/sprites/objects/shop.png", xshop - 140 * i, yshop - 190 * j, true);
             }
         }
-    }    /**
+    }
+
+    /**
      * Setup content for map2 (new map)
      */
     private void setupMap2Content() {
@@ -446,7 +449,7 @@ public class GamePanel extends JPanel implements Runnable {
         // Generate random trigger zones for map2
         // Constraint: x between 0-1150, y between 0-1450
         randomTriggerZoneManager.generateRandomZones(0, 1150, 0, 1450, triggerZoneManager);
-        
+
         System.out.println("Map2 setup complete with " + randomTriggerZoneManager.getZoneCount() + " random zones");
     }
 }
