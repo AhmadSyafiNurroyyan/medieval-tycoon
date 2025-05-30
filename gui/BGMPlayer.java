@@ -14,6 +14,7 @@ public class BGMPlayer {
   private boolean isEnabled = true;
   private boolean isPlayingHomeBaseBGM = false;
   private boolean isPlayingMapBGM = false;
+  private boolean isPlayingKotaLainBGM = false;
   private String currentBGMPath = null;
 
   // BGM paths
@@ -21,6 +22,7 @@ public class BGMPlayer {
                                                                                 // primary
   private static final String HOME_BASE_BGM_PATH_2 = "assets/bgm/med.wav"; // Fallback file
   private static final String MAP_BGM_PATH = "assets/bgm/MapUtama.wav"; // Map BGM
+  private static final String KOTA_LAIN_BGM_PATH = "assets/bgm/KotaLain.wav"; // Kota Lain BGM
 
   // ...existing code...
 
@@ -64,7 +66,7 @@ public class BGMPlayer {
       }
     }
 
-    playBGM(bgmPath, true, false);
+    playBGM(bgmPath, true, false, false);
   }
 
   /**
@@ -84,13 +86,34 @@ public class BGMPlayer {
       return;
     }
 
-    playBGM(MAP_BGM_PATH, false, true);
+    playBGM(MAP_BGM_PATH, false, true, false);
+  }
+
+  /**
+   * Play Kota Lain BGM with looping
+   */
+  public void playKotaLainBGM() {
+    if (!isEnabled || isPlayingKotaLainBGM) {
+      System.out
+          .println("Kota Lain BGM not starting: enabled=" + isEnabled + ", already playing=" + isPlayingKotaLainBGM);
+      return;
+    }
+
+    System.out.println("Attempting to start Kota Lain BGM...");
+
+    File bgmFile = new File(KOTA_LAIN_BGM_PATH);
+    if (!bgmFile.exists()) {
+      System.err.println("Kota Lain BGM file not found: " + KOTA_LAIN_BGM_PATH);
+      return;
+    }
+
+    playBGM(KOTA_LAIN_BGM_PATH, false, false, true);
   }
 
   /**
    * Internal method to play BGM
    */
-  private void playBGM(String bgmPath, boolean isHomeBase, boolean isMap) {
+  private void playBGM(String bgmPath, boolean isHomeBase, boolean isMap, boolean isKotaLain) {
     System.out.println("Found BGM file: " + bgmPath);
 
     try {
@@ -109,9 +132,10 @@ public class BGMPlayer {
       // Set flags
       isPlayingHomeBaseBGM = isHomeBase;
       isPlayingMapBGM = isMap;
+      isPlayingKotaLainBGM = isKotaLain;
       currentBGMPath = bgmPath;
 
-      String bgmType = isHomeBase ? "HomeBase" : "Map";
+      String bgmType = isHomeBase ? "HomeBase" : (isKotaLain ? "KotaLain" : "Map");
       System.out.println("Started playing " + bgmType + " BGM: " + bgmPath);
 
     } catch (UnsupportedAudioFileException e) {
@@ -141,6 +165,7 @@ public class BGMPlayer {
     }
     isPlayingHomeBaseBGM = false;
     isPlayingMapBGM = false;
+    isPlayingKotaLainBGM = false;
     currentBGMPath = null;
   }
 
@@ -163,6 +188,15 @@ public class BGMPlayer {
   }
 
   /**
+   * Stop Kota Lain BGM specifically
+   */
+  public void stopKotaLainBGM() {
+    if (isPlayingKotaLainBGM) {
+      stopBGM();
+    }
+  }
+
+  /**
    * Check if HomeBase BGM is currently playing
    */
   public boolean isPlayingHomeBaseBGM() {
@@ -174,6 +208,13 @@ public class BGMPlayer {
    */
   public boolean isPlayingMapBGM() {
     return isPlayingMapBGM && currentClip != null && currentClip.isRunning();
+  }
+
+  /**
+   * Check if Kota Lain BGM is currently playing
+   */
+  public boolean isPlayingKotaLainBGM() {
+    return isPlayingKotaLainBGM && currentClip != null && currentClip.isRunning();
   }
 
   /**
