@@ -11,7 +11,7 @@ public class TileManager {
     private Tile[] tiles;
     private int[][] map;
     private final int tileSize = 32; 
-    private String currentMapPath = "assets/tiles/map1"; // Track current map
+    private String currentMapPath = "assets/tiles/map1"; 
 
     public TileManager(GamePanel gamePanel) {
         this.gamePanel = gamePanel;

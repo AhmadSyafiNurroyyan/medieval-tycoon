@@ -1,5 +1,6 @@
 package MapManager;
 
+import gui.DialogSystem;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,15 +8,25 @@ import java.util.List;
 /**
  * Manages random trigger zones with non-overlapping placement
  */
-public class RandomTriggerZoneManager {    private static final int MIN_ZONES = 3;
+public class RandomTriggerZoneManager {    
+    private static final int MIN_ZONES = 3;
     private static final int MAX_ZONES = 8;
     private static final int ZONE_WIDTH = 192;
     private static final int ZONE_HEIGHT = 192;
     private static final int MIN_SPACING = 20; // Minimum spacing between zones
     
     private final List<Rectangle> placedZones;
-      public RandomTriggerZoneManager() {
+    private DialogSystem dialogSystem;    public RandomTriggerZoneManager() {
         this.placedZones = new ArrayList<>();
+        this.dialogSystem = null;
+    }
+    
+    /**
+     * Set the dialog system for displaying messages
+     * @param dialogSystem the DialogSystem instance to use
+     */
+    public void setDialogSystem(DialogSystem dialogSystem) {
+        this.dialogSystem = dialogSystem;
     }
     
     /**
@@ -87,8 +98,7 @@ public class RandomTriggerZoneManager {    private static final int MIN_ZONES = 
             }
         }
         return false;
-    }
-      /**
+    }      /**
      * Handle when a random zone is triggered
      */
     private void handleRandomZoneTriggered(String zoneId, int x, int y, int width, int height) {
@@ -103,7 +113,13 @@ public class RandomTriggerZoneManager {    private static final int MIN_ZONES = 
             "Area yang penuh dengan kemungkinan"
         };
           String randomMessage = messages[(int)(Math.random() * messages.length)];
-        System.out.println("[" + zoneId + "] " + randomMessage + " at (" + x + ", " + y + ") size: " + width + "x" + height);
+        
+        // Use dialog system if available, otherwise fall back to console
+        if (dialogSystem != null) {
+            dialogSystem.showDialog(randomMessage);
+        } else {
+            System.out.println("[" + zoneId + "] " + randomMessage + " at (" + x + ", " + y + ") size: " + width + "x" + height);
+        }
         
         // Optional: You can add more effects here like:
         // - Give player random items

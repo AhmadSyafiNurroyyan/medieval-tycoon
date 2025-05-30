@@ -16,7 +16,7 @@ public class main {
         // frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         // frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         // frame.setSize(800, 600);
-        // frame.add(new HomeBasePanel());
+        // frame.add(new DialogSystem(player));
         // frame.setLocationRelativeTo(null);
         // frame.setVisible(true);
         // });
