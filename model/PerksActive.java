@@ -21,7 +21,6 @@ public class PerksActive extends Perk {
     // public double getPerkEffect() {
     // // perlu implementasi dari kelas arena jual beli
     // }
-    //
 
     @Override
     public boolean upgradeLevel() {

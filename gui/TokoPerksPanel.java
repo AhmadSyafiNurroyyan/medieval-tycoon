@@ -2,7 +2,8 @@ package gui;
 
 import model.Player;
 import model.Perk;
-import model.TokoPerks;
+import model.PerksManagement;
+import enums.PerkType;
 
 import javax.swing.*;
 
@@ -14,15 +15,15 @@ import java.util.List;
 
 public class TokoPerksPanel extends JPanel {
 
-  private TokoPerks toko;
+  private PerksManagement perksManagement;
   private Player player;
   private JPanel perksPanel;
   private JScrollPane scrollPane;
   private JLabel moneyLabel;
   private Runnable backToGameCallback;
 
-  public TokoPerksPanel(TokoPerks toko, Player player) {
-    this.toko = toko;
+  public TokoPerksPanel(PerksManagement perksManagement, Player player) {
+    this.perksManagement = perksManagement;
     this.player = player;
     setLayout(new BorderLayout());
     setOpaque(true);
@@ -64,8 +65,8 @@ public class TokoPerksPanel extends JPanel {
 
   private void populatePerks() {
     perksPanel.removeAll();
-    List<Perk> daftarPerk = toko.getDaftarPerk();
-    List<Perk> ownedPerks = player.getSemuaPerkDimiliki();
+    List<Perk> daftarPerk = perksManagement.getDaftarPerkDiToko();
+    List<Perk> ownedPerks = perksManagement.getPerkYangDimiliki(player);
 
     for (Perk perk : daftarPerk) {
       JPanel perkRow = new JPanel(new GridBagLayout());
@@ -90,11 +91,9 @@ public class TokoPerksPanel extends JPanel {
       String labelText = perk.getName() + " (" + perk.getPerkType() + ")";
       if (alreadyOwned) {
         // Cari instance perk yang dimiliki player (agar level & upgrade sesuai)
-        for (Perk p : ownedPerks) {
-          if (p.getPerkType() == perk.getPerkType()) {
-            labelText += "  Lv. " + p.getLevel();
-            break;
-          }
+        Perk ownedPerk = perksManagement.getPlayerPerkByType(player, perk.getPerkType());
+        if (ownedPerk != null) {
+          labelText += "  Lv. " + ownedPerk.getLevel();
         }
       }
       JLabel nameLabel = new JLabel(labelText);
@@ -120,58 +119,49 @@ public class TokoPerksPanel extends JPanel {
 
       // Tombol Upgrade untuk perk yang dimiliki
       if (alreadyOwned) {
-        // Cari instance perk yang dimiliki player
-        for (Perk p : ownedPerks) {
-          if (p.getPerkType() == perk.getPerkType()) {
-            final Perk ownedPerk = p;
-            // Biaya upgrade
-            JLabel biayaLabel = new JLabel(ownedPerk.isMaxLevel() ? "MAX" : ownedPerk.getBiayaUpgrade() + "G");
-            biayaLabel.setFont(new Font("Serif", Font.PLAIN, 20));
-            biayaLabel.setForeground(new Color(139, 69, 19));
-            gbc.gridx = 3;
-            gbc.anchor = GridBagConstraints.EAST;
-            perkRow.add(biayaLabel, gbc);
+        Perk ownedPerk = perksManagement.getPlayerPerkByType(player, perk.getPerkType());
+        if (ownedPerk != null) {
+          // Biaya upgrade
+          JLabel biayaLabel = new JLabel(ownedPerk.isMaxLevel() ? "MAX" : ownedPerk.getBiayaUpgrade() + "G");
+          biayaLabel.setFont(new Font("Serif", Font.PLAIN, 20));
+          biayaLabel.setForeground(new Color(139, 69, 19));
+          gbc.gridx = 3;
+          gbc.anchor = GridBagConstraints.EAST;
+          perkRow.add(biayaLabel, gbc);
 
-            JButton upgradeButton = StyledButton.create("Upgrade", 18, 100, 35);
-            upgradeButton.setEnabled(!ownedPerk.isMaxLevel());
-            gbc.gridx = 4;
-            perkRow.add(upgradeButton, gbc);
+          JButton upgradeButton = StyledButton.create("Upgrade", 18, 100, 35);
+          upgradeButton.setEnabled(perksManagement.canPlayerAffordUpgrade(player, ownedPerk));
+          gbc.gridx = 4;
+          perkRow.add(upgradeButton, gbc);
 
-            upgradeButton.addActionListener(e -> {
-              try {
-                boolean success = toko.upgrade(player, ownedPerk);
-                String msg = success
-                    ? "Upgrade berhasil ke level " + ownedPerk.getLevel() + "!"
-                    : (ownedPerk.isMaxLevel() ? "Level sudah maksimum." : "Uang tidak cukup untuk upgrade.");
-                JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
-                    success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
-                moneyLabel.setText("Uang: " + player.getMoney() + "G");
+          upgradeButton.addActionListener(e -> {
+            try {
+              boolean success = perksManagement.upgradePerk(player, ownedPerk);
+              String msg = success
+                  ? "Upgrade berhasil ke level " + ownedPerk.getLevel() + "!"
+                  : (ownedPerk.isMaxLevel() ? "Level sudah maksimum." : "Uang tidak cukup untuk upgrade.");
+              JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
+                  success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
 
-                // Update label level jika berhasil, TANPA refresh seluruh panel
-                if (success) {
-                  nameLabel.setText(perk.getName() + " (" + perk.getPerkType() + ")  Lv. " + ownedPerk.getLevel());
-                  biayaLabel.setText(ownedPerk.isMaxLevel() ? "MAX" : ownedPerk.getBiayaUpgrade() + "G");
-                  upgradeButton.setEnabled(!ownedPerk.isMaxLevel());
-                }
-              } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Gagal", JOptionPane.ERROR_MESSAGE);
+              updateMoneyDisplay();
+
+              // Update label level jika berhasil, TANPA refresh seluruh panel
+              if (success) {
+                nameLabel.setText(perk.getName() + " (" + perk.getPerkType() + ")  Lv. " + ownedPerk.getLevel());
+                biayaLabel.setText(ownedPerk.isMaxLevel() ? "MAX" : ownedPerk.getBiayaUpgrade() + "G");
+                upgradeButton.setEnabled(perksManagement.canPlayerAffordUpgrade(player, ownedPerk));
               }
-            });
-            break;
-          }
+            } catch (RuntimeException ex) {
+              JOptionPane.showMessageDialog(this, ex.getMessage(), "Gagal", JOptionPane.ERROR_MESSAGE);
+            }
+          });
         }
-      }
+      } else { // Tombol untuk perk yang belum dimiliki
+        boolean canBuy = perksManagement.hasAvailablePerkSlot(player) &&
+            perksManagement.canPlayerAffordPerk(player, perk.getPerkType());
+        final boolean canConvert = perksManagement.hasConvertiblePerk(player, perk.getPerkType());
 
-      // Tombol Convert hanya jika belum dimiliki dan bisa dikonversi
-      if (!alreadyOwned) {
-        boolean canConvert = false;
-        for (Perk owned : ownedPerks) {
-          if (owned.canConvertTo(perk.getPerkType())) {
-            canConvert = true;
-            break;
-          }
-        }
-        if (canConvert) {
+        if (canBuy || canConvert) {
           JLabel hargaLabel = new JLabel(perk.getHarga() + "G");
           hargaLabel.setFont(new Font("Serif", Font.PLAIN, 20));
           hargaLabel.setForeground(new Color(139, 69, 19));
@@ -179,35 +169,53 @@ public class TokoPerksPanel extends JPanel {
           gbc.anchor = GridBagConstraints.EAST;
           perkRow.add(hargaLabel, gbc);
 
-          JButton convertButton = StyledButton.create("Convert", 18, 100, 35);
+          String buttonText = canBuy ? "Beli" : "Convert";
+          JButton actionButton = StyledButton.create(buttonText, 18, 100, 35);
           gbc.gridx = 4;
-          perkRow.add(convertButton, gbc);
+          perkRow.add(actionButton, gbc);
 
-          convertButton.addActionListener(e -> {
+          actionButton.addActionListener(e -> {
             try {
               boolean success = false;
-              if (ownedPerks.size() < 2) {
-                success = toko.convert(player, null, perk.getPerkType());
-              } else {
-                String[] options = new String[2];
-                options[0] = ownedPerks.get(0).getName();
-                options[1] = ownedPerks.get(1).getName();
-                int result = JOptionPane.showOptionDialog(this, "Pilih perk yang ingin diganti:",
-                    "Ganti Perk", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
-                    null, options, options[0]);
-                if (result == 0 || result == 1) {
-                  Perk perkToReplace = ownedPerks.get(result);
-                  success = toko.convert(player, perkToReplace, perk.getPerkType());
+
+              if (canBuy) {
+                // Simple buy operation
+                success = perksManagement.buyPerk(player, perk.getPerkType());
+              } else if (canConvert) {
+                // Convert operation
+                if (ownedPerks.size() == 1) {
+                  // Only one perk to convert from
+                  success = perksManagement.convertPerk(player, ownedPerks.get(0), perk.getPerkType());
                 } else {
-                  return;
+                  // Multiple perks, let user choose
+                  String[] options = new String[ownedPerks.size()];
+                  for (int i = 0; i < ownedPerks.size(); i++) {
+                    options[i] = ownedPerks.get(i).getName();
+                  }
+
+                  int result = JOptionPane.showOptionDialog(this,
+                      "Pilih perk yang ingin diganti:",
+                      "Ganti Perk",
+                      JOptionPane.DEFAULT_OPTION,
+                      JOptionPane.QUESTION_MESSAGE,
+                      null, options, options[0]);
+
+                  if (result >= 0 && result < ownedPerks.size()) {
+                    Perk perkToReplace = ownedPerks.get(result);
+                    success = perksManagement.convertPerk(player, perkToReplace, perk.getPerkType());
+                  } else {
+                    return;
+                  }
                 }
               }
+
               String msg = success
-                  ? "Berhasil menambah/mengganti dengan " + perk.getName() + "!"
-                  : "Gagal menambah/mengganti dengan " + perk.getName() + ".";
+                  ? "Berhasil " + (canBuy ? "membeli" : "mengganti dengan") + " " + perk.getName() + "!"
+                  : "Gagal " + (canBuy ? "membeli" : "mengganti dengan") + " " + perk.getName() + ".";
               JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
                   success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
-              moneyLabel.setText("Uang: " + player.getMoney() + "G");
+
+              updateMoneyDisplay();
               refresh();
             } catch (PerkConversionException ex) {
               JOptionPane.showMessageDialog(this, ex.getMessage(), "Konversi Tidak Diizinkan",
@@ -230,8 +238,12 @@ public class TokoPerksPanel extends JPanel {
     this.backToGameCallback = cb;
   }
 
-  public void refresh() {
+  private void updateMoneyDisplay() {
     moneyLabel.setText("Uang: " + player.getMoney() + "G");
+  }
+
+  public void refresh() {
+    updateMoneyDisplay();
     populatePerks();
   }
 

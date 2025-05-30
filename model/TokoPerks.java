@@ -36,10 +36,41 @@ public class TokoPerks {
         }
     }
 
+    public boolean buyPerk(Player player, PerkType perkType) {
+        // Check validations first
+        if (player.hasPerk(perkType)) {
+            return false; // Already owned, return false instead of throwing
+        }
+
+        if (player.getSemuaPerkDimiliki().size() >= 2) {
+            return false; // No slots available
+        }
+
+        Perk targetBase = daftarPerk.get(perkType);
+        if (targetBase == null) {
+            return false; // Perk not found
+        }
+
+        Perk newPerk = clonePerk(targetBase);
+        int biaya = newPerk.getHarga();
+
+        if (player.getMoney() >= biaya) {
+            player.kurangiMoney(biaya);
+            newPerk.resetUpgrade();
+            player.addPerk(newPerk);
+            return true;
+        } else {
+            return false; // Not enough money
+        }
+    }
+
     public boolean upgrade(Player player, Perk perk) {
         if (perk == null || !player.getSemuaPerkDimiliki().contains(perk)) {
-            System.out.println("Perk tidak dimiliki.");
             return false;
+        }
+
+        if (perk.isMaxLevel()) {
+            return false; // Already at max level
         }
 
         int biaya = perk.getBiayaUpgrade();
@@ -47,31 +78,27 @@ public class TokoPerks {
             if (perk.upgradeLevel()) {
                 player.kurangiMoney(biaya);
                 return true;
-            } else {
-                System.out.println("Level sudah maksimum.");
-                return false;
             }
-        } else {
-            System.out.println("Uang tidak cukup untuk upgrade.");
-            return false;
         }
+        return false;
     }
 
     public boolean convert(Player player, Perk perkSaatIni, PerkType targetType) {
         Perk targetBase = daftarPerk.get(targetType);
         if (targetBase == null) {
-            throw new RuntimeException("Perk target tidak ditemukan.");
+            return false;
         }
 
         Perk perkTarget = clonePerk(targetBase);
         int biaya = perkTarget.getHarga();
 
+        // Handle null case (direct purchase)
         if (perkSaatIni == null) {
             if (player.getSemuaPerkDimiliki().size() >= 2) {
-                throw new RuntimeException("Slot perk sudah penuh.");
+                return false;
             }
             if (player.hasPerk(targetType)) {
-                throw new RuntimeException("Perk sudah dimiliki.");
+                return false;
             }
             if (player.getMoney() >= biaya) {
                 player.kurangiMoney(biaya);
@@ -79,19 +106,20 @@ public class TokoPerks {
                 player.addPerk(perkTarget);
                 return true;
             } else {
-                throw new RuntimeException("Uang tidak cukup untuk konversi.");
+                return false;
             }
         }
 
+        // Handle conversion case
         if (!player.getSemuaPerkDimiliki().contains(perkSaatIni)) {
-            throw new RuntimeException("Perk yang ingin diganti tidak dimiliki.");
+            return false;
         }
         if (!perkSaatIni.canConvertTo(targetType)) {
             throw new PerkConversionException(
                     "Konversi dari " + perkSaatIni.getPerkType() + " ke " + targetType + " tidak diperbolehkan.");
         }
         if (player.hasPerk(targetType)) {
-            throw new RuntimeException("Perk sudah dimiliki.");
+            return false;
         }
         if (player.getMoney() >= biaya) {
             player.kurangiMoney(biaya);
@@ -100,7 +128,7 @@ public class TokoPerks {
             player.addPerk(perkTarget);
             return true;
         } else {
-            throw new RuntimeException("Uang tidak cukup untuk konversi.");
+            return false;
         }
     }
 

@@ -18,7 +18,7 @@ public abstract class Perk implements Upgrade, Showable {
     protected PerkType type;
     protected final String iconPath;
 
-    public static final int MAX_LEVEL = 5; // maksimal level upgrade 5
+    public static final int MAX_LEVEL = 5;
 
     public Perk(String nama, String deskripsi, PerkType type, int harga, double kesaktianAwal, int biayaUpgrade,
             String iconPath) {
@@ -87,7 +87,7 @@ public abstract class Perk implements Upgrade, Showable {
         return level >= MAX_LEVEL;
     }
 
-    // public abstract double getPerkEffect();
+    public abstract double getPerkEffect();
 
     @Override
     public int getLevel() {
@@ -105,7 +105,6 @@ public abstract class Perk implements Upgrade, Showable {
         } else if (this.type == PerkType.ACTIVE && targetType == PerkType.ELEGAN) {
             return true;
         }
-        resetUpgrade();
         return false;
     }
 

@@ -56,7 +56,7 @@ public class MainMenu extends JFrame {
         HomeBasePanel homeBasePanel = new HomeBasePanel(player);
         SupplierPanel supplierPanel = new SupplierPanel(gamePanel.getSupplier(), gamePanel.getPlayer());
         TokoItemPanel tokoItemPanel = new TokoItemPanel(gamePanel.getTokoItem(), gamePanel.getPlayer());
-        TokoPerksPanel tokoPerksPanel = new TokoPerksPanel(gamePanel.getTokoPerks(), gamePanel.getPlayer());
+        TokoPerksPanel tokoPerksPanel = new TokoPerksPanel(gamePanel.getPerksManagement(), gamePanel.getPlayer());
 
         tokoItemPanel.setInventory(player.getInventory());
         homeBasePanel.initializeWithGerobak(gamePanel.getGerobak());

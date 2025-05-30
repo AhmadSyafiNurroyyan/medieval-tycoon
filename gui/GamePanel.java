@@ -34,6 +34,7 @@ public class GamePanel extends JPanel implements Runnable {
     private Supplier supplier;
     private TokoItem tokoItem;
     private TokoPerks tokoPerks;
+    private PerksManagement perksManagement;
     private Gerobak gerobak;
     private Runnable showSupplierPanelCallback;
     private Runnable showHomeBasePanelCallback;
@@ -59,7 +60,8 @@ public class GamePanel extends JPanel implements Runnable {
         if (!iconsLoaded) {
             preloadIcons();
             iconsLoaded = true;
-        }        playerMovement = player.createMovement();
+        }
+        playerMovement = player.createMovement();
         PlayerSkin = player.createNametag();
         tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
@@ -67,12 +69,14 @@ public class GamePanel extends JPanel implements Runnable {
         randomTriggerZoneManager = new RandomTriggerZoneManager();
         dialogSystem = new DialogSystem(this);
         randomTriggerZoneManager.setDialogSystem(dialogSystem);
-        supplier = new Supplier();        
+        supplier = new Supplier();
         tokoItem = new TokoItem(player);
         tokoPerks = new TokoPerks();
+        perksManagement = new PerksManagement();
 
         // Initialize map1 content
-        setupMap1Content();        addKeyListener(new KeyAdapter() {
+        setupMap1Content();
+        addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 playerMovement.keyPressed(e.getKeyCode());
@@ -83,7 +87,7 @@ public class GamePanel extends JPanel implements Runnable {
                         dialogSystem.hideDialog();
                         return;
                     }
-                    
+
                     // Otherwise, check for trigger zones
                     List<MapManager.TriggerZoneManager.TriggerZone> zones = triggerZoneManager
                             .getZonesAt(playerMovement.getX(), playerMovement.getY());
@@ -251,6 +255,10 @@ public class GamePanel extends JPanel implements Runnable {
 
     public TokoPerks getTokoPerks() {
         return tokoPerks;
+    }
+
+    public PerksManagement getPerksManagement() {
+        return perksManagement;
     }
 
     /**

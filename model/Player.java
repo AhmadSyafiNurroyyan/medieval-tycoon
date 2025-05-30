@@ -29,6 +29,7 @@ public class Player {
         this.level = 1;
         this.money = 10000000;
         this.inventory = new Inventory();
+        this.gerobak = new Gerobak(); // Initialize gerobak
 
         List<Perk> pilihanPerk = new ArrayList<>();
         pilihanPerk.add(new PerksElegan());
@@ -88,6 +89,7 @@ public class Player {
         // Jangan replace perk yang sudah ada, hanya tambah yang baru
         if (!hasPerk(perk.getPerkType()) && semuaPerkDimiliki.size() < 2) {
             semuaPerkDimiliki.add(perk);
+            System.out.println("Perk " + perk.getName() + " berhasil ditambahkan.");
         }
     }
 
@@ -101,6 +103,10 @@ public class Player {
     }
 
     public boolean pilihPerkUntukJualan(Perk perk) {
+        if (perk == null) {
+            throw new IllegalArgumentException("Perk tidak boleh null.");
+        }
+
         if (!semuaPerkDimiliki.contains(perk)) {
             System.out.println("Perk tidak dimiliki.");
             return false;
@@ -111,8 +117,14 @@ public class Player {
             return false;
         }
 
+        // Pastikan gerobak sudah diinisialisasi
+        if (gerobak == null) {
+            System.out.println("Gerobak belum diinisialisasi.");
+            return false;
+        }
+
         if (perkDipilihUntukJualan.size() >= gerobak.getKapasitasPerks()) {
-            System.out.println("Maksimal 2 perk saja boleh dibawa saat jualan.");
+            System.out.println("Maksimal " + gerobak.getKapasitasPerks() + " perk saja boleh dibawa saat jualan.");
             return false;
         }
 
