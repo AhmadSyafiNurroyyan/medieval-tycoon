@@ -1,6 +1,6 @@
 package exceptions;
 
-public class PerkConversionException extends GameException {
+public class PerkConversionException extends RuntimeException {
 
     public PerkConversionException(String message) {
         super(message);
