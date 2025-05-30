@@ -5,7 +5,6 @@ import interfaces.Showable;
 import interfaces.Upgrade;
 
 public class Item implements Showable, Upgrade {
-
     private final String nama;
     private final String deskripsi;
     private final int harga;
@@ -13,19 +12,19 @@ public class Item implements Showable, Upgrade {
     private boolean isActive;
     private int level;
     private final String iconPath;
+    private boolean isUsed;
 
     private static final int MAX_LEVEL = 5;
-    private static final double CHANCE_PER_LEVEL = 0.1;
-    private static final double MAX_CHANCE = 0.5;
 
     public Item(String nama, String deskripsi, int harga, int biayaUpgrade, String iconPath) {
         this.nama = nama;
         this.deskripsi = deskripsi;
         this.harga = harga;
         this.biayaUpgrade = biayaUpgrade;
-        this.level = 0;
+        this.level = 1;
         this.isActive = false;
         this.iconPath = iconPath;
+        this.isUsed = false;
     }
 
     public String getNama() {
@@ -65,10 +64,6 @@ public class Item implements Showable, Upgrade {
         return level;
     }
 
-    public double getChance() {
-        return Math.min(level * CHANCE_PER_LEVEL, MAX_CHANCE);
-    }
-
     public boolean isMaxLevel() {
         return level >= MAX_LEVEL;
     }
@@ -77,12 +72,58 @@ public class Item implements Showable, Upgrade {
         return MAX_LEVEL;
     }
 
-    public double getMaxChance() {
-        return MAX_CHANCE;
+    public boolean isUsed() {
+        return isUsed;
     }
 
-    public double getChancePerLevel() {
-        return CHANCE_PER_LEVEL;
+    public void markAsUsed() {
+        this.isUsed = true;
+    }
+
+    public void resetUsage() {
+        this.isUsed = false;
+    }
+
+    // Efek spesifik setiap item berdasarkan level
+    public double getHipnotisChance() {
+        return 0.3 + (level * 0.1); // 30% + 10% per level (max 80% di level 5)
+    }
+
+    public double getJampiMultiplier() {
+        return 1.5 + (level * 0.3); // 1.5x + 0.3x per level (max 3x di level 5)
+    }
+
+    public double getSemprotenPriceBoost() {
+        return 0.15 + (level * 0.05); // 15% + 5% per level (max 40% di level 5)
+    }
+
+    public double getTipBonusRate() {
+        return 0.08 + (level * 0.04); // 8% + 4% per level (max 28% di level 5)
+    }
+
+    public int getPeluitExtraBuyers() {
+        return level; // 1 pembeli per level (max 5 pembeli di level 5)
+    }
+
+    // Method untuk cek tipe item berdasarkan nama
+    public boolean isHipnotis() {
+        return nama.equalsIgnoreCase("Hipnotis");
+    }
+
+    public boolean isJampi() {
+        return nama.equalsIgnoreCase("Jampi");
+    }
+
+    public boolean isSemproten() {
+        return nama.equalsIgnoreCase("Semproten");
+    }
+
+    public boolean isTip() {
+        return nama.equalsIgnoreCase("Tip");
+    }
+
+    public boolean isPeluit() {
+        return nama.equalsIgnoreCase("Peluit");
     }
 
     @Override
@@ -120,8 +161,24 @@ public class Item implements Showable, Upgrade {
     }
 
     public String getDetail() {
+        String efekDetail = getEfekDetail();
         return String.format(
-                "Potion: %s (Lv.%d) - %s\nChance: %.0f%% | Harga: %d",
-                nama, level, deskripsi, getChance() * 100, harga);
+                "%s (Lv.%d/%d) - %s\n%s\nHarga: Rp%,d | Upgrade: Rp%,d",
+                nama, level, MAX_LEVEL, deskripsi, efekDetail, harga, biayaUpgrade);
+    }
+
+    private String getEfekDetail() {
+        if (isHipnotis()) {
+            return String.format("Efek: %.0f%% chance langsung beli", getHipnotisChance() * 100);
+        } else if (isJampi()) {
+            return String.format("Efek: %.1fx multiplier penghasilan", getJampiMultiplier());
+        } else if (isSemproten()) {
+            return String.format("Efek: +%.0f%% harga jual", getSemprotenPriceBoost() * 100);
+        } else if (isTip()) {
+            return String.format("Efek: %.0f%% chance bonus tip", getTipBonusRate() * 100);
+        } else if (isPeluit()) {
+            return String.format("Efek: +%d pembeli tambahan", getPeluitExtraBuyers());
+        }
+        return "Efek tidak diketahui";
     }
 }

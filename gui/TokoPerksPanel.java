@@ -3,7 +3,6 @@ package gui;
 import model.Player;
 import model.Perk;
 import model.PerksManagement;
-import enums.PerkType;
 
 import javax.swing.*;
 

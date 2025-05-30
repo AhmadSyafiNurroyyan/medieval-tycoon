@@ -16,16 +16,19 @@ public class TokoItem implements Transaksi<Item>, Showable {
 
     private void inisialisasiItem() {
         listItem.add(
-                new Item("Hipnotis", "Meningkatkan peluang pembeli tidak menawar", 100_000, 40_000, "hipnotis.png"));
-        listItem.add(new Item("Rayuan", "Meningkatkan peluang pembeli membeli dengan harga tinggi", 150_000, 60_000,
-                "rayuan.png"));
+                new Item("Hipnotis", "Meningkatkan peluang pembeli langsung membeli tanpa menawar",
+                        50_000, 25_000, "hipnotis.png"));
         listItem.add(
-                new Item("Bonus Kesabaran", "Memperlama waktu tunggu pembeli", 120_000, 50_000, "bonus_kesabaran.png"));
-        listItem.add(new Item("Segarkan Dagangan", "Meningkatkan kesegaran barang dagangan", 200_000, 90_000,
-                "segarkan_dagangan.png"));
+                new Item("Jampi", "Melipatgandakan penghasilan dari transaksi hari ini",
+                        75_000, 35_000, "rayuan.png"));
         listItem.add(
-                new Item("Memperbesar Peluang Beli", "Meningkatkan peluang pembeli untuk JADI beli", 180_000, 70_000,
-                        "peluang_beli.png"));
+                new Item("Peluit", "Memanggil pembeli tambahan secara instan",
+                        60_000, 30_000, "bonus_kesabaran.png"));
+        listItem.add(new Item("Semproten", "Menambah kesan barang lebih fresh, harga bisa ditawar lebih mahal",
+                80_000, 40_000, "segarkan_dagangan.png"));
+        listItem.add(
+                new Item("Tip", "Pembeli kadang memberi uang ekstra",
+                        65_000, 32_000, "peluang_beli.png"));
     }
 
     @Override
@@ -72,17 +75,22 @@ public class TokoItem implements Transaksi<Item>, Showable {
             System.out.println("Item belum dimiliki.");
             return;
         }
-
-        int biaya = item.getBiayaUpgrade();
+        int biaya = item.getBiayaUpgrade() * item.getLevel(); // biaya meningkat per level
         if (player.getMoney() < biaya) {
-            System.out.println("Uang tidak cukup untuk upgrade.");
+            System.out.println("Uang tidak cukup untuk upgrade. Dibutuhkan: Rp" + biaya);
+            return;
+        }
+
+        if (item.isMaxLevel()) {
+            System.out.println("Item sudah mencapai level maksimal (" + item.getMaxLevel() + ").");
             return;
         }
 
         boolean berhasil = item.upgradeLevel();
         if (berhasil) {
             player.kurangiMoney(biaya);
-            System.out.println("Upgrade berhasil. Level sekarang: " + item.getLevel());
+            System.out.println("Upgrade berhasil! " + item.getNama() + " sekarang level " + item.getLevel());
+            System.out.println("Efek baru: " + item.getDetail());
         } else {
             System.out.println("Item sudah mencapai level maksimal.");
         }
