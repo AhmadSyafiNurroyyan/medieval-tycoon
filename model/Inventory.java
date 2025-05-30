@@ -52,10 +52,15 @@ public class Inventory {
             }
         }
         return result;
-    }
-
-    public List<Item> getStokItem() {
-        return new ArrayList<>(stokItem.values());
+    }    public List<Item> getStokItem() {
+        List<Item> result = new ArrayList<>();
+        for (Map.Entry<String, Item> entry : stokItem.entrySet()) {
+            // Only include items that are NOT in the gerobak
+            if (!itemDibawa.contains(entry.getKey())) {
+                result.add(entry.getValue());
+            }
+        }
+        return result;
     }
 
     public List<Item> getItemDibawa() {
@@ -146,26 +151,23 @@ public class Inventory {
             }
             notifyInventoryChanged();
         }
-    }
+    }    public boolean bawaItem(String namaItem, int kapasitasGerobak) {
+        String namaItemLower = namaItem.toLowerCase();
+        System.out.println("bawaItem called: " + namaItem + ", kapasitasGerobak=" + kapasitasGerobak);
+        System.out.println("stokItem: " + stokItem.keySet());
+        System.out.println("itemDibawa: " + itemDibawa);
 
-    public boolean bawaItem(String namaItem, int kapasitasGerobak) {
-        // Find the item in the inventory
-        Item targetItem = null;
-        for (Item item : stokItem.values()) {
-            if (item.getNama().equals(namaItem)) {
-                targetItem = item;
-                break;
-            }
-        }
+        if (itemDibawa.size() >= kapasitasGerobak)
+            return false;
+        if (!stokItem.containsKey(namaItemLower))
+            return false;
+        if (itemDibawa.contains(namaItemLower))
+            return false; // Sudah dibawa
 
-        if (targetItem != null && itemDibawa.size() < kapasitasGerobak) {
-            // Remove from inventory stock
-            stokItem.remove(targetItem.getNama().toLowerCase());
-            // Add to gerobak
-            itemDibawa.add(targetItem.getNama().toLowerCase());
-            return true;
-        }
-        return false;
+        itemDibawa.add(namaItemLower);
+        System.out.println("itemDibawa after add: " + itemDibawa);
+        notifyInventoryChanged();
+        return true;
     }
 
     public void bawaOtomatisSemua(Gerobak g) {
@@ -205,7 +207,6 @@ public class Inventory {
         return kapasitasItem - itemDibawa.size();
     }
 
-    // Ubah setHargaJual dan getHargaJual
     public void setHargaJual(Barang barang, int harga) {
         hargaJualBarang.put(barang, harga);
     }

@@ -271,7 +271,7 @@ public class Player {
             }
 
             if (moving) {
-                debugger.DebugCoordinateLogger.logPlayerCoordinates(this);
+                // debugger.DebugCoordinateLogger.logPlayerCoordinates(this);
                 animCount++;
                 if (animCount >= animDelay) {
                     animCount = 0;
