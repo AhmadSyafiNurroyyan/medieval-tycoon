@@ -233,7 +233,9 @@ public class MainMenu extends JFrame {
             supplierPanel.requestFocusInWindow();
         });
         gamePanel.setShowHomeBasePanelCallback(() -> {
+            System.out.println("MainMenu: Switching to HomeBase panel");
             cardLayout.show(cardsPanel, "HOME_BASE");
+            homeBasePanel.onPanelShown(); // Start BGM when HomeBase is shown
             homeBasePanel.requestFocusInWindow();
         });
         gamePanel.setShowTokoItemPanelCallback(() -> {

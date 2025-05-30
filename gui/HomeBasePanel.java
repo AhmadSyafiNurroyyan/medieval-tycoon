@@ -67,11 +67,14 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         add(btn3);
         add(btn4);
         add(btn5);
-
         backButton = StyledButton.create("Kembali", 20, 120, 40);
         backButton.addActionListener(_ -> {
-            if (backToGameCallback != null)
+            if (backToGameCallback != null) {
+                // Stop BGM when leaving HomeBase
+                System.out.println("HomeBasePanel: Back button clicked - stopping BGM");
+                BGMPlayer.getInstance().stopHomeBaseBGM();
                 backToGameCallback.run();
+            }
         });
         add(backButton);
 
@@ -1658,6 +1661,22 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
     public void setBackToGameCallback(Runnable callback) {
         this.backToGameCallback = callback;
+    }
+
+    /**
+     * Called when HomeBase panel becomes visible (starts BGM)
+     */
+    public void onPanelShown() {
+        System.out.println("HomeBasePanel: onPanelShown() called - starting BGM");
+        BGMPlayer.getInstance().playHomeBaseBGM();
+    }
+
+    /**
+     * Called when HomeBase panel is hidden (stops BGM)
+     */
+    public void onPanelHidden() {
+        System.out.println("HomeBasePanel: onPanelHidden() called - stopping BGM");
+        BGMPlayer.getInstance().stopHomeBaseBGM();
     }
 
     /**

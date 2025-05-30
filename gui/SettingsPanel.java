@@ -3,35 +3,33 @@ package gui;
 import java.awt.*;
 import javax.swing.*;
 
-public class SettingsPanel extends JPanel {    private String previousScreen = "MENU"; 
-    
+public class SettingsPanel extends JPanel {
+    private String previousScreen = "MENU";
+
     public SettingsPanel() {
         setLayout(new BorderLayout());
         setOpaque(false);
 
         JLabel titleLabel = StyledButton.createLabel("Settings", 36, new Color(218, 165, 32), Font.BOLD, JLabel.CENTER);
         add(titleLabel, BorderLayout.NORTH);
-        JCheckBox soundCheckbox = StyledButton.createCheckBox("Enable Sound");
+        JCheckBox soundCheckbox = StyledButton.createCheckBox("Enable BGM");
 
-        
-        // soundCheckbox.setSelected(BGMPlayer.isEnabled());
+        soundCheckbox.setSelected(BGMPlayer.getInstance().isEnabled());
         soundCheckbox.addActionListener(e -> {
-            // BGMPlayer.setEnabled(soundCheckbox.isSelected());
+            BGMPlayer.getInstance().setEnabled(soundCheckbox.isSelected());
         });
-
 
         JLabel resolutionLabel = StyledButton.createLabel("Resolution:");
         JLabel fullscreenLabel = StyledButton.createLabel("Fullscreen:");
         JButton backButton = StyledButton.create("Back to Menu");
 
-        String[] resolutions = {"800 x 600", "1024 x 768", "1280 x 720", "1920 x 1080"};
+        String[] resolutions = { "800 x 600", "1024 x 768", "1280 x 720", "1920 x 1080" };
         JComboBox<String> resolutionCombo = new JComboBox<>(resolutions);
         resolutionCombo.setFont(new Font("Serif", Font.PLAIN, 22));
         resolutionCombo.setMaximumSize(new Dimension(300, 50));
         resolutionCombo.setPreferredSize(new Dimension(300, 50));
         resolutionCombo.setSelectedIndex(0);
 
-        
         JButton fullscreenToggle = StyledButton.create("OFF");
         fullscreenToggle.putClientProperty("isOn", Boolean.FALSE);
         fullscreenToggle.addActionListener(e -> {
@@ -42,26 +40,27 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
                 fullscreenToggle.putClientProperty("isOn", !isOn);
                 frame.dispose();
                 frame.setUndecorated(!isOn);
-            if (!isOn) {
-                frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-            } else {
-                String selected = (String) resolutionCombo.getSelectedItem();
-                if (selected != null) {
-                String[] parts = selected.split(" x ");
-                if (parts.length == 2) {
-                    try {
-                        int w = Integer.parseInt(parts[0].trim());
-                        int h = Integer.parseInt(parts[1].trim());
-                        frame.setSize(w, h);
-                        frame.setLocationRelativeTo(null);
-                    } catch (NumberFormatException ignored) {}
+                if (!isOn) {
+                    frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                } else {
+                    String selected = (String) resolutionCombo.getSelectedItem();
+                    if (selected != null) {
+                        String[] parts = selected.split(" x ");
+                        if (parts.length == 2) {
+                            try {
+                                int w = Integer.parseInt(parts[0].trim());
+                                int h = Integer.parseInt(parts[1].trim());
+                                frame.setSize(w, h);
+                                frame.setLocationRelativeTo(null);
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
                     }
-                } frame.setExtendedState(JFrame.NORMAL);
-            } frame.setVisible(true);
+                    frame.setExtendedState(JFrame.NORMAL);
+                }
+                frame.setVisible(true);
             }
         });
-
-        
 
         backButton.addActionListener(e -> {
             Container parent = this.getParent();
@@ -113,7 +112,8 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
                             int h = Integer.parseInt(parts[1].trim());
                             window.setSize(w, h);
                             window.setLocationRelativeTo(null);
-                        } catch (NumberFormatException ignored) {}
+                        } catch (NumberFormatException ignored) {
+                        }
                     }
                 }
             }
@@ -121,15 +121,15 @@ public class SettingsPanel extends JPanel {    private String previousScreen = "
 
         // // BGM control logic
         // soundCheckbox.addActionListener(e -> {
-        //     boolean enabled = soundCheckbox.isSelected();
-        //     if (!enabled) {
-        //         BGMPlayer.globalMute = true;
-        //         BGMPlayer.stopGlobal();
-        //     } else {
-        //         BGMPlayer.globalMute = false;
-        //         // Optionally resume or replay current BGM if needed
-                
-        //     }
+        // boolean enabled = soundCheckbox.isSelected();
+        // if (!enabled) {
+        // BGMPlayer.globalMute = true;
+        // BGMPlayer.stopGlobal();
+        // } else {
+        // BGMPlayer.globalMute = false;
+        // // Optionally resume or replay current BGM if needed
+
+        // }
         // });
     }
 
