@@ -431,6 +431,9 @@ public class GamePanel extends JPanel implements Runnable {
             }
         });
         triggerZoneManager.addZone("Kota Lain", 0, 671, 92, 959, true, () -> {
+            // Stop current BGM and play Kota Lain BGM
+            BGMPlayer.getInstance().stopBGM();
+            BGMPlayer.getInstance().playKotaLainBGM();
             switchToMap("map2", 1445, playerMovement.getY());
         });
 
@@ -448,9 +451,11 @@ public class GamePanel extends JPanel implements Runnable {
     /**
      * Setup content for map2 (new map)
      */
-    private void setupMap2Content() {
-        // Setup trigger zone to return to map1 on the right edge
+    private void setupMap2Content() { // Setup trigger zone to return to map1 on the right edge
         triggerZoneManager.addZone("Kembali ke Map1", 1500, 671, 1650, 959, true, () -> {
+            // Stop Kota Lain BGM and restore Map BGM
+            BGMPlayer.getInstance().stopKotaLainBGM();
+            BGMPlayer.getInstance().playMapBGM();
             switchToMap("map1", 92, playerMovement.getY());
         });
 
