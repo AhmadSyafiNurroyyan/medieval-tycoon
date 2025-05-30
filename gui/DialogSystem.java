@@ -396,6 +396,9 @@ public class DialogSystem extends JPanel {
         int buttonGap = Math.max(10, Math.min(20, panelHeight / 40));
         int fieldHeight = Math.max(30, Math.min(40, panelHeight / 20));
         
+        // Tambahkan deklarasi buttonWidth di sini
+        int buttonWidth = (tradingWidth / 2) - (buttonGap / 2);
+        
         // Calculate total height needed for all elements
         int totalElementsHeight = buttonHeight + buttonGap + fieldHeight + buttonGap + buttonHeight + buttonGap + buttonHeight;
         int startY = centerY - (totalElementsHeight / 2);
