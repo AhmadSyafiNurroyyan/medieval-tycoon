@@ -83,6 +83,28 @@ public abstract class Perk implements Upgrade, Showable {
         return biayaUpgrade;
     }
 
+    /**
+     * Menghitung biaya upgrade untuk level tertentu dengan progressive pricing
+     * 
+     * @param targetLevel level target yang ingin dicapai
+     * @return biaya upgrade untuk mencapai level tersebut
+     */
+    public int getUpgradeCostForLevel(int targetLevel) {
+        if (targetLevel <= level || targetLevel > MAX_LEVEL) {
+            return 0;
+        }
+
+        int baseCost = getBiayaUpgrade();
+        int cost = baseCost;
+
+        // Calculate cost dengan 25% increase per level
+        for (int i = level; i < targetLevel - 1; i++) {
+            cost = (int) (cost * 1.25);
+        }
+
+        return cost;
+    }
+
     public boolean isMaxLevel() {
         return level >= MAX_LEVEL;
     }

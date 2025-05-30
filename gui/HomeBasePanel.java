@@ -1903,12 +1903,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                 if (selectedPerk != null) {
                     if (perksManagement.pilihPerkUntukJualan(player, selectedPerk)) {
                         JOptionPane.showMessageDialog(this,
-                                "Perk " + selectedPerk.getName() + " berhasil diaktifkan untuk trading!",
+                                "Perk " + selectedPerk.getName() + " berhasil diaktifkan!",
                                 "Sukses", JOptionPane.INFORMATION_MESSAGE);
                         updatePerksTable(perksTable);
                     } else {
                         JOptionPane.showMessageDialog(this,
-                                "Gagal mengaktifkan perk. Mungkin slot trading sudah penuh atau perk sudah aktif.",
+                                "Gagal mengaktifkan perk. Mungkin slot sudah penuh atau perk sudah aktif.",
                                 "Gagal", JOptionPane.ERROR_MESSAGE);
                     }
                 }
@@ -1938,12 +1938,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     selectedPerk.deactivate();
                     player.getPerkDipilihUntukJualan().remove(selectedPerk);
                     JOptionPane.showMessageDialog(this,
-                            "Perk " + selectedPerk.getName() + " berhasil dinonaktifkan dari trading!",
+                            "Perk " + selectedPerk.getName() + " berhasil dinonaktifkan!",
                             "Sukses", JOptionPane.INFORMATION_MESSAGE);
                     updatePerksTable(perksTable);
                 } else {
                     JOptionPane.showMessageDialog(this,
-                            "Perk tidak sedang aktif untuk trading.",
+                            "Perk tidak sedang aktif.",
                             "Info", JOptionPane.INFORMATION_MESSAGE);
                 }
             });
@@ -1985,7 +1985,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         List<Perk> ownedPerks = perksManagement.getPerkYangDimiliki(player);
         List<Perk> tradingPerks = player.getPerkDipilihUntukJualan();
 
-        String[] columns = { "Icon", "Name & Level", "Type", "Power", "Trading Status", "Description" };
+        String[] columns = { "Icon", "Name & Level", "Type", "Power", "Perks Status", "Description" };
         Object[][] data = new Object[ownedPerks.size()][columns.length];
 
         for (int i = 0; i < ownedPerks.size(); i++) {
@@ -2001,7 +2001,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             data[i][1] = perk.getName() + " (Lv." + perk.getLevel() + ")";
             data[i][2] = perk.getPerkType().toString();
             data[i][3] = String.format("%.1f", perk.getKesaktianSekarang());
-            data[i][4] = tradingPerks.contains(perk) ? "Active for Trading" : "Inactive";
+            data[i][4] = tradingPerks.contains(perk) ? "Active" : "Inactive";
             data[i][5] = perk.getDeskripsi();
         }
 

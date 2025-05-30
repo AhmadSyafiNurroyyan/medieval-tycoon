@@ -1,10 +1,8 @@
 package model;
 
-import interfaces.Menawar;
-
 public class PembeliTajir extends Pembeli {
     public PembeliTajir() {
-        super("Tajir", 0.9); 
+        super("Tajir", 0.9);
         peluangMuncul = 0.1;
     }
 
@@ -13,7 +11,7 @@ public class PembeliTajir extends Pembeli {
         if (Math.random() < 0.5) {
             return hargaAwal;
         }
-        return generateOffer(hargaAwal); 
+        return generateOffer(hargaAwal);
     }
 
     @Override
