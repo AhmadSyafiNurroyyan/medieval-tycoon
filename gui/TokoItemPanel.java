@@ -20,7 +20,6 @@ public class TokoItemPanel extends JPanel {
   private JLabel moneyLabel;
   private Runnable backToGameCallback;
   private Inventory inventory;
-  private Item item;
   private Runnable updateInventoryCallback;
 
   public TokoItemPanel() {
@@ -75,7 +74,7 @@ public class TokoItemPanel extends JPanel {
     populateUpgradeItems();
 
     JButton backButton = StyledButton.create("Kembali", 20, 120, 40);
-    backButton.addActionListener(e -> {
+    backButton.addActionListener(_ -> {
       if (backToGameCallback != null) {
         backToGameCallback.run();
       }
@@ -96,11 +95,16 @@ public class TokoItemPanel extends JPanel {
       itemRow.setOpaque(false);
       GridBagConstraints gbc = new GridBagConstraints();
       gbc.insets = new Insets(5, 5, 5, 5);
-      gbc.gridy = 0;
-
-      // Icon dan nama item
-      Image icon = new ImageIcon("assets/icons/" + item.getIconPath()).getImage().getScaledInstance(40, 40,
-          Image.SCALE_SMOOTH);
+      gbc.gridy = 0; // Icon dan nama item
+      ImageIcon originalIcon = new ImageIcon("assets/icons/" + item.getIconPath());
+      Image icon = originalIcon.getImage();
+      // Make sure the image was loaded properly
+      if (originalIcon.getIconWidth() > 0) {
+        icon = icon.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+      } else {
+        // Try alternative way to load the icon if direct loading fails
+        icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40).getImage();
+      }
       ImageIcon scaledIcon = new ImageIcon(icon);
       JLabel nameLabel = new JLabel(item.getNama(), scaledIcon, JLabel.LEFT);
       nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
@@ -122,40 +126,38 @@ public class TokoItemPanel extends JPanel {
       JButton buyButton = StyledButton.create("Beli", 18, 70, 30);
       gbc.gridx = 2;
       gbc.anchor = GridBagConstraints.EAST;
-      itemRow.add(buyButton, gbc);
-
-      // Action listener untuk tombol beli
-      buyButton.addActionListener(e -> {
+      itemRow.add(buyButton, gbc); // Action listener untuk tombol beli
+      buyButton.addActionListener(_ -> {
         // Cek apakah uang player cukup
         if (player.getMoney() < item.getHarga()) {
-          JOptionPane.showMessageDialog(this, 
+          JOptionPane.showMessageDialog(this,
               "Uang tidak cukup untuk membeli " + item.getNama() + ".",
               "Gagal", JOptionPane.ERROR_MESSAGE);
           return;
         }
-        
+
         // Lakukan pembelian
         boolean success = toko.beliItem(player, item.getNama());
-        
+
         // Tambahkan item ke inventory jika berhasil
         if (success && inventory != null) {
           inventory.tambahItem(item);
         }
-        
+
         // Tampilkan pesan hasil pembelian
         String msg = success ? "Berhasil membeli " + item.getNama() + "!"
             : "Gagal membeli " + item.getNama() + ".";
         JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
             success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
-            
+
         // Update tampilan uang player
         moneyLabel.setText("Uang: " + player.getMoney() + "G");
-        
+
         // Panggil callback jika ada
         if (updateInventoryCallback != null) {
           updateInventoryCallback.run();
         }
-        
+
         // Update tab upgrade dan pindah ke tab tersebut
         populateUpgradeItems();
         tabbedPane.setSelectedIndex(1);
@@ -186,11 +188,16 @@ public class TokoItemPanel extends JPanel {
         itemRow.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 15, 5, 15); // Lebih lebar jarak antar kolom
-        gbc.gridy = 0;
-
-        // Icon dan nama
-        Image icon = new ImageIcon("assets/icons/" + item.getIconPath()).getImage().getScaledInstance(40, 40,
-            Image.SCALE_SMOOTH);
+        gbc.gridy = 0; // Icon dan nama
+        ImageIcon originalIcon = new ImageIcon("assets/icons/" + item.getIconPath());
+        Image icon = originalIcon.getImage();
+        // Make sure the image was loaded properly
+        if (originalIcon.getIconWidth() > 0) {
+          icon = icon.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+        } else {
+          // Try alternative way to load the icon if direct loading fails
+          icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40).getImage();
+        }
         ImageIcon scaledIcon = new ImageIcon(icon);
         JLabel nameLabel = new JLabel(item.getNama(), scaledIcon, JLabel.LEFT);
         nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
@@ -224,7 +231,7 @@ public class TokoItemPanel extends JPanel {
         gbc.weightx = 0;
         itemRow.add(upgradeButton, gbc);
 
-        upgradeButton.addActionListener(e -> {
+        upgradeButton.addActionListener(_ -> {
           // Gunakan biayaUpgrade dari item untuk menentukan biaya upgrade
           int biayaUpgradeLocal = item.getBiayaUpgrade();
 
@@ -250,13 +257,13 @@ public class TokoItemPanel extends JPanel {
 
           // Upgrade level item
           boolean success = item.upgradeLevel();
-
           if (success) {
-            // Tampilkan pesan sukses dengan level baru dan chance
+            // Tampilkan pesan sukses dengan level baru dan efek
+            String efekDetail = getItemEffectString(item);
             JOptionPane.showMessageDialog(this,
                 "Item " + item.getNama() + " berhasil di-upgrade!\n" +
                     "Level sekarang: " + item.getLevel() + "\n" +
-                    "Chance: " + (int) (item.getChance() * 100) + "%",
+                    efekDetail,
                 "Sukses", JOptionPane.INFORMATION_MESSAGE);
           } else {
             // Kembalikan uang jika gagal upgrade
@@ -285,6 +292,21 @@ public class TokoItemPanel extends JPanel {
     }
     upgradeItemsPanel.revalidate();
     upgradeItemsPanel.repaint();
+  }
+
+  private String getItemEffectString(Item item) {
+    if (item.isHipnotis()) {
+      return String.format("Efek: %.0f%% chance langsung beli", item.getHipnotisChance() * 100);
+    } else if (item.isJampi()) {
+      return String.format("Efek: %.1fx multiplier penghasilan", item.getJampiMultiplier());
+    } else if (item.isSemproten()) {
+      return String.format("Efek: +%.0f%% harga jual", item.getSemprotenPriceBoost() * 100);
+    } else if (item.isTip()) {
+      return String.format("Efek: %.0f%% chance bonus tip", item.getTipBonusRate() * 100);
+    } else if (item.isPeluit()) {
+      return String.format("Efek: +%d pembeli tambahan", item.getPeluitExtraBuyers());
+    }
+    return "Efek tidak diketahui";
   }
 
   public void setBackToGameCallback(Runnable cb) {

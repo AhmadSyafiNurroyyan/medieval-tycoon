@@ -311,17 +311,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             tabbedPane.addTab("Goods", goodsPanel);
 
             JPanel itemsPanel = new JPanel(new BorderLayout());
-            itemsPanel.setBackground(new Color(255, 248, 220));
-
-            // Panel untuk filter dan kontrol
-            JPanel itemControlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            itemControlPanel.setOpaque(false);
-            JLabel filterLabel = new JLabel("Filter: ");
-            String[] filterOptions = { "Semua", "Aktif", "Non-aktif" };
-            JComboBox<String> itemFilterCombo = new JComboBox<>(filterOptions);
-            itemControlPanel.add(filterLabel);
-            itemControlPanel.add(itemFilterCombo);
-            itemsPanel.add(itemControlPanel, BorderLayout.NORTH);
+            itemsPanel.setBackground(new Color(255, 248, 220)); // Removed filter panel for cleaner interface
 
             // Tabel untuk item
             JTable itemsTable = new JTable();
@@ -358,14 +348,9 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             itemButtonsPanel.add(leftButtonsPanel, BorderLayout.WEST);
             itemButtonsPanel.add(itemCountLabel, BorderLayout.EAST);
             itemsPanel.add(itemButtonsPanel, BorderLayout.SOUTH);
-
-            // Action listener untuk filter combo
-            itemFilterCombo.addActionListener(
-                    _ -> updateItemsTable(itemsTable, itemCountLabel, itemFilterCombo.getSelectedIndex()));
-
             tabbedPane.addTab("Items", itemsPanel);
 
-            // Initial update
+            // Initial update - always show all items (filter mode 0)
             updateItemsTable(itemsTable, itemCountLabel, 0);
             inventoryFrame.add(tabbedPane, BorderLayout.CENTER);
 
@@ -445,12 +430,9 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         Component itemsTab = tabPane.getComponentAt(1);
         if (!(itemsTab instanceof JPanel)) {
             return;
-        }
-
-        // Find the items table, count label, and filter combo
+        } // Find the items table and count label
         JTable itemsTable = null;
         JLabel countLabel = null;
-        JComboBox<?> filterCombo = null;
 
         // Search for components in the items tab
         for (Component c : ((JPanel) itemsTab).getComponents()) {
@@ -461,30 +443,25 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                 }
             } else if (c instanceof JPanel) {
                 // Search in nested panels
-                searchForItemsComponents((JPanel) c, new ComponentHolder(countLabel, filterCombo));
+                searchForItemsComponents((JPanel) c, new ComponentHolder(countLabel, null));
                 if (componentHolder.countLabel != null)
                     countLabel = componentHolder.countLabel;
-                if (componentHolder.filterCombo != null)
-                    filterCombo = componentHolder.filterCombo;
             }
         }
 
         // Update the table if we found all necessary components
         if (itemsTable != null && countLabel != null) {
-            int filterIndex = filterCombo != null ? filterCombo.getSelectedIndex() : 0;
-            updateItemsTable(itemsTable, countLabel, filterIndex);
+            // Always use filter mode 0 (show all items)
+            updateItemsTable(itemsTable, countLabel, 0);
             System.out.println("Debug: Items table updated automatically via InventoryChangeListener");
         }
-    }
+    } // Helper class to hold component references
 
-    // Helper class to hold component references
     private static class ComponentHolder {
         JLabel countLabel;
-        JComboBox<?> filterCombo;
 
-        ComponentHolder(JLabel countLabel, JComboBox<?> filterCombo) {
+        ComponentHolder(JLabel countLabel, JComboBox<?> unused) {
             this.countLabel = countLabel;
-            this.filterCombo = filterCombo;
         }
     }
 
@@ -498,8 +475,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         for (Component comp : panel.getComponents()) {
             if (comp instanceof JLabel && ((JLabel) comp).getText().startsWith("Jumlah item")) {
                 holder.countLabel = (JLabel) comp;
-            } else if (comp instanceof JComboBox) {
-                holder.filterCombo = (JComboBox<?>) comp;
             } else if (comp instanceof JPanel) {
                 searchForItemsComponents((JPanel) comp, holder);
             }
@@ -535,11 +510,14 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
         int row = 0;
         for (Map<String, Object> itemData : groupedItems.values()) {
-            Barang barang = (Barang) itemData.get("barang");
-
-            // Get icon
-            ImageIcon icon = GamePanel.getIcon("assets/icons/" + barang.getIconPath(), 32, 32);
-            if (icon == null) {
+            Barang barang = (Barang) itemData.get("barang"); // Get icon directly from file path
+            ImageIcon icon = new ImageIcon("assets/icons/" + barang.getIconPath());
+            // Scale the image to appropriate size
+            if (icon.getIconWidth() > 0) {
+                Image img = icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
+                icon = new ImageIcon(img);
+            } else {
+                // Fallback to GamePanel.getIcon if direct loading fails
                 icon = GamePanel.getIcon(barang.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
             }
 
@@ -1053,6 +1031,21 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         return itemPanel;
     }
 
+    private String getItemEffectPercentage(Item item) {
+        if (item.isHipnotis()) {
+            return String.format("%.0f%%", item.getHipnotisChance() * 100);
+        } else if (item.isJampi()) {
+            return String.format("%.1fx", item.getJampiMultiplier());
+        } else if (item.isSemproten()) {
+            return String.format("+%.0f%%", item.getSemprotenPriceBoost() * 100);
+        } else if (item.isTip()) {
+            return String.format("%.0f%%", item.getTipBonusRate() * 100);
+        } else if (item.isPeluit()) {
+            return String.format("+%d", item.getPeluitExtraBuyers());
+        }
+        return "N/A";
+    }
+
     private void updateItemGerobakTable() {
         System.out.println("Debug: updateItemGerobakTable called");
 
@@ -1073,15 +1066,21 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         Object[][] data = new Object[itemsDiGerobak.size()][cols.length];
         for (int i = 0; i < itemsDiGerobak.size(); i++) {
             Item item = itemsDiGerobak.get(i);
-            ImageIcon icon = GamePanel.getIcon("assets/icons/" + item.getIconPath(), 32, 32);
-            if (icon == null) {
+            // Try to load the icon directly from the file path
+            ImageIcon icon = new ImageIcon("assets/icons/" + item.getIconPath());
+            // Scale the image to appropriate size
+            if (icon.getIconWidth() > 0) {
+                Image img = icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
+                icon = new ImageIcon(img);
+            } else {
+                // Fallback to GamePanel.getIcon if direct loading fails
                 icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 32, 32);
             }
 
             data[i][0] = icon;
             data[i][1] = item.getNama();
             data[i][2] = "Level " + item.getLevel();
-            data[i][3] = String.format("%.0f%%", item.getChance() * 100);
+            data[i][3] = getItemEffectPercentage(item);
             data[i][4] = item.isActive() ? "Aktif" : "Non-aktif";
             data[i][5] = item.getDeskripsi();
         }
@@ -1499,52 +1498,35 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         g2d.setColor(new Color(245, 222, 179));
         g2d.fillRect(0, getHeight() - 100, getWidth(), 100);
         g2d.dispose();
-    }
+    } // Tambahkan method ini di kelas HomeBasePanel
 
-    // Tambahkan method ini di kelas HomeBasePanel
     private void updateItemsTable(JTable itemsTable, JLabel itemCountLabel, int filterMode) {
         if (inventory == null)
             return;
 
+        // Always show all items - filter mode is ignored
         List<Item> allItems = inventory.getStokItem();
-        List<Item> filteredItems = new ArrayList<>();
-
-        // Apply filter
-        switch (filterMode) {
-            case 0: // All items
-                filteredItems = allItems;
-                break;
-            case 1: // Active only
-                for (Item item : allItems) {
-                    if (item.isActive()) {
-                        filteredItems.add(item);
-                    }
-                }
-                break;
-            case 2: // Inactive only
-                for (Item item : allItems) {
-                    if (!item.isActive()) {
-                        filteredItems.add(item);
-                    }
-                }
-                break;
-        }
+        List<Item> filteredItems = allItems;
 
         String[] cols = { "Icon", "Nama", "Level", "Chance", "Status", "Deskripsi" };
         Object[][] data = new Object[filteredItems.size()][cols.length];
-
         for (int i = 0; i < filteredItems.size(); i++) {
             Item item = filteredItems.get(i);
-            ImageIcon icon = GamePanel.getIcon("assets/icons/" + item.getIconPath(), 32, 32);
-            if (icon == null) {
-                // Fallback: try with item name
+            // Try to load the icon directly from the file path
+            ImageIcon icon = new ImageIcon("assets/icons/" + item.getIconPath());
+            // Scale the image to appropriate size
+            if (icon.getIconWidth() > 0) {
+                Image img = icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
+                icon = new ImageIcon(img);
+            } else {
+                // Fallback to GamePanel.getIcon if direct loading fails
                 icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 32, 32);
             }
 
             data[i][0] = icon;
             data[i][1] = item.getNama();
             data[i][2] = "Level " + item.getLevel();
-            data[i][3] = String.format("%.0f%%", item.getChance() * 100);
+            data[i][3] = getItemEffectPercentage(item);
             data[i][4] = item.isActive() ? "Aktif" : "Non-aktif";
             data[i][5] = item.getDeskripsi();
         }

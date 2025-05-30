@@ -5,7 +5,7 @@ import model.Perk;
 import model.PerksManagement;
 
 import javax.swing.*;
-
+import enums.PerkType;
 import exceptions.PerkConversionException;
 
 import java.awt.*;
