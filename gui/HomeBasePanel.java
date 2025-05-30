@@ -1,5 +1,6 @@
 package gui;
 
+import interfaces.InventoryChangeListener;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +19,8 @@ import model.Gerobak;
 import model.Inventory;
 import model.Item;
 import model.Perk;
-import model.Player;
-import interfaces.InventoryChangeListener;
 import model.PerksManagement;
+import model.Player;
 
 public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private JButton btn1, btn2, btn3, btn4, btn5, backButton;
@@ -1675,7 +1675,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private JPanel createGerobakHeaderPanel() {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(255, 248, 220));
-        headerPanel.setBorder(BorderFactory.create.EmptyBorder(10, 15, 10, 15));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
         // Left side - Level info
         JPanel levelInfoPanel = new JPanel();

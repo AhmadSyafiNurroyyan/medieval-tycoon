@@ -48,7 +48,18 @@ public class DialogSystem extends JPanel {
     private JButton counterOfferButton;
     private JButton declineButton;
     private JTextField priceField;
-    
+
+    // Top UI buttons for all dialogs
+    private JButton useItemButton;
+    private JButton cartButton;
+
+    // Helper to layout and toggle top buttons
+    private void toggleTopButtons(boolean show) {
+        layoutTopButtons();
+        useItemButton.setVisible(show);
+        cartButton.setVisible(show);
+    }
+
     public DialogSystem(JPanel parentPanel) {
         this.parentPanel = parentPanel;
         this.isVisible = false;
@@ -59,6 +70,19 @@ public class DialogSystem extends JPanel {
         
         setOpaque(false);
         setLayout(null);
+        
+        // Initialize top buttons
+        useItemButton = StyledButton.create("Use Item", 16, 100, 40);
+        cartButton = StyledButton.create("Gerobak", 16, 100, 40);
+        add(useItemButton);
+        add(cartButton);
+        // Do not let these buttons grab focus so key events (E) still go to GamePanel
+        useItemButton.setFocusable(false);
+        cartButton.setFocusable(false);
+        useItemButton.setVisible(false);
+        cartButton.setVisible(false);
+        useItemButton.addActionListener(e -> System.out.println("DEBUG: Use Item clicked"));
+        cartButton.addActionListener(e -> System.out.println("DEBUG: Check Cart clicked"));
     }
     
     private void loadTetoImage() {
@@ -79,15 +103,15 @@ public class DialogSystem extends JPanel {
     public void showDialog(String message) {
         this.currentMessage = message;
         this.isVisible = true;
-        
         if (parentPanel != null) {
             if (getParent() != parentPanel) {
                 parentPanel.add(this);
                 parentPanel.setComponentZOrder(this, 0);
             }
-            
             setBounds(0, 0, parentPanel.getWidth(), parentPanel.getHeight());
             setVisible(true);
+            // Layout and show top buttons
+            toggleTopButtons(true);
             parentPanel.repaint();
         }
     }
@@ -95,10 +119,9 @@ public class DialogSystem extends JPanel {
     public void hideDialog() {
         this.isVisible = false;
         setVisible(false);
-        
-        if (parentPanel != null) {
-            parentPanel.repaint();
-        }
+        // Hide top buttons
+        toggleTopButtons(false);
+        if (parentPanel != null) parentPanel.repaint();
     }
     
     public boolean isDialogVisible() {
@@ -336,13 +359,11 @@ public class DialogSystem extends JPanel {
     @Override
     public void setBounds(int x, int y, int width, int height) {
         super.setBounds(x, y, width, height);
-        // Trigger repaint when bounds change to update dynamic scaling
         if (isVisible) {
             repaint();
-            // Recreate trading buttons to keep them centered if trading interface is active (only outside negotiation)
-            if (showTradingInterface && !negotiationPhase) {
-                createTradingButtons();
-            }
+            // Update top buttons layout
+            toggleTopButtons(true);
+            if (showTradingInterface && !negotiationPhase) createTradingButtons();
         }
     }
       /**
@@ -406,11 +427,7 @@ public class DialogSystem extends JPanel {
         // Sell Button - always centered
         sellButton = StyledButton.create("Start Selling", 20, tradingWidth, buttonHeight);
         sellButton.setBounds(centerX - tradingWidth / 2, startY, tradingWidth, buttonHeight);
-        sellButton.addActionListener(new java.awt.event.ActionListener() {
-            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                startSelling();
-            }
-        });
+        sellButton.addActionListener(e -> startSelling());
         add(sellButton);
         System.out.println("DEBUG: sellButton created and added");
 
@@ -426,11 +443,7 @@ public class DialogSystem extends JPanel {
         acceptButton = StyledButton.create("Accept", 16, buttonWidth, buttonHeight);
         acceptButton.setBounds(centerX - tradingWidth / 2, startY + buttonHeight + buttonGap + fieldHeight + buttonGap, buttonWidth, buttonHeight);
         acceptButton.setVisible(false);
-        acceptButton.addActionListener(new java.awt.event.ActionListener() {
-            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                acceptOffer();
-            }
-        });
+        acceptButton.addActionListener(e -> acceptOffer());
         add(acceptButton);
         System.out.println("DEBUG: acceptButton created and added");
 
@@ -438,11 +451,7 @@ public class DialogSystem extends JPanel {
         counterOfferButton = StyledButton.create("Counter", 16, buttonWidth, buttonHeight);
         counterOfferButton.setBounds(centerX + (buttonGap / 2), startY + buttonHeight + buttonGap + fieldHeight + buttonGap, buttonWidth, buttonHeight);
         counterOfferButton.setVisible(false);
-        counterOfferButton.addActionListener(new java.awt.event.ActionListener() {
-            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                counterOffer();
-            }
-        });
+        counterOfferButton.addActionListener(e -> counterOffer());
         add(counterOfferButton);
         System.out.println("DEBUG: counterOfferButton created and added");
 
@@ -451,11 +460,7 @@ public class DialogSystem extends JPanel {
         declineButton.setBackground(Color.RED.darker());
         declineButton.setBounds(centerX - tradingWidth / 2, startY + buttonHeight * 2 + buttonGap * 3 + fieldHeight, tradingWidth, buttonHeight);
         declineButton.setVisible(false);
-        declineButton.addActionListener(new java.awt.event.ActionListener() {
-            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
-                declineOffer();
-            }
-        });
+        declineButton.addActionListener(e -> declineOffer());
         add(declineButton);
         System.out.println("DEBUG: declineButton created and added");
     }
@@ -677,5 +682,22 @@ public class DialogSystem extends JPanel {
                 System.out.println("Item " + item.getNama() + " telah dinonaktifkan setelah transaksi.");
             }
         }
+    }
+    
+    /**
+     * Layout the top-center buttons for Use Item and Gerobak
+     */
+    private void layoutTopButtons() {
+        int panelWidth = getWidth();
+        int panelHeight = getHeight();
+        int margin = Math.max(15, panelWidth / 50);
+        int buttonHeight = Math.max(30, panelHeight / 20);
+        int buttonWidth = Math.max(80, panelWidth / 8);
+        int spacing = Math.max(10, panelWidth / 100);
+        int totalWidth = buttonWidth * 2 + spacing;
+        int startX = (panelWidth - totalWidth) / 2;
+        int y = margin;
+        useItemButton.setBounds(startX, y, buttonWidth, buttonHeight);
+        cartButton.setBounds(startX + buttonWidth + spacing, y, buttonWidth, buttonHeight);
     }
 }
