@@ -1,5 +1,6 @@
 package gui;
 
+import interfaces.InventoryChangeListener;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +19,8 @@ import model.Gerobak;
 import model.Inventory;
 import model.Item;
 import model.Perk;
-import model.Player;
-import interfaces.InventoryChangeListener;
 import model.PerksManagement;
+import model.Player;
 
 public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private JButton btn1, btn2, btn3, btn4, btn5, backButton;
@@ -521,13 +521,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         int row = 0;
         for (Map<String, Object> itemData : groupedItems.values()) {
             Barang barang = (Barang) itemData.get("barang"); // Get icon directly from file path
-            ImageIcon icon = new ImageIcon("assets/icons/" + barang.getIconPath());
-            // Scale the image to appropriate size
-            if (icon.getIconWidth() > 0) {
-                Image img = icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
-                icon = new ImageIcon(img);
-            } else {
-                // Fallback to GamePanel.getIcon if direct loading fails
+            ImageIcon icon = GamePanel.getIcon(barang.getIconPath(), 32, 32);
+            if (icon == null) {
                 icon = GamePanel.getIcon(barang.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
             }
 
@@ -629,8 +624,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             Map<String, Object> itemData = itemsWithoutPrice.get(i);
             Barang barang = (Barang) itemData.get("barang");
 
-            // Get icon
-            ImageIcon icon = GamePanel.getIcon("assets/icons/" + barang.getIconPath(), 32, 32);
+            // Get icon from cache
+            ImageIcon icon = GamePanel.getIcon(barang.getIconPath(), 32, 32);
             if (icon == null) {
                 icon = GamePanel.getIcon(barang.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
             }
@@ -708,8 +703,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             Map<String, Object> itemData = itemsWithPrice.get(i);
             Barang barang = (Barang) itemData.get("barang");
 
-            // Get icon
-            ImageIcon icon = GamePanel.getIcon("assets/icons/" + barang.getIconPath(), 32, 32);
+            // Get icon from cache
+            ImageIcon icon = GamePanel.getIcon(barang.getIconPath(), 32, 32);
             if (icon == null) {
                 icon = GamePanel.getIcon(barang.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
             }
@@ -1076,14 +1071,9 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         Object[][] data = new Object[itemsDiGerobak.size()][cols.length];
         for (int i = 0; i < itemsDiGerobak.size(); i++) {
             Item item = itemsDiGerobak.get(i);
-            // Try to load the icon directly from the file path
-            ImageIcon icon = new ImageIcon("assets/icons/" + item.getIconPath());
-            // Scale the image to appropriate size
-            if (icon.getIconWidth() > 0) {
-                Image img = icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
-                icon = new ImageIcon(img);
-            } else {
-                // Fallback to GamePanel.getIcon if direct loading fails
+            // Get icon from cache
+            ImageIcon icon = GamePanel.getIcon(item.getIconPath(), 32, 32);
+            if (icon == null) {
                 icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 32, 32);
             }
 
@@ -1522,14 +1512,9 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         Object[][] data = new Object[filteredItems.size()][cols.length];
         for (int i = 0; i < filteredItems.size(); i++) {
             Item item = filteredItems.get(i);
-            // Try to load the icon directly from the file path
-            ImageIcon icon = new ImageIcon("assets/icons/" + item.getIconPath());
-            // Scale the image to appropriate size
-            if (icon.getIconWidth() > 0) {
-                Image img = icon.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
-                icon = new ImageIcon(img);
-            } else {
-                // Fallback to GamePanel.getIcon if direct loading fails
+            // Get icon from cache
+            ImageIcon icon = GamePanel.getIcon(item.getIconPath(), 32, 32);
+            if (icon == null) {
                 icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 32, 32);
             }
 

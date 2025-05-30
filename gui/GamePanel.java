@@ -80,13 +80,14 @@ public class GamePanel extends JPanel implements Runnable {
             iconsLoaded = true;
         }
         playerMovement = player.createMovement();
-        PlayerSkin = player.createNametag();
-        tileManager = new TileManager(this);
+        PlayerSkin = player.createNametag();        tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
-        randomTriggerZoneManager = new RandomTriggerZoneManager();
         dialogSystem = new DialogSystem(this);
+        dialogSystem.setPlayer(player); // Set player untuk DialogSystem
+        randomTriggerZoneManager = new RandomTriggerZoneManager();
         randomTriggerZoneManager.setDialogSystem(dialogSystem);
+        randomTriggerZoneManager.setPlayer(player);
         supplier = new Supplier();
         tokoItem = new TokoItem(player);
         tokoPerks = new TokoPerks();
@@ -101,7 +102,12 @@ public class GamePanel extends JPanel implements Runnable {
                 if (e.getKeyCode() == KeyEvent.VK_E) {
                     // Check if dialog is open first
                     if (dialogSystem != null && dialogSystem.isDialogVisible()) {
-                        // Close dialog if open
+                        // Always allow closing dialog if in 'no items' state
+                        if (dialogSystem.isNoItemsState()) {
+                            dialogSystem.hideDialog();
+                            return;
+                        }
+                        // Close dialog if open (default)
                         dialogSystem.hideDialog();
                         return;
                     }

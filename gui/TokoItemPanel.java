@@ -99,26 +99,14 @@ public class TokoItemPanel extends JPanel {
       gbc.insets = new Insets(5, 5, 5, 5);
       gbc.gridy = 0; // Icon dan nama item
       ImageIcon originalIcon = new ImageIcon("assets/icons/" + item.getIconPath());
-      Image icon = originalIcon.getImage(); // Make sure the image was loaded properly
+      Image icon = originalIcon.getImage();
+      // Make sure the image was loaded properly
       if (originalIcon.getIconWidth() > 0) {
         icon = icon.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
       } else {
         // Try alternative way to load the icon if direct loading fails
-        ImageIcon fallbackIcon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40);
-        if (fallbackIcon != null) {
-          icon = fallbackIcon.getImage();
-        } else {
-          // Create a default placeholder icon if both methods fail
-          icon = new BufferedImage(40, 40, BufferedImage.TYPE_INT_ARGB);
-          Graphics2D g2d = ((BufferedImage) icon).createGraphics();
-          g2d.setColor(Color.GRAY);
-          g2d.fillRect(0, 0, 40, 40);
-          g2d.setColor(Color.WHITE);
-          g2d.drawString("?", 15, 25);
-          g2d.dispose();
-        }
+        icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40).getImage();
       }
-      ImageIcon scaledIcon = new ImageIcon(icon);
       JLabel nameLabel = new JLabel(item.getNama(), scaledIcon, JLabel.LEFT);
       nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
       gbc.gridx = 0;
@@ -212,21 +200,8 @@ public class TokoItemPanel extends JPanel {
           icon = icon.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
         } else {
           // Try alternative way to load the icon if direct loading fails
-          ImageIcon fallbackIcon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40);
-          if (fallbackIcon != null) {
-            icon = fallbackIcon.getImage();
-          } else {
-            // Create a default placeholder icon if both methods fail
-            icon = new BufferedImage(40, 40, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2d = ((BufferedImage) icon).createGraphics();
-            g2d.setColor(Color.GRAY);
-            g2d.fillRect(0, 0, 40, 40);
-            g2d.setColor(Color.WHITE);
-            g2d.drawString("?", 15, 25);
-            g2d.dispose();
-          }
+          icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40).getImage();
         }
-        ImageIcon scaledIcon = new ImageIcon(icon);
         JLabel nameLabel = new JLabel(item.getNama(), scaledIcon, JLabel.LEFT);
         nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
         gbc.gridx = 0;
