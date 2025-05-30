@@ -218,6 +218,7 @@ public class MainMenu extends JFrame {
             showCustomSaveLoadDialog();
         });
         settingsButton.addActionListener(e -> {
+            settingsPanel.setPreviousScreen("MENU");
             this.cardLayout.show(this.cardsPanel, "SETTINGS");
         });
         exitButton.addActionListener(e -> {

@@ -118,19 +118,6 @@ public class SettingsPanel extends JPanel {
                 }
             }
         });
-
-        // // BGM control logic
-        // soundCheckbox.addActionListener(e -> {
-        // boolean enabled = soundCheckbox.isSelected();
-        // if (!enabled) {
-        // BGMPlayer.globalMute = true;
-        // BGMPlayer.stopGlobal();
-        // } else {
-        // BGMPlayer.globalMute = false;
-        // // Optionally resume or replay current BGM if needed
-
-        // }
-        // });
     }
 
     public void setPreviousScreen(String screen) {
