@@ -16,6 +16,7 @@ public class SupplierPanel extends JPanel {
     private JScrollPane scrollPane;
     private JLabel moneyLabel;
     private Runnable backToGameCallback;
+    private Runnable autoSaveCallback;
 
     public SupplierPanel(Supplier supplier, Player player) {
         this.supplier = supplier;
@@ -58,13 +59,13 @@ public class SupplierPanel extends JPanel {
 
     private void populateItems() {
         itemsPanel.removeAll();
-        List<Barang> stok = supplier.getStokHariIni();  // ini List<Barang>
-        for (Barang barang : stok) {  // Ganti JenisBarang jadi Barang
+        List<Barang> stok = supplier.getStokHariIni(); // ini List<Barang>
+        for (Barang barang : stok) { // Ganti JenisBarang jadi Barang
             JPanel itemRow = new JPanel(new GridBagLayout());
             itemRow.setOpaque(false);
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(5, 5, 5, 5);
-            gbc.gridy = 0;            // Formatting nama barang supaya kapital di awal kata
+            gbc.gridy = 0; // Formatting nama barang supaya kapital di awal kata
             String formattedName = Arrays.stream(barang.getNamaBarang().toLowerCase().split("_"))
                     .map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1))
                     .reduce((a, b) -> a + " " + b).orElse(barang.getNamaBarang());
@@ -75,7 +76,7 @@ public class SupplierPanel extends JPanel {
                 // Fallback to default icon or empty icon
                 scaledIcon = new ImageIcon();
             }
-            
+
             JLabel nameLabel = new JLabel(formattedName, scaledIcon, JLabel.LEFT);
             nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
             gbc.gridx = 0;
@@ -83,7 +84,7 @@ public class SupplierPanel extends JPanel {
             gbc.weightx = 1;
             itemRow.add(nameLabel, gbc);
 
-            JLabel hargaLabel = new JLabel(barang.getHargaBeli() + "G");  // harga beli dari barang
+            JLabel hargaLabel = new JLabel(barang.getHargaBeli() + "G"); // harga beli dari barang
             hargaLabel.setFont(new Font("Serif", Font.PLAIN, 22));
             hargaLabel.setPreferredSize(new Dimension(90, 30));
             gbc.gridx = 1;
@@ -150,19 +151,28 @@ public class SupplierPanel extends JPanel {
                 }
                 int totalHarga = barang.getHargaBeli() * qty;
                 if (player.getMoney() < totalHarga) {
-                    JOptionPane.showMessageDialog(this, "Uang tidak cukup untuk membeli " + formattedName + " x" + qty + ".", "Gagal", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this,
+                            "Uang tidak cukup untuk membeli " + formattedName + " x" + qty + ".", "Gagal",
+                            JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 boolean success = true;
                 for (int i = 0; i < qty; i++) {
-                    if (!supplier.beli(player, barang.getNamaBarang())) {  // pakai nama barang (String)
+                    if (!supplier.beli(player, barang.getNamaBarang())) { // pakai nama barang (String)
                         success = false;
                         break;
                     }
                 }
-                String msg = success ? "Berhasil membeli " + formattedName + " x" + qty + "!" : "Gagal membeli " + formattedName + ".";
-                JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal", success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+                String msg = success ? "Berhasil membeli " + formattedName + " x" + qty + "!"
+                        : "Gagal membeli " + formattedName + ".";
+                JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
+                        success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
                 moneyLabel.setText("Uang: " + player.getMoney() + "G");
+
+                // Auto-save after successful purchase
+                if (success && autoSaveCallback != null) {
+                    autoSaveCallback.run();
+                }
             });
 
             itemRow.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -174,6 +184,10 @@ public class SupplierPanel extends JPanel {
 
     public void setBackToGameCallback(Runnable cb) {
         this.backToGameCallback = cb;
+    }
+
+    public void setAutoSaveCallback(Runnable cb) {
+        this.autoSaveCallback = cb;
     }
 
     public void refresh() {

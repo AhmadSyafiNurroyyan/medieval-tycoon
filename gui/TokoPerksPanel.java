@@ -20,6 +20,7 @@ public class TokoPerksPanel extends JPanel {
   private JScrollPane scrollPane;
   private JLabel moneyLabel;
   private Runnable backToGameCallback;
+  private Runnable autoSaveCallback;
 
   public TokoPerksPanel(PerksManagement perksManagement, Player player) {
     this.perksManagement = perksManagement;
@@ -142,13 +143,16 @@ public class TokoPerksPanel extends JPanel {
               JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
                   success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
 
-              updateMoneyDisplay();
-
-              // Update label level jika berhasil, TANPA refresh seluruh panel
+              updateMoneyDisplay(); // Update label level jika berhasil, TANPA refresh seluruh panel
               if (success) {
                 nameLabel.setText(perk.getName() + " (" + perk.getPerkType() + ")  Lv. " + ownedPerk.getLevel());
                 biayaLabel.setText(ownedPerk.isMaxLevel() ? "MAX" : ownedPerk.getBiayaUpgrade() + "G");
                 upgradeButton.setEnabled(perksManagement.canPlayerAffordUpgrade(player, ownedPerk));
+
+                // Auto-save after successful upgrade
+                if (autoSaveCallback != null) {
+                  autoSaveCallback.run();
+                }
               }
             } catch (RuntimeException ex) {
               JOptionPane.showMessageDialog(this, ex.getMessage(), "Gagal", JOptionPane.ERROR_MESSAGE);
@@ -213,9 +217,13 @@ public class TokoPerksPanel extends JPanel {
                   : "Gagal " + (canBuy ? "membeli" : "mengganti dengan") + " " + perk.getName() + ".";
               JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
                   success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
-
               updateMoneyDisplay();
               refresh();
+
+              // Auto-save after successful purchase or conversion
+              if (success && autoSaveCallback != null) {
+                autoSaveCallback.run();
+              }
             } catch (PerkConversionException ex) {
               JOptionPane.showMessageDialog(this, ex.getMessage(), "Konversi Tidak Diizinkan",
                   JOptionPane.ERROR_MESSAGE);
@@ -235,6 +243,10 @@ public class TokoPerksPanel extends JPanel {
 
   public void setBackToGameCallback(Runnable cb) {
     this.backToGameCallback = cb;
+  }
+
+  public void setAutoSaveCallback(Runnable cb) {
+    this.autoSaveCallback = cb;
   }
 
   private void updateMoneyDisplay() {

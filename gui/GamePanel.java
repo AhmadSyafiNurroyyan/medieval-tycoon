@@ -51,7 +51,25 @@ public class GamePanel extends JPanel implements Runnable {
 
     public GamePanel(Player player) {
         this.player = player;
-        this.gerobak = new Gerobak();
+
+        // Initialize or reuse gerobak
+        if (player.getInventory() != null && player.getInventory().getGerobak() != null) {
+            // Use the player's existing gerobak if it exists
+            this.gerobak = player.getInventory().getGerobak();
+            System.out.println("GamePanel constructor: Using player's existing gerobak (Level: " +
+                    this.gerobak.getLevel() + ")");
+        } else {
+            // Create a new gerobak if needed
+            this.gerobak = new Gerobak();
+            System.out.println("GamePanel constructor: Created new gerobak");
+
+            // Ensure the player's inventory uses the same gerobak instance
+            if (player.getInventory() != null) {
+                player.getInventory().setGerobak(this.gerobak);
+                System.out.println("GamePanel constructor: Set player's inventory to use our gerobak");
+            }
+        }
+
         setBackground(Color.BLACK);
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
@@ -241,6 +259,32 @@ public class GamePanel extends JPanel implements Runnable {
         this.showTokoPerksPanelCallback = cb;
     }
 
+    /**
+     * Call this method when the GamePanel becomes visible (e.g., after returning
+     * from HomeBase)
+     * to ensure it has the latest player inventory state
+     */
+    public void onPanelShown() {
+        System.out.println("GamePanel: onPanelShown() called - syncing player inventory state");
+
+        // Make sure we have the latest inventory state
+        if (this.player != null && this.player.getInventory() != null) {
+            // Make sure player's inventory gerobak matches our gerobak
+            if (this.player.getInventory().getGerobak() != this.gerobak) {
+                System.out.println("GamePanel: Updating player's inventory gerobak reference");
+                this.player.getInventory().setGerobak(this.gerobak);
+            }
+
+            // Debug inventory state
+            System.out.println("GamePanel: Current items in gerobak: " +
+                    this.player.getInventory().getItemDibawa().size());
+
+            for (Item item : this.player.getInventory().getItemDibawa()) {
+                System.out.println("GamePanel: Item in gerobak: " + item.getNama());
+            }
+        }
+    }
+
     public Supplier getSupplier() {
         return supplier;
     }
@@ -259,6 +303,45 @@ public class GamePanel extends JPanel implements Runnable {
 
     public PerksManagement getPerksManagement() {
         return perksManagement;
+    }
+
+    /**
+     * Update player reference and recreate all player-dependent objects for loading
+     * saved games
+     */
+    public void updatePlayerData(Player newPlayer) {
+        this.player = newPlayer;
+
+        // Recreate PlayerMovement and PlayerSkin with the new player
+        this.playerMovement = newPlayer.createMovement();
+        this.PlayerSkin = newPlayer.createNametag();
+
+        // Preserve the gerobak reference if the player's inventory has items in it
+        if (newPlayer.getInventory() != null) {
+            // If the player's inventory has a different gerobak, use that instead
+            if (newPlayer.getInventory().getGerobak() != null) {
+                this.gerobak = newPlayer.getInventory().getGerobak();
+                System.out.println("GamePanel: Using player's existing gerobak (Level: " +
+                        this.gerobak.getLevel() + ")");
+            } else {
+                // Otherwise, make sure the player's inventory uses our gerobak
+                newPlayer.getInventory().setGerobak(this.gerobak);
+                System.out.println("GamePanel: Setting player's inventory to use our gerobak");
+            }
+
+            // Debug inventory state
+            System.out.println("GamePanel: Current items in gerobak: " +
+                    newPlayer.getInventory().getItemDibawa().size());
+            for (Item item : newPlayer.getInventory().getItemDibawa()) {
+                System.out.println("GamePanel: Item in gerobak: " + item.getNama());
+            }
+        }
+
+        // Update TokoItem with the new player
+        this.tokoItem = new TokoItem(newPlayer);
+
+        System.out.println("GamePanel: Updated player data - Username: " + newPlayer.getUsername() +
+                ", Money: " + newPlayer.getMoney() + ", ID: " + newPlayer.getID());
     }
 
     /**
@@ -464,5 +547,20 @@ public class GamePanel extends JPanel implements Runnable {
         randomTriggerZoneManager.generateRandomZones(0, 1150, 0, 1450, triggerZoneManager);
 
         System.out.println("Map2 setup complete with " + randomTriggerZoneManager.getZoneCount() + " random zones");
+    }
+
+    /**
+     * Test method to trigger all zones at player's current position
+     */
+    public void testTriggerZones() {
+        List<MapManager.TriggerZoneManager.TriggerZone> zones = triggerZoneManager
+                .getZonesAt(playerMovement.getX(), playerMovement.getY());
+        System.out
+                .println("Testing trigger zones at (" + playerMovement.getX() + ", " + playerMovement.getY() + ") - " +
+                        zones.size() + " zones found");
+        for (MapManager.TriggerZoneManager.TriggerZone zone : zones) {
+            System.out.println(" - Triggering zone: " + zone.getId());
+            zone.trigger();
+        }
     }
 }
