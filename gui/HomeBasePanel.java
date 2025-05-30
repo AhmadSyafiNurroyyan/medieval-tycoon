@@ -388,6 +388,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             System.out.println(
                     "  - Inventory gerobak after set: " + (inventory.getGerobak() != null ? "exists" : "null"));
         }
+
+        // Ensure player's inventory uses the same gerobak if it exists
+        if (player != null && player.getInventory() != null) {
+            player.getInventory().setGerobak(gerobak);
+            System.out.println("  - Set gerobak in player's inventory");
+        }
     }
 
     @Override
@@ -1664,9 +1670,35 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
      */
     public void onPanelHidden() {
         System.out.println("HomeBasePanel: onPanelHidden() called - stopping HomeBase BGM and starting Map BGM");
+
+        // Make sure inventory changes are properly saved before leaving HomeBase
+        if (this.inventory != null && this.player != null) {
+            // Ensure that the player has the current inventory
+            this.player.setInventory(this.inventory);
+
+            // Debug inventory state
+            System.out.println("Debug: Items in gerobak when leaving HomeBase: " +
+                    this.inventory.getItemDibawa().size());
+            for (Item item : this.inventory.getItemDibawa()) {
+                System.out.println("Debug: Keeping item in gerobak: " + item.getNama());
+            }
+        }
+
         BGMPlayer.getInstance().stopHomeBaseBGM();
         // Start Map BGM when leaving HomeBase
         BGMPlayer.getInstance().playMapBGM();
+    }
+
+    /**
+     * Update player reference for loading saved games
+     */
+    public void updatePlayerData(Player newPlayer) {
+        this.player = newPlayer;
+        System.out.println("HomeBasePanel: Updated player data - Username: " + newPlayer.getUsername() +
+                ", Money: " + newPlayer.getMoney());
+
+        // Update any open frames that display player data
+        updatePerksFrameContent();
     }
 
     /**

@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import javax.swing.*;
 import model.Inventory;
@@ -21,6 +22,7 @@ public class TokoItemPanel extends JPanel {
   private Runnable backToGameCallback;
   private Inventory inventory;
   private Runnable updateInventoryCallback;
+  private Runnable autoSaveCallback;
 
   public TokoItemPanel() {
     this(new TokoItem(new Player()), new Player());
@@ -96,9 +98,14 @@ public class TokoItemPanel extends JPanel {
       GridBagConstraints gbc = new GridBagConstraints();
       gbc.insets = new Insets(5, 5, 5, 5);
       gbc.gridy = 0; // Icon dan nama item
-      ImageIcon scaledIcon = GamePanel.getIcon(item.getIconPath(), 40, 40);
-      if (scaledIcon == null) {
-        scaledIcon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40);
+      ImageIcon originalIcon = new ImageIcon("assets/icons/" + item.getIconPath());
+      Image icon = originalIcon.getImage();
+      // Make sure the image was loaded properly
+      if (originalIcon.getIconWidth() > 0) {
+        icon = icon.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+      } else {
+        // Try alternative way to load the icon if direct loading fails
+        icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40).getImage();
       }
       JLabel nameLabel = new JLabel(item.getNama(), scaledIcon, JLabel.LEFT);
       nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
@@ -145,11 +152,14 @@ public class TokoItemPanel extends JPanel {
             success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
 
         // Update tampilan uang player
-        moneyLabel.setText("Uang: " + player.getMoney() + "G");
-
-        // Panggil callback jika ada
+        moneyLabel.setText("Uang: " + player.getMoney() + "G"); // Panggil callback jika ada
         if (updateInventoryCallback != null) {
           updateInventoryCallback.run();
+        }
+
+        // Auto-save after successful purchase
+        if (success && autoSaveCallback != null) {
+          autoSaveCallback.run();
         }
 
         // Update tab upgrade dan pindah ke tab tersebut
@@ -183,9 +193,14 @@ public class TokoItemPanel extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 15, 5, 15); // Lebih lebar jarak antar kolom
         gbc.gridy = 0; // Icon dan nama
-        ImageIcon scaledIcon = GamePanel.getIcon(item.getIconPath(), 40, 40);
-        if (scaledIcon == null) {
-          scaledIcon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40);
+        ImageIcon originalIcon = new ImageIcon("assets/icons/" + item.getIconPath());
+        Image icon = originalIcon.getImage();
+        // Make sure the image was loaded properly
+        if (originalIcon.getIconWidth() > 0) {
+          icon = icon.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+        } else {
+          // Try alternative way to load the icon if direct loading fails
+          icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40).getImage();
         }
         JLabel nameLabel = new JLabel(item.getNama(), scaledIcon, JLabel.LEFT);
         nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
@@ -262,15 +277,18 @@ public class TokoItemPanel extends JPanel {
           }
 
           // Update label uang
-          moneyLabel.setText("Uang: " + player.getMoney() + "G");
-
-          // Refresh kedua panel
+          moneyLabel.setText("Uang: " + player.getMoney() + "G"); // Refresh kedua panel
           populateBuyItems();
           populateUpgradeItems();
 
           // Panggil callback jika ada
           if (updateInventoryCallback != null) {
             updateInventoryCallback.run();
+          }
+
+          // Auto-save after successful upgrade
+          if (success && autoSaveCallback != null) {
+            autoSaveCallback.run();
           }
         });
 
@@ -308,6 +326,10 @@ public class TokoItemPanel extends JPanel {
 
   public void setUpdateInventoryCallback(Runnable cb) {
     this.updateInventoryCallback = cb;
+  }
+
+  public void setAutoSaveCallback(Runnable cb) {
+    this.autoSaveCallback = cb;
   }
 
   public void refresh() {
