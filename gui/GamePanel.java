@@ -30,7 +30,7 @@ public class GamePanel extends JPanel implements Runnable {
     private Camera camera;
     private TriggerZoneManager triggerZoneManager;
     private RandomTriggerZoneManager randomTriggerZoneManager;
-    private TransactionsGUI dialogSystem;
+    private TransactionsGUI transactions;
     private Supplier supplier;
     private TokoItem tokoItem;
     private TokoPerks tokoPerks;
@@ -83,10 +83,10 @@ public class GamePanel extends JPanel implements Runnable {
         PlayerSkin = player.createNametag();        tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
-        dialogSystem = new TransactionsGUI(this);
-        dialogSystem.setPlayer(player); // Set player untuk DialogSystem
+        transactions = new TransactionsGUI(this);
+        transactions.setPlayer(player); // Set player untuk transactions
         randomTriggerZoneManager = new RandomTriggerZoneManager();
-        randomTriggerZoneManager.setDialogSystem(dialogSystem);
+        randomTriggerZoneManager.setDialogSystem(transactions);
         randomTriggerZoneManager.setPlayer(player);
         supplier = new Supplier();
         tokoItem = new TokoItem(player);
@@ -101,14 +101,14 @@ public class GamePanel extends JPanel implements Runnable {
                 playerMovement.keyPressed(e.getKeyCode());
                 if (e.getKeyCode() == KeyEvent.VK_E) {
                     // Check if dialog is open first
-                    if (dialogSystem != null && dialogSystem.isDialogVisible()) {
+                    if (transactions != null && transactions.isDialogVisible()) {
                         // Always allow closing dialog if in 'no items' state
-                        if (dialogSystem.isNoItemsState()) {
-                            dialogSystem.hideDialog();
+                        if (transactions.isNoItemsState()) {
+                            transactions.hideDialog();
                             return;
                         }
                         // Close dialog if open (default)
-                        dialogSystem.hideDialog();
+                        transactions.hideDialog();
                         return;
                     }
 

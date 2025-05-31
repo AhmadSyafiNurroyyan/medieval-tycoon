@@ -33,6 +33,13 @@ public abstract class Pembeli implements Menawar {
         return peluangMuncul;
     }
 
+    public boolean chanceAcceptCounter(int hargaPlayer, int hargaPembeli) {
+        if (hargaPlayer > hargaPembeli) {
+            return Math.random() < 0.1; // default 10%
+        }
+        return false;
+    }
+
     public static Pembeli buatPembeliAcak() {
         double r = Math.random();
         Pembeli[] kemungkinan = {
