@@ -89,6 +89,10 @@ public class MainMenu extends JFrame {
         this.gamePanel = new GamePanel(player);
         SettingsPanel settingsPanel = new SettingsPanel();
         PauseMenuPanel pauseMenuPanel = new PauseMenuPanel(cardLayout, cardsPanel);
+
+        // Set auto-save callback for pause menu
+        pauseMenuPanel.setAutoSaveCallback(() -> performAutoSave());
+
         this.homeBasePanel = new HomeBasePanel(player);
         this.supplierPanel = new SupplierPanel(gamePanel.getSupplier(), player);
         this.tokoItemPanel = new TokoItemPanel(gamePanel.getTokoItem(), player);
@@ -197,17 +201,65 @@ public class MainMenu extends JFrame {
         newGamePanel.add(inputBoxPanel, BorderLayout.CENTER);
         createGameButton.addActionListener(e -> {
             String username = userField.getText().trim();
-            if (!username.isEmpty()) {
-                player.setUsername(username); // Start Map BGM when game begins
-                                              // System.out.println("MainMenu: Starting new game -
-                                              // initializing Map BGM");
-                BGMPlayer.getInstance().playMapBGM();
-                this.cardLayout.show(this.cardsPanel, "GAME");
-                this.gamePanel.onPanelShown(); // Sync player inventory state
-                this.gamePanel.requestFocusInWindow();
-            } else {
+            if (username.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Username cannot be empty!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+
+            // Check if save file already exists
+            if (fileManager.doesSaveFileExist(username)) {
+                int choice = JOptionPane.showConfirmDialog(this,
+                        "A save file with the name '" + username + "' already exists.\n" +
+                                "Do you want to overwrite it with a new game?",
+                        "Save File Exists",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+
+                if (choice != JOptionPane.YES_OPTION) {
+                    return; // User chose not to overwrite
+                }
+            }
+
+            // Create a completely fresh player instance
+            Player newPlayer = new Player(username);
+
+            // Update the main player reference and all dependent components
+            this.player = newPlayer;
+            this.inventory = newPlayer.getInventory();
+
+            // Reset game state
+            this.currentDay = 1;
+            this.gameScore = 0;
+
+            // Update all game components with the fresh player
+            if (this.gamePanel != null) {
+                this.gamePanel.updatePlayerData(newPlayer);
+            }
+            if (this.homeBasePanel != null) {
+                this.homeBasePanel.updatePlayerData(newPlayer);
+                this.homeBasePanel.setInventory(newPlayer.getInventory());
+            }
+            if (this.tokoItemPanel != null) {
+                this.tokoItemPanel.setInventory(newPlayer.getInventory());
+                this.tokoItemPanel.refresh();
+            }
+            if (this.tokoPerksPanel != null) {
+                this.tokoPerksPanel.updatePlayerData(newPlayer);
+                this.tokoPerksPanel.refresh();
+            }
+            if (this.supplierPanel != null) {
+                this.supplierPanel.updatePlayerData(newPlayer);
+                this.supplierPanel.refresh();
+            }
+
+            System.out.println("MainMenu: Starting new game with fresh player: " + username +
+                    " (ID: " + newPlayer.getID() + ", Money: " + newPlayer.getMoney() + ")");
+
+            // Start Map BGM when game begins
+            BGMPlayer.getInstance().playMapBGM();
+            this.cardLayout.show(this.cardsPanel, "GAME");
+            this.gamePanel.onPanelShown(); // Sync player inventory state
+            this.gamePanel.requestFocusInWindow();
         });
         newGameButton.addActionListener(e -> {
             userField.setText("");
@@ -324,7 +376,7 @@ public class MainMenu extends JFrame {
     }
 
     /**
-     * Handle game exit with auto-save functionality
+     * Handle game exit without auto-save functionality
      */
     private void handleGameExit() {
         // Show confirmation dialog first
@@ -337,41 +389,8 @@ public class MainMenu extends JFrame {
         if (choice != JOptionPane.YES_OPTION) {
             return; // User cancelled, don't exit
         }
+
         try {
-            // Get current location from GamePanel if available
-            String currentLocation = "HomeBase"; // Default location
-
-            // Get current map from GamePanel using class field reference
-            if (this.gamePanel != null) {
-                try {
-                    java.lang.reflect.Field mapField = GamePanel.class.getDeclaredField("currentMap");
-                    mapField.setAccessible(true);
-                    String mapName = (String) mapField.get(this.gamePanel);
-                    currentLocation = mapName != null ? mapName : "HomeBase";
-                } catch (Exception e) {
-                    // Use default if reflection fails
-                    currentLocation = "HomeBase";
-                }
-            }
-
-            // Auto-save the game before exit
-            boolean saveSuccess = fileManager.saveGameWithContext(player, currentDay, currentLocation, gameScore);
-
-            if (saveSuccess) {
-                System.out.println("Game auto-saved successfully before exit.");
-            } else {
-                // Show warning but don't prevent exit
-                int saveChoice = JOptionPane.showConfirmDialog(this,
-                        "Failed to auto-save game progress. Do you still want to exit?",
-                        "Auto-Save Failed",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE);
-
-                if (saveChoice != JOptionPane.YES_OPTION) {
-                    return; // Don't exit
-                }
-            }
-
             // Cleanup BGM resources
             BGMPlayer.getInstance().cleanup();
 
@@ -384,7 +403,7 @@ public class MainMenu extends JFrame {
 
             // Ask user if they want to force exit
             int errorChoice = JOptionPane.showConfirmDialog(this,
-                    "An error occurred while saving. Force exit anyway?",
+                    "An error occurred during exit. Force exit anyway?",
                     "Error",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.ERROR_MESSAGE);

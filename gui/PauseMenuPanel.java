@@ -5,6 +5,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 public class PauseMenuPanel extends JPanel {
+    private Runnable autoSaveCallback;
 
     public PauseMenuPanel(CardLayout cardLayout, JPanel cardsPanel) {
         setLayout(new BorderLayout());
@@ -27,7 +28,7 @@ public class PauseMenuPanel extends JPanel {
                     break;
                 }
             }
-        });        
+        });
         pauseSettingsButton.addActionListener(e -> {
             Component[] components = cardsPanel.getComponents();
             for (Component comp : components) {
@@ -40,6 +41,20 @@ public class PauseMenuPanel extends JPanel {
         });
 
         backToMenuButton.addActionListener(e -> {
+            // Perform auto-save before going back to menu
+            if (autoSaveCallback != null) {
+                try {
+                    autoSaveCallback.run();
+                    System.out.println("PauseMenuPanel: Auto-save completed before returning to menu");
+                } catch (Exception ex) {
+                    System.err.println("PauseMenuPanel: Auto-save failed: " + ex.getMessage());
+                    // Show error dialog but still allow menu navigation
+                    JOptionPane.showMessageDialog(this,
+                            "Failed to auto-save game progress.\nYour progress may be lost.",
+                            "Auto-Save Failed",
+                            JOptionPane.WARNING_MESSAGE);
+                }
+            }
             cardLayout.show(cardsPanel, "MENU");
         });
 
@@ -54,11 +69,18 @@ public class PauseMenuPanel extends JPanel {
         add(pauseButtonsPanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Set the auto-save callback to be executed when returning to menu
+     */
+    public void setAutoSaveCallback(Runnable autoSaveCallback) {
+        this.autoSaveCallback = autoSaveCallback;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g.create();
-        g2d.setColor(new Color(0, 0, 0, 128)); 
+        g2d.setColor(new Color(0, 0, 0, 128));
         g2d.fillRect(0, 0, getWidth(), getHeight());
         g2d.dispose();
     }

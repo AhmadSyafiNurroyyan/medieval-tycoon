@@ -1,21 +1,14 @@
 === PLAYER_DATA ===
-USERNAME:aa
-ID:81284875
+USERNAME:ambalam
+ID:87031779
 LEVEL:1
-MONEY:8458500
+MONEY:10000000
 CURRENT_DAY:1
 
 === INVENTORY_BARANG ===
-BARANG:Bawang Merah,Sayur,1500,100,1
-BARANG:Mangga,Buah,7000,100,1
 // Format: nama,kategori,hargaBeli,kesegaran,jumlah
 
 === INVENTORY_ITEM ===
-ITEM:Hipnotis,5,false,false
-ITEM:Peluit,5,false,false
-ITEM:Tip,5,false,false
-ITEM:Jampi,5,false,false
-ITEM:Semproten,5,false,false
 // Format: nama,level,active,inGerobak
 
 === GEROBAK ===
@@ -25,12 +18,10 @@ KAPASITAS_ITEM:1
 BIAYA_UPGRADE:100000
 
 === GEROBAK_BARANG ===
-GEROBAK_BARANG:Melon,Buah,25000,100,1,0
 // Format: nama,kategori,hargaBeli,kesegaran,jumlah,hargaJual
 
 === PERKS ===
-OWNED_PERK:Elegan,0,true
-OWNED_PERK:Charming,0,true
+OWNED_PERK:Active,0,true
 // Format: nama,level,owned/active
 
 === GAME_PROGRESS ===
