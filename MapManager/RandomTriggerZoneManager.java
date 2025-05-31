@@ -14,8 +14,8 @@ import model.Player;
 public class RandomTriggerZoneManager {    
     private static final int MIN_ZONES = 3;
     private static final int MAX_ZONES = 8;
-    private static final int ZONE_WIDTH = 192;
-    private static final int ZONE_HEIGHT = 192;
+    private static final int ZONE_WIDTH = 128;
+    private static final int ZONE_HEIGHT = 128;
     private static final int MIN_SPACING = 20; // Minimum spacing between zones
     
     private final List<Rectangle> placedZones;
@@ -52,23 +52,59 @@ public class RandomTriggerZoneManager {
      * @param minY minimum Y coordinate
      * @param maxY maximum Y coordinate
      * @param triggerZoneManager the TriggerZoneManager to add zones to
-     */
-    public void generateRandomZones(int minX, int maxX, int minY, int maxY, TriggerZoneManager triggerZoneManager) {
+     */    public void generateRandomZones(int minX, int maxX, int minY, int maxY, TriggerZoneManager triggerZoneManager) {
         placedZones.clear();
         zoneBuyers.clear();
-          // Generate random number of zones
-        int numZones = (int)(Math.random() * (MAX_ZONES - MIN_ZONES + 1)) + MIN_ZONES;
-        System.out.println("Generating " + numZones + " random trigger zones...");
+          
+        // Calculate base number of zones
+        int baseNumZones = (int)(Math.random() * (MAX_ZONES - MIN_ZONES + 1)) + MIN_ZONES;
+        
+        // Add additional zones from PerksActive with detailed debugging
+        System.out.println("[ZONE GENERATION DEBUG] ===== ZONE CALCULATION START =====");
+        System.out.println("[ZONE GENERATION DEBUG] Base zones calculation:");
+        System.out.println("[ZONE GENERATION DEBUG] - MIN_ZONES: " + MIN_ZONES + ", MAX_ZONES: " + MAX_ZONES);
+        System.out.println("[ZONE GENERATION DEBUG] - Base zones generated: " + baseNumZones);
+        
+        int additionalBuyers = 0;
+        if (player != null) {
+            System.out.println("[ZONE GENERATION DEBUG] Player found, checking for PerksActive...");
+            additionalBuyers = PerkEffectManager.getAdditionalBuyersFromPerks(player);
+            System.out.println("[ZONE GENERATION DEBUG] PerksActive contribution: +" + additionalBuyers + " zones");
+        } else {
+            System.out.println("[ZONE GENERATION DEBUG] No player found - no perk bonuses");
+        }
+        
+        int totalZones = baseNumZones + additionalBuyers;
+        System.out.println("[ZONE GENERATION DEBUG] Total before cap: " + baseNumZones + " + " + additionalBuyers + " = " + totalZones);
+        
+        // Cap the maximum total zones to prevent performance issues
+        int cappedZones = Math.min(totalZones, MAX_ZONES * 3);
+        boolean wasCapped = (totalZones > cappedZones);
+        totalZones = cappedZones;
+        
+        if (wasCapped) {
+            System.out.println("[ZONE GENERATION DEBUG] Zones capped at " + (MAX_ZONES * 3) + " (was " + (baseNumZones + additionalBuyers) + ")");
+        }
+        
+        System.out.println("[ZONE GENERATION DEBUG] Final zone count: " + totalZones);
+        System.out.println("[ZONE GENERATION DEBUG] Perk impact: " + additionalBuyers + "/" + totalZones + " zones (" + String.format("%.1f", (additionalBuyers/(double)totalZones)*100) + "%)");
+        System.out.println("[ZONE GENERATION DEBUG] =====================================");
+        
+        System.out.println("Generating " + totalZones + " random trigger zones " +
+                          "(base: " + baseNumZones + ", perk bonus: " + additionalBuyers + ")...");
         
         int attemptsPerZone = 50; // Maximum attempts to place each zone
         int successfullyPlaced = 0;
         
-        for (int i = 0; i < numZones; i++) {
-            boolean placed = false;            for (int attempt = 0; attempt < attemptsPerZone && !placed; attempt++) {
+        for (int i = 0; i < totalZones; i++) {
+            boolean placed = false;
+            
+            for (int attempt = 0; attempt < attemptsPerZone && !placed; attempt++) {
                 // Use fixed zone dimensions (192x192)
                 int width = ZONE_WIDTH;
                 int height = ZONE_HEIGHT;
-                  // Generate random position ensuring zone fits within bounds
+                
+                // Generate random position ensuring zone fits within bounds
                 int x = (int)(Math.random() * (maxX - minX - width + 1)) + minX;
                 int y = (int)(Math.random() * (maxY - minY - height + 1)) + minY;
                 
@@ -77,12 +113,14 @@ public class RandomTriggerZoneManager {
                 // Check if this zone overlaps with any existing zones
                 if (!overlapsWithExistingZones(newZone)) {
                     placedZones.add(newZone);
-                      // Add to TriggerZoneManager with unique ID
+                    
+                    // Add to TriggerZoneManager with unique ID
                     String zoneId = "RandomZone_" + (successfullyPlaced + 1);
                     triggerZoneManager.addZone(zoneId, x, y, x + width, y + height, true, () -> {
-                        handleRandomZoneTriggered(zoneId, x, y, width, height);
+                        handleRandomZoneTriggered(x, y, width, height);
                     });
-                      // Generate Pembeli for this zone
+                    
+                    // Generate Pembeli for this zone
                     Pembeli pembeli = (player != null) ? PerkEffectManager.createBuyerWithPerks(player) : Pembeli.buatPembeliAcak();
                     zoneBuyers.add(pembeli);
                     
@@ -91,13 +129,23 @@ public class RandomTriggerZoneManager {
                     System.out.println("Placed zone " + zoneId + " at (" + x + ", " + y + ") size: " + width + "x" + height);
                 }
             }
-            
-            if (!placed) {
+              if (!placed) {
                 System.out.println("Failed to place zone " + (i + 1) + " after " + attemptsPerZone + " attempts");
             }
         }
         
-        System.out.println("Successfully placed " + successfullyPlaced + " out of " + numZones + " random zones");
+        // Final statistics with perk impact analysis
+        System.out.println("[ZONE GENERATION DEBUG] ===== FINAL STATISTICS =====");
+        System.out.println("Successfully placed " + successfullyPlaced + " out of " + totalZones + " random zones");
+        System.out.println("[ZONE GENERATION DEBUG] Base zones: " + baseNumZones);
+        System.out.println("[ZONE GENERATION DEBUG] Perk bonus zones: " + additionalBuyers);
+        System.out.println("[ZONE GENERATION DEBUG] Success rate: " + String.format("%.1f", (successfullyPlaced/(double)totalZones)*100) + "%");
+        if (additionalBuyers > 0) {
+            int perkZonesPlaced = Math.max(0, Math.min(additionalBuyers, successfullyPlaced - baseNumZones));
+            System.out.println("[ZONE GENERATION DEBUG] Estimated perk zones placed: " + perkZonesPlaced + "/" + additionalBuyers);
+            System.out.println("[ZONE GENERATION DEBUG] Perk effectiveness: " + String.format("%.1f", (perkZonesPlaced/(double)additionalBuyers)*100) + "%");
+        }
+        System.out.println("[ZONE GENERATION DEBUG] ================================");
     }
     
     /**
@@ -118,10 +166,12 @@ public class RandomTriggerZoneManager {
             }
         }
         return false;
-    }      /**
+    }
+    
+    /**
      * Handle when a random zone is triggered
      */
-    private void handleRandomZoneTriggered(String zoneId, int x, int y, int width, int height) {
+    private void handleRandomZoneTriggered(int x, int y, int width, int height) {
         // Find the index of the zone
         int idx = -1;
         for (int i = 0; i < placedZones.size(); i++) {
@@ -130,7 +180,9 @@ public class RandomTriggerZoneManager {
                 idx = i;
                 break;
             }
-        }        Pembeli pembeli = (idx != -1) ? getPembeliForZone(idx) : null;
+        }
+        
+        Pembeli pembeli = (idx != -1) ? getPembeliForZone(idx) : null;
         if (dialogSystem != null && pembeli != null) {
             dialogSystem.setPembeli(pembeli);
             dialogSystem.showPembeliDialog();
@@ -167,6 +219,7 @@ public class RandomTriggerZoneManager {
      */
     public void clearZones() {
         placedZones.clear();
+        zoneBuyers.clear();
     }
     
     /**

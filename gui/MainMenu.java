@@ -3,25 +3,13 @@ package gui;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.Locale;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-
 import model.Inventory;
 import model.Player;
 import model.TextFileManager;
-
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GradientPaint;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.Polygon;
-import java.awt.RenderingHints;
-import java.util.Locale;
 
 public class MainMenu extends JFrame {
     private Font titleFont;

@@ -9,7 +9,7 @@ public class PembeliTajir extends Pembeli {
 
     public PembeliTajir() {
         super("Tajir", 0.9);
-        peluangMuncul = 0.05;  // Very small chance to encounter
+        peluangMuncul = 0.1;  // Very small chance to encounter
     }
 
     @Override

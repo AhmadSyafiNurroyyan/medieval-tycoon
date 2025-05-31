@@ -393,12 +393,9 @@ public class TransactionsGUI extends JPanel {
         int hintWidth = hintFm.stringWidth(hintText);
         g2d.drawString(hintText, textAreaX + textAreaWidth - hintWidth - TEXT_PADDING, 
                       dialogY + DIALOG_HEIGHT - 8);
-        
-        g2d.dispose();
 
-        // --- Gambar kotak khusus untuk pembeliTitleLabel di kanan atas dialog ---
+        // --- Gambar kotak khusus untuk pembeliTitleLabel di kanan atas dialog (pakai g2d) ---
         if (pembeliTitleLabel.isVisible()) {
-            // Hitung posisi dan ukuran kotak berdasarkan panjang teks label
             Font labelFont = pembeliTitleLabel.getFont();
             FontMetrics labelFm = getFontMetrics(labelFont);
             String labelText = pembeliTitleLabel.getText();
@@ -410,20 +407,14 @@ public class TransactionsGUI extends JPanel {
             int boxH = textHeight + paddingY;
             int boxX = dialogX + dialogWidth - boxW - TEXT_PADDING; // align ke kanan dialog
             int boxY = dialogY - boxH - 10; // 10px di atas dialog
-            // Gambar kotak background
-            Graphics2D g2 = (Graphics2D) this.getGraphics();
-            if (g2 == null) g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(255, 255, 240, 240)); // warna krem semi transparan
-            g2.fillRoundRect(boxX, boxY, boxW, boxH, 16, 16);
-            g2.setColor(BORDER_COLOR);
-            g2.setStroke(new BasicStroke(2));
-            g2.drawRoundRect(boxX, boxY, boxW, boxH, 16, 16);
-            // Gambar background di belakang teks label (agar tidak transparan)
-            g2.setColor(new Color(255, 248, 220, 255));
-            g2.fillRoundRect(boxX + 2, boxY + 2, boxW - 4, boxH - 4, 12, 12);
-            g2.dispose();
-            // Atur posisi label di tengah kotak
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setColor(new Color(255, 255, 240, 240));
+            g2d.fillRoundRect(boxX, boxY, boxW, boxH, 16, 16);
+            g2d.setColor(BORDER_COLOR);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawRoundRect(boxX, boxY, boxW, boxH, 16, 16);
+            g2d.setColor(new Color(255, 248, 220, 255));
+            g2d.fillRoundRect(boxX + 2, boxY + 2, boxW - 4, boxH - 4, 12, 12);
             int labelX = boxX + paddingX;
             int labelY = boxY + (boxH - textHeight) / 2;
             pembeliTitleLabel.setBounds(labelX, labelY, textWidth, textHeight);
@@ -431,6 +422,8 @@ public class TransactionsGUI extends JPanel {
             pembeliTitleLabel.setVisible(true);
             setComponentZOrder(pembeliTitleLabel, 0);
         }
+
+        g2d.dispose();
     }
       @Override
     public Dimension getPreferredSize() {
@@ -640,40 +633,6 @@ public class TransactionsGUI extends JPanel {
         int supplierCost = selectedBarang.getHargaBeli() * selectedQuantity;
         offerPrice = Math.max(offerPrice, supplierCost);
 
-        // AUTO-DEAL SCENARIO: If buyer offers more than or equal to player's asking price, auto-complete at player's price
-        if (offerPrice >= totalPrice) {
-            // Transaction automatically completes at player's price
-            currentPlayer.tambahMoney(totalPrice);
-            
-            // Remove items from cart based on selected quantity
-            int jumlahSekarang = barangDiGerobak.getOrDefault(selectedBarang, 0);
-            
-            if (jumlahSekarang > selectedQuantity) {
-                // Still have remaining items
-                barangDiGerobak.put(selectedBarang, jumlahSekarang - selectedQuantity);
-            } else {
-                // No remaining items, remove from cart and reset selling price
-                barangDiGerobak.remove(selectedBarang);
-                currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
-            }
-            
-            currentMessage = String.format("DEAL! Pembeli menyetujui harga jualmu dan langsung membayar %d koin untuk %s x%d!", 
-                totalPrice, selectedBarang.getNamaBarang(), selectedQuantity);
-            
-            // Deactivate consumable items after transaction
-            deactivateConsumableItems();
-            transactionCompleted = true;
-            
-            // Hide selling button and disable further transactions
-            if (sellButton != null) {
-                sellButton.setVisible(false);
-                sellButton.setEnabled(false);
-            }
-            
-            repaint();
-            return; // Exit early, no negotiation needed
-        }
-
         currentMessage = String.format("Pembeli tertarik dengan %s x%d (Total Harga: %d).\nMereka menawar: %d", 
                 selectedBarang.getNamaBarang(), selectedQuantity, totalPrice, offerPrice);
         
@@ -744,7 +703,8 @@ public class TransactionsGUI extends JPanel {
         
         return multiplier;
     }    private void acceptOffer() {
-        if (currentPembeli.putuskanTransaksi(offerPrice)) {
+        // Use PerkEffectManager to apply charming effects during negotiation
+        if (model.PerkEffectManager.applyCharmingEffect(currentPlayer, offerPrice, currentPembeli)) {
             // Transaksi berhasil
             currentPlayer.tambahMoney(offerPrice);
             
@@ -755,10 +715,12 @@ public class TransactionsGUI extends JPanel {
             if (jumlahSekarang > selectedQuantity) {
                 // Masih ada sisa barang
                 barangDiGerobak.put(selectedBarang, jumlahSekarang - selectedQuantity);
+                updateGerobakTablesLocal();
             } else {
                 // Tidak ada sisa barang, hapus dari gerobak dan reset harga jual
                 barangDiGerobak.remove(selectedBarang);
                 currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
+                updateGerobakTablesLocal();
             }
               currentMessage = String.format("Transaksi berhasil! Kamu menjual %s x%d seharga %d koin.", 
                 selectedBarang.getNamaBarang(), selectedQuantity, offerPrice);
@@ -776,6 +738,8 @@ public class TransactionsGUI extends JPanel {
         if (transactionCompleted && sellButton != null) {
             sellButton.setEnabled(false);
         }
+        // Refresh gerobak table setelah transaksi sukses
+        updateGerobakTablesLocal();
         repaint();
     }    private void counterOffer() {
         try {
@@ -799,9 +763,11 @@ public class TransactionsGUI extends JPanel {
                 int jumlahSekarang = barangDiGerobak.getOrDefault(selectedBarang, 0);
                 if (jumlahSekarang > selectedQuantity) {
                     barangDiGerobak.put(selectedBarang, jumlahSekarang - selectedQuantity);
+                    updateGerobakTablesLocal();
                 } else {
                     barangDiGerobak.remove(selectedBarang);
                     currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
+                    updateGerobakTablesLocal();
                 }
                 currentMessage = String.format("Counter offer diterima! Kamu menjual %s x%d seharga %d koin.", 
                     selectedBarang.getNamaBarang(), selectedQuantity, counterPrice);

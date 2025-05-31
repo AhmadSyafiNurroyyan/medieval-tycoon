@@ -320,7 +320,17 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Recreate PlayerMovement and PlayerSkin with the new player
         this.playerMovement = newPlayer.createMovement();
-        this.PlayerSkin = newPlayer.createNametag();
+        this.PlayerSkin = newPlayer.createNametag();        // CRITICAL FIX: Update TransactionsGUI with the new player reference
+        if (transactions != null) {
+            transactions.setPlayer(newPlayer);
+            System.out.println("GamePanel: Updated TransactionsGUI player reference");
+        }
+
+        // CRITICAL FIX: Update RandomTriggerZoneManager with the new player reference
+        if (randomTriggerZoneManager != null) {
+            randomTriggerZoneManager.setPlayer(newPlayer);
+            System.out.println("GamePanel: Updated RandomTriggerZoneManager player reference");
+        }
 
         // Preserve the gerobak reference if the player's inventory has items in it
         if (newPlayer.getInventory() != null) {

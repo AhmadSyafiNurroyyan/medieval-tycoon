@@ -46,7 +46,7 @@ public class PembeliStandar extends Pembeli {
     @Override
     public boolean chanceAcceptCounter(int hargaPlayer, int hargaPembeli) {
         if (hargaPlayer > hargaPembeli) {
-            return Math.random() < 0.3; // 10% chance
+            return Math.random() < 0.15;
         }
         return false;
     }
