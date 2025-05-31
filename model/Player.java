@@ -81,11 +81,6 @@ public class Player {
         return inventory;
     }
 
-    /**
-     * Set the player's inventory
-     * 
-     * @param inventory The new inventory
-     */
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;
     }

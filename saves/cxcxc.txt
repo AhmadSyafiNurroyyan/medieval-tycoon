@@ -1,19 +1,15 @@
 === PLAYER_DATA ===
 USERNAME:cxcxc
-ID:80046654
+ID:87454115
 LEVEL:1
-MONEY:9967000
+MONEY:9998500
 CURRENT_DAY:1
 
 === INVENTORY_BARANG ===
-BARANG:Kol,Sayur,5000,100,1
-BARANG:Kangkung,Sayur,3000,100,1
+BARANG:Rambutan,Buah,1500,100,1
 // Format: nama,kategori,hargaBeli,kesegaran,jumlah
 
 === INVENTORY_ITEM ===
-ITEM:Hipnotis,4,false,false
-ITEM:Tip,2,false,false
-ITEM:Jampi,5,false,false
 // Format: nama,level,active,inGerobak
 
 === GEROBAK ===
@@ -23,7 +19,6 @@ KAPASITAS_ITEM:1
 BIAYA_UPGRADE:100000
 
 === GEROBAK_BARANG ===
-GEROBAK_BARANG:Melon,Buah,25000,100,1,0
 // Format: nama,kategori,hargaBeli,kesegaran,jumlah,hargaJual
 
 === PERKS ===

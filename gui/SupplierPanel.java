@@ -141,7 +141,6 @@ public class SupplierPanel extends JPanel {
                 qtyField.setText(String.valueOf(qty));
                 totalLabel.setText("= " + (barang.getHargaBeli() * qty) + "G");
             });
-
             buyButton.addActionListener(e -> {
                 int qty;
                 try {
@@ -150,6 +149,15 @@ public class SupplierPanel extends JPanel {
                     qty = 1;
                 }
                 int totalHarga = barang.getHargaBeli() * qty;
+
+                System.out.println("=== DEBUG SUPPLIER PURCHASE START ===");
+                System.out.println("Player: " + player.getUsername());
+                System.out.println("Buying: " + barang.getNamaBarang() + " x" + qty);
+                System.out.println("Price per item: " + barang.getHargaBeli());
+                System.out.println("Total price: " + totalHarga);
+                System.out.println("Player money before: " + player.getMoney());
+                System.out.println("Inventory barang before: " + player.getInventory().getStokBarang().size());
+
                 if (player.getMoney() < totalHarga) {
                     JOptionPane.showMessageDialog(this,
                             "Uang tidak cukup untuk membeli " + formattedName + " x" + qty + ".", "Gagal",
@@ -163,6 +171,11 @@ public class SupplierPanel extends JPanel {
                         break;
                     }
                 }
+
+                System.out.println("Purchase success: " + success);
+                System.out.println("Player money after: " + player.getMoney());
+                System.out.println("Inventory barang after: " + player.getInventory().getStokBarang().size());
+
                 String msg = success ? "Berhasil membeli " + formattedName + " x" + qty + "!"
                         : "Gagal membeli " + formattedName + ".";
                 JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
@@ -171,8 +184,11 @@ public class SupplierPanel extends JPanel {
 
                 // Auto-save after successful purchase
                 if (success && autoSaveCallback != null) {
+                    System.out.println("Calling auto-save callback...");
                     autoSaveCallback.run();
+                    System.out.println("Auto-save callback completed");
                 }
+                System.out.println("=== DEBUG SUPPLIER PURCHASE END ===");
             });
 
             itemRow.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -193,5 +209,16 @@ public class SupplierPanel extends JPanel {
     public void refresh() {
         moneyLabel.setText("Uang: " + player.getMoney() + "G");
         populateItems();
+    }
+
+    /**
+     * Update player reference for loading saved games
+     */
+    public void updatePlayerData(Player newPlayer) {
+        System.out.println("DEBUG: SupplierPanel.updatePlayerData() called with player: " + newPlayer.getUsername());
+        System.out.println("  - Old player: " + (this.player != null ? this.player.getUsername() : "null"));
+        System.out.println("  - New player: " + newPlayer.getUsername());
+        this.player = newPlayer;
+        refresh(); // Update UI with new player data
     }
 }

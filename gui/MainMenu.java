@@ -90,9 +90,9 @@ public class MainMenu extends JFrame {
         SettingsPanel settingsPanel = new SettingsPanel();
         PauseMenuPanel pauseMenuPanel = new PauseMenuPanel(cardLayout, cardsPanel);
         this.homeBasePanel = new HomeBasePanel(player);
-        this.supplierPanel = new SupplierPanel(gamePanel.getSupplier(), gamePanel.getPlayer());
-        this.tokoItemPanel = new TokoItemPanel(gamePanel.getTokoItem(), gamePanel.getPlayer());
-        this.tokoPerksPanel = new TokoPerksPanel(gamePanel.getPerksManagement(), gamePanel.getPlayer());
+        this.supplierPanel = new SupplierPanel(gamePanel.getSupplier(), player);
+        this.tokoItemPanel = new TokoItemPanel(gamePanel.getTokoItem(), player);
+        this.tokoPerksPanel = new TokoPerksPanel(gamePanel.getPerksManagement(), player);
         this.tokoItemPanel.setInventory(player.getInventory());
         this.homeBasePanel.initializeWithGerobak(gamePanel.getGerobak());
         this.supplierPanel.setBackToGameCallback(() -> {
@@ -198,9 +198,9 @@ public class MainMenu extends JFrame {
         createGameButton.addActionListener(e -> {
             String username = userField.getText().trim();
             if (!username.isEmpty()) {
-                gamePanel.getPlayer().setUsername(username); // Start Map BGM when game begins
-                                                             // System.out.println("MainMenu: Starting new game -
-                                                             // initializing Map BGM");
+                player.setUsername(username); // Start Map BGM when game begins
+                                              // System.out.println("MainMenu: Starting new game -
+                                              // initializing Map BGM");
                 BGMPlayer.getInstance().playMapBGM();
                 this.cardLayout.show(this.cardsPanel, "GAME");
                 this.gamePanel.onPanelShown(); // Sync player inventory state
@@ -400,7 +400,7 @@ public class MainMenu extends JFrame {
      * parchment scroll
      */
     private void showCustomSaveLoadDialog() {
-        JDialog dialog = new JDialog(this, "Kingdom Archives", true);
+        JDialog dialog = new JDialog(this, "Load Game", true);
         dialog.setSize(650, 580); // Larger size for the medieval design
         dialog.setLocationRelativeTo(this);
         dialog.setResizable(false);
@@ -513,7 +513,7 @@ public class MainMenu extends JFrame {
         // Title header with medieval styling
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
-        JLabel headerLabel = new JLabel("SAVED KINGDOMS", JLabel.CENTER);
+        JLabel headerLabel = new JLabel("DATA LOAD", JLabel.CENTER);
         headerLabel.setFont(titleFont);
         headerLabel.setForeground(darkBrown);
         headerLabel.setBorder(BorderFactory.createCompoundBorder(
@@ -724,12 +724,10 @@ public class MainMenu extends JFrame {
             public boolean isBorderOpaque() {
                 return false;
             }
-        });
-        // Try to load save metadata (username, money, date, etc.)
+        }); // Try to load save metadata (username, money, date, etc.)
         String name = saveFile;
         String uang = "-";
         String date = "-";
-        int level1 = 0, level2 = 0;
         try {
             Player p = fileManager.loadGameWithContext(saveFile);
             if (p != null) {
@@ -741,12 +739,6 @@ public class MainMenu extends JFrame {
                     long lm = f.lastModified();
                     date = new java.text.SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH).format(new java.util.Date(lm));
                 }
-
-                // Example: show player level and gerobak level
-                level1 = p.getLevel();
-                if (p.getInventory() != null && p.getInventory().getGerobak() != null) {
-                    level2 = p.getInventory().getGerobak().getLevel();
-                }
             }
         } catch (Exception ex) {
             System.err.println("Error loading save metadata for " + saveFile + ": " + ex.getMessage());
@@ -757,7 +749,7 @@ public class MainMenu extends JFrame {
         JPanel leftInfo = new JPanel();
         leftInfo.setOpaque(false);
         leftInfo.setLayout(new BoxLayout(leftInfo, BoxLayout.Y_AXIS)); // Style each label with reliable fonts
-        JLabel nameLabel = new JLabel("<html><b>Merchant:</b> " + name + "</html>");
+        JLabel nameLabel = new JLabel("<html><b>User:</b> " + name + "</html>");
         nameLabel.setFont(new Font("Serif", Font.BOLD, 16));
         nameLabel.setForeground(new Color(60, 30, 15)); // Dark ink color
 
@@ -775,38 +767,8 @@ public class MainMenu extends JFrame {
         leftInfo.add(Box.createVerticalStrut(3));
         leftInfo.add(dateLabel);
 
-        // Right panel with level indicators
-        JPanel rightInfo = new JPanel(new GridLayout(2, 2, 8, 8));
-        rightInfo.setOpaque(false);
-
-        // Add merchant level indicator
-        JPanel merchantLevelPanel = new JPanel(new BorderLayout());
-        merchantLevelPanel.setOpaque(false);
-        JLabel merchantLevelTitle = new JLabel("Character", JLabel.CENTER);
-        merchantLevelTitle.setFont(new Font("Serif", Font.ITALIC, 12));
-        merchantLevelTitle.setForeground(new Color(100, 70, 40));
-
-        JLabel merchantLevel = createMedievalLevelIndicator(level1, new Color(160, 120, 40));
-        merchantLevelPanel.add(merchantLevelTitle, BorderLayout.NORTH);
-        merchantLevelPanel.add(merchantLevel, BorderLayout.CENTER);
-
-        // Add cart level indicator
-        JPanel cartLevelPanel = new JPanel(new BorderLayout());
-        cartLevelPanel.setOpaque(false);
-        JLabel cartLevelTitle = new JLabel("Cart", JLabel.CENTER);
-        cartLevelTitle.setFont(new Font("Serif", Font.ITALIC, 12));
-        cartLevelTitle.setForeground(new Color(100, 70, 40));
-
-        JLabel cartLevel = createMedievalLevelIndicator(level2, new Color(120, 60, 30));
-        cartLevelPanel.add(cartLevelTitle, BorderLayout.NORTH);
-        cartLevelPanel.add(cartLevel, BorderLayout.CENTER);
-
-        rightInfo.add(merchantLevelPanel);
-        rightInfo.add(cartLevelPanel);
-
-        // Add panels to slot
+        // Add panel to slot
         slot.add(leftInfo, BorderLayout.CENTER);
-        slot.add(rightInfo, BorderLayout.EAST);
 
         // Add interactivity
         slot.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -840,7 +802,18 @@ public class MainMenu extends JFrame {
                                     MainMenu.this.tokoItemPanel.setInventory(loadedPlayer.getInventory());
                                     MainMenu.this.tokoItemPanel.refresh();
                                 }
+                                if (MainMenu.this.tokoPerksPanel != null) {
+                                    // FIXED: Update TokoPerksPanel with loaded player
+                                    System.out.println("DEBUG: Updating TokoPerksPanel with loaded player: "
+                                            + loadedPlayer.getUsername());
+                                    MainMenu.this.tokoPerksPanel.updatePlayerData(loadedPlayer);
+                                    MainMenu.this.tokoPerksPanel.refresh();
+                                }
                                 if (MainMenu.this.supplierPanel != null) {
+                                    // FIXED: Update SupplierPanel with loaded player
+                                    System.out.println("DEBUG: Updating SupplierPanel with loaded player: "
+                                            + loadedPlayer.getUsername());
+                                    MainMenu.this.supplierPanel.updatePlayerData(loadedPlayer);
                                     MainMenu.this.supplierPanel.refresh();
                                 }
                                 // Play music and switch to game panel
@@ -850,7 +823,7 @@ public class MainMenu extends JFrame {
                                 MainMenu.this.gamePanel.requestFocusInWindow();
                                 // Show success message
                                 JOptionPane.showMessageDialog(MainMenu.this,
-                                        "Kingdom loaded successfully! Welcome back, " + loadedPlayer.getUsername()
+                                        "Welcome back, " + loadedPlayer.getUsername()
                                                 + "!");
                             } catch (Exception ex) {
                                 System.err.println("Error updating game with loaded player: " + ex.getMessage());
@@ -890,83 +863,5 @@ public class MainMenu extends JFrame {
         });
 
         return slot;
-    }
-
-    /**
-     * Create a medieval-styled level indicator
-     */
-    private JLabel createMedievalLevelIndicator(int level, Color bgColor) {
-        JLabel indicator = new JLabel(String.valueOf(level), JLabel.CENTER) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                // Draw shield background
-                g2d.setColor(bgColor);
-                int width = getWidth();
-                int height = getHeight();
-
-                // Create shield shape
-                int[] xPoints = {
-                        width / 2, width - 5, width - 5, width / 2, 5, 5
-                };
-                int[] yPoints = {
-                        5, height / 4, height - 5, height - 8, height - 5, height / 4
-                };
-
-                // Ensure the polygon has valid coordinates
-                boolean validPolygon = true;
-                for (int i = 0; i < xPoints.length; i++) {
-                    if (xPoints[i] < 0 || yPoints[i] < 0) {
-                        validPolygon = false;
-                        break;
-                    }
-                }
-
-                if (validPolygon && width > 0 && height > 0) {
-                    Polygon shield = new Polygon(xPoints, yPoints, xPoints.length);
-                    g2d.fill(shield);
-
-                    // Add shield border
-                    g2d.setColor(new Color(212, 175, 55));
-                    g2d.setStroke(new BasicStroke(1.5f));
-                    g2d.draw(shield);
-
-                    // Add highlight to shield
-                    g2d.setColor(new Color(255, 255, 255, 60));
-                    g2d.drawLine(width / 2, 5, 5, height / 4);
-                } else {
-                    // Fallback to simple rectangle if polygon is invalid
-                    g2d.fillRect(0, 0, width, height);
-                    g2d.setColor(new Color(212, 175, 55));
-                    g2d.drawRect(0, 0, width - 1, height - 1);
-                }
-
-                // Now draw the text
-                super.paintComponent(g);
-            }
-        };
-        indicator.setForeground(Color.WHITE);
-        indicator.setFont(new Font("Serif", Font.BOLD, 20));
-        indicator.setPreferredSize(new Dimension(40, 48)); // Taller for shield shape
-        indicator.setHorizontalTextPosition(JLabel.CENTER);
-        indicator.setVerticalTextPosition(JLabel.CENTER);
-
-        return indicator;
-    }
-
-    /**
-     * Legacy level box method - maintained for compatibility
-     */
-    private JLabel createLevelBox(int level, Color bgColor) {
-        JLabel box = new JLabel(String.valueOf(level), JLabel.CENTER);
-        box.setFont(new Font("Monospaced", Font.BOLD, 12));
-        box.setOpaque(true);
-        box.setBackground(bgColor);
-        box.setForeground(Color.WHITE);
-        box.setPreferredSize(new Dimension(25, 25));
-        box.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-        return box;
     }
 }

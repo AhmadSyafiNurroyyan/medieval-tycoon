@@ -1699,6 +1699,29 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
         // Update any open frames that display player data
         updatePerksFrameContent();
+
+        // Force refresh all UI tables when player data is updated from save file
+        SwingUtilities.invokeLater(() -> {
+            System.out.println("HomeBasePanel: Forcing UI refresh after player data update");
+            refreshInventoryAndGerobak();
+
+            // If inventory frame is open, update it
+            if (inventoryFrame != null && inventoryFrame.isVisible()) {
+                updateGoodsTable(currentSortBy, currentSortOrder);
+                updateItemsTableInCurrentTab();
+            }
+
+            // If gerobak frame is open, update it
+            if (gerobakFrame != null && gerobakFrame.isVisible()) {
+                updateGerobakTables();
+                updateItemGerobakTable();
+            }
+
+            // If perks frame is open, update it
+            if (perksFrame != null && perksFrame.isVisible()) {
+                updatePerksFrameContent();
+            }
+        });
     }
 
     /**

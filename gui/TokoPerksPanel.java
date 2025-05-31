@@ -133,10 +133,20 @@ public class TokoPerksPanel extends JPanel {
           upgradeButton.setEnabled(perksManagement.canPlayerAffordUpgrade(player, ownedPerk));
           gbc.gridx = 4;
           perkRow.add(upgradeButton, gbc);
-
           upgradeButton.addActionListener(e -> {
             try {
+              System.out.println("=== DEBUG PERK UPGRADE START ===");
+              System.out.println("Player: " + player.getUsername());
+              System.out.println("Upgrading perk: " + ownedPerk.getName() + " from level " + ownedPerk.getLevel());
+              System.out.println("Upgrade cost: " + ownedPerk.getBiayaUpgrade());
+              System.out.println("Player money before: " + player.getMoney());
+
               boolean success = perksManagement.upgradePerk(player, ownedPerk);
+
+              System.out.println("Upgrade success: " + success);
+              System.out.println("Perk level after: " + ownedPerk.getLevel());
+              System.out.println("Player money after: " + player.getMoney());
+
               String msg = success
                   ? "Upgrade berhasil ke level " + ownedPerk.getLevel() + "!"
                   : (ownedPerk.isMaxLevel() ? "Level sudah maksimum." : "Uang tidak cukup untuk upgrade.");
@@ -151,9 +161,12 @@ public class TokoPerksPanel extends JPanel {
 
                 // Auto-save after successful upgrade
                 if (autoSaveCallback != null) {
+                  System.out.println("Calling auto-save callback for upgrade...");
                   autoSaveCallback.run();
+                  System.out.println("Auto-save callback for upgrade completed");
                 }
               }
+              System.out.println("=== DEBUG PERK UPGRADE END ===");
             } catch (RuntimeException ex) {
               JOptionPane.showMessageDialog(this, ex.getMessage(), "Gagal", JOptionPane.ERROR_MESSAGE);
             }
@@ -176,10 +189,18 @@ public class TokoPerksPanel extends JPanel {
           JButton actionButton = StyledButton.create(buttonText, 18, 100, 35);
           gbc.gridx = 4;
           perkRow.add(actionButton, gbc);
-
           actionButton.addActionListener(e -> {
             try {
               boolean success = false;
+
+              System.out.println("=== DEBUG TOKO PERKS PURCHASE START ===");
+              System.out.println("Player: " + player.getUsername());
+              System.out.println("Attempting to " + (canBuy ? "buy" : "convert") + " perk: " + perk.getName());
+              System.out.println("Player money before: " + player.getMoney());
+              System.out.println("Player perks before: " + player.getSemuaPerkDimiliki().size());
+              for (Perk ownedPerk : player.getSemuaPerkDimiliki()) {
+                System.out.println("  - Owned: " + ownedPerk.getName() + " (Level: " + ownedPerk.getLevel() + ")");
+              }
 
               if (canBuy) {
                 // Simple buy operation
@@ -212,18 +233,26 @@ public class TokoPerksPanel extends JPanel {
                 }
               }
 
+              System.out.println("Purchase/Convert success: " + success);
+              System.out.println("Player money after: " + player.getMoney());
+              System.out.println("Player perks after: " + player.getSemuaPerkDimiliki().size());
+              for (Perk ownedPerk : player.getSemuaPerkDimiliki()) {
+                System.out.println("  - Owned: " + ownedPerk.getName() + " (Level: " + ownedPerk.getLevel() + ")");
+              }
+
               String msg = success
                   ? "Berhasil " + (canBuy ? "membeli" : "mengganti dengan") + " " + perk.getName() + "!"
                   : "Gagal " + (canBuy ? "membeli" : "mengganti dengan") + " " + perk.getName() + ".";
               JOptionPane.showMessageDialog(this, msg, success ? "Sukses" : "Gagal",
                   success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
               updateMoneyDisplay();
-              refresh();
-
-              // Auto-save after successful purchase or conversion
+              refresh(); // Auto-save after successful purchase or conversion
               if (success && autoSaveCallback != null) {
+                System.out.println("Calling auto-save callback for perks...");
                 autoSaveCallback.run();
+                System.out.println("Auto-save callback for perks completed");
               }
+              System.out.println("=== DEBUG TOKO PERKS PURCHASE END ===");
             } catch (PerkConversionException ex) {
               JOptionPane.showMessageDialog(this, ex.getMessage(), "Konversi Tidak Diizinkan",
                   JOptionPane.ERROR_MESSAGE);
@@ -256,6 +285,16 @@ public class TokoPerksPanel extends JPanel {
   public void refresh() {
     updateMoneyDisplay();
     populatePerks();
+  }
+
+  // FIXED: Add updatePlayerData method for TokoPerksPanel
+  public void updatePlayerData(Player newPlayer) {
+    System.out.println("DEBUG: TokoPerksPanel.updatePlayerData() called with player: " + newPlayer.getUsername());
+    System.out.println("  - Old player: " + (this.player != null ? this.player.getUsername() : "null"));
+    System.out.println("  - New player: " + newPlayer.getUsername());
+    this.player = newPlayer;
+    updateMoneyDisplay();
+    populatePerks(); // Refresh the perks display with new player data
   }
 
   // Tambahkan method ini di kelas TokoPerksPanel
