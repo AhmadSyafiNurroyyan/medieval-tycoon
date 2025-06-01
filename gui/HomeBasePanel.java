@@ -18,6 +18,7 @@ import model.Barang;
 import model.Gerobak;
 import model.Inventory;
 import model.Item;
+import model.ItemEffectManager;
 import model.Perk;
 import model.PerksManagement;
 import model.Player;
@@ -45,6 +46,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private Runnable onSleepCallback;
     private GamePanel gamePanel; // Tambahkan referensi ke GamePanel
     private Supplier supplier; // Add supplier reference for stock regeneration
+    private ItemEffectManager itemEffectManager; // Add item effect manager for using items
 
     public void setGamePanel(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
@@ -58,6 +60,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     public HomeBasePanel(Player player) {
         this.player = player;
         this.perksManagement = new PerksManagement();
+        this.itemEffectManager = new ItemEffectManager(player);
         setLayout(null);
         initializeComponents();
         loadImages();
@@ -296,6 +299,15 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     System.out.println("Debug: No matching barang found!");
                 }
                 if (targetBarang != null) {
+                    // Check if item is rotten (kesegaran <= 0)
+                    if (targetBarang.getKesegaran() <= 0) {
+                        JOptionPane.showMessageDialog(this,
+                                "Tidak bisa memindahkan barang busuk ke gerobak!\nBuang barang busuk terlebih dahulu.",
+                                "Barang Busuk",
+                                JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+
                     // Get the actual gerobak capacity from inventory
                     int kapasitasGerobak = 20; // Default fallback
                     if (inventory.getGerobak() != null) {
@@ -325,7 +337,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                             JOptionPane.ERROR_MESSAGE);
                 }
             });
-
             btnBersihkanBusuk.addActionListener(_ -> {
                 if (inventory == null) {
                     JOptionPane.showMessageDialog(this, "Inventory tidak tersedia!", "Error",
@@ -2492,6 +2503,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         return p;
     }    
     private void sleepAndAdvanceDay() {
+        if (onSleepCallback != null)
+            onSleepCallback.run();
+        JOptionPane.showMessageDialog(this,
+                "Hari berganti! Sekarang hari ke-" + currentDay
+                        + ". Arena trigger zone akan direset saat kamu ke kota lain.",
+                "Sleep", JOptionPane.INFORMATION_MESSAGE);
         JDialog sleepDialog = createMedievalSleepDialog();
         sleepDialog.setVisible(true);
     }
@@ -2541,13 +2558,17 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                 System.out.println("HomeBasePanel: Day synchronized with GamePanel: " + this.currentDay);
             }
             updateDayLabel();
-            player.setHasSlept(true);
-
-            // IMPORTANT: Reduce freshness FIRST before any UI updates
-            System.out.println("Player sleeps. Day is now: " + currentDay);
+            player.setHasSlept(true); // IMPORTANT: Reduce freshness FIRST before any UI updates
+            System.out.println("Player sleeps. Day advanced to: " + currentDay);
             if (inventory != null) {
                 inventory.kurangiKesegaranSemua();
                 System.out.println("Debug: Freshness reduced for all items");
+            }
+
+            // Reset daily item effects (Hipnotis, Semproten, Peluit usage)
+            if (itemEffectManager != null) {
+                itemEffectManager.resetDailyEffects();
+                System.out.println("Debug: Daily item effects reset for new day");
             }
 
             // Regenerate supplier stock for the new day

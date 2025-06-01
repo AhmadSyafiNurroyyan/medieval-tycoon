@@ -24,7 +24,7 @@ public class TokoItem implements Transaksi<Item>, Showable {
         listItem.add(
                 new Item("Peluit", "Memanggil pembeli tambahan secara instan",
                         60_000, 30_000, "bonus_kesabaran.png"));
-        listItem.add(new Item("Semproten", "Menambah kesan barang lebih fresh, harga bisa ditawar lebih mahal",
+        listItem.add(new Item("Semproten", "Meningkatkan harga jual saat transaksi berdasarkan kesegaran barang",
                 80_000, 40_000, "segarkan_dagangan.png"));
         listItem.add(
                 new Item("Tip", "Pembeli kadang memberi uang ekstra",

@@ -36,18 +36,35 @@ public class ItemEffectManager {
       return boostedEarning;
     }
     return originalEarning;
-  }
+  } // Semproten - meningkatkan harga jual during transaction based on freshness
 
-  // Semproten - meningkatkan harga jual
   public int applySemproten(int originalPrice) {
     Item semproten = getActiveItemByName("Semproten");
     if (semproten != null) {
-      int boostedPrice = (int) (originalPrice * (1 + semproten.getSemprotenPriceBoost()));
-      System.out.println("Semproten aktif! Harga naik dari Rp" + originalPrice +
-          " menjadi Rp" + boostedPrice);
+      double priceBoost = semproten.getSemprotenPriceBoost();
+      int boostedPrice = (int) (originalPrice * (1 + priceBoost));
+      System.out.println("[SEMPROTEN TRANSACTION EFFECT] Semproten Level " + semproten.getLevel() + " activated!");
+      System.out
+          .println("[SEMPROTEN TRANSACTION EFFECT] Price boost: +" + String.format("%.0f", priceBoost * 100) + "%");
+      System.out.println("[SEMPROTEN TRANSACTION EFFECT] Price: " + originalPrice + " → " + boostedPrice);
       return boostedPrice;
     }
     return originalPrice;
+  }
+
+  // Check if Semproten can be used during transaction
+  public boolean canUseSemproten() {
+    Item semproten = getActiveItemByName("Semproten");
+    return semproten != null && !semproten.isUsed();
+  }
+
+  // Get Semproten price boost percentage for display
+  public double getSemprotenPriceBoost() {
+    Item semproten = getActiveItemByName("Semproten");
+    if (semproten != null) {
+      return semproten.getSemprotenPriceBoost();
+    }
+    return 0.0;
   }
 
   // Tip - bonus uang ekstra
@@ -65,7 +82,7 @@ public class ItemEffectManager {
   public int applyPeluit(int currentDay) {
     // Cari item Peluit di gerobak/inventory, tidak perlu status aktif
     List<Item> items = player.getInventory().getItemDibawa();
-    
+
     // Add debugging information
     System.out.println("=== DEBUG PELUIT DETECTION ===");
     System.out.println("Items in gerobak count: " + items.size());
@@ -73,7 +90,7 @@ public class ItemEffectManager {
       System.out.println("  - Item: '" + item.getNama() + "' | isPeluit(): " + item.isPeluit());
     }
     System.out.println("===========================");
-    
+
     for (Item item : items) {
       if (item.isPeluit()) {
         if (item.canUsePeluit(currentDay)) {
@@ -133,22 +150,23 @@ public class ItemEffectManager {
       }
     }
     return null;
-  }
+  } // Reset untuk hari baru
 
-  // Reset untuk hari baru
   public void resetDailyEffects() {
     jampiActiveToday = false;
     List<Item> items = player.getInventory().getStokItem();
     for (Item item : items) {
-      if (item.isHipnotis()) {
+      // Reset usage for all items that have daily usage limits
+      if (item.isHipnotis() || item.isSemproten() || item.isPeluit()) {
         item.resetUsage();
       }
       if (item.isPeluit()) {
         // FIX: panggil resetPeluitUsage(currentDay) dengan hari yang benar
-        item.resetPeluitUsage(java.time.LocalDate.now().getDayOfYear()); // Atau ganti dengan currentDay dari GamePanel jika ingin lebih presisi
+        item.resetPeluitUsage(java.time.LocalDate.now().getDayOfYear()); // Atau ganti dengan currentDay dari GamePanel
+                                                                         // jika ingin lebih presisi
       }
     }
-    System.out.println("Efek item harian telah direset.");
+    System.out.println("Efek item harian telah direset untuk semua item.");
   }
 
   // Reset untuk transaksi baru

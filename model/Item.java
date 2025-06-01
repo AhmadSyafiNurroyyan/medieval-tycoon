@@ -173,7 +173,7 @@ public class Item implements Showable, Upgrade {
         } else if (isJampi()) {
             return String.format("Efek: %.1fx multiplier penghasilan", getJampiMultiplier());
         } else if (isSemproten()) {
-            return String.format("Efek: +%.0f%% harga jual", getSemprotenPriceBoost() * 100);
+            return String.format("Efek: +%.0f%% harga jual saat transaksi", getSemprotenPriceBoost() * 100);
         } else if (isTip()) {
             return String.format("Efek: %.0f%% chance bonus tip", getTipBonusRate() * 100);
         } else if (isPeluit()) {
@@ -189,17 +189,24 @@ public class Item implements Showable, Upgrade {
     public int getPeluitDailyLimit() {
         // Example: level 1 = 5, level 2 = 7, level 3 = 9, level 4 = 12, level 5 = 15
         switch (level) {
-            case 1: return 5;
-            case 2: return 7;
-            case 3: return 9;
-            case 4: return 12;
-            case 5: return 15;
-            default: return 5;
+            case 1:
+                return 5;
+            case 2:
+                return 7;
+            case 3:
+                return 9;
+            case 4:
+                return 12;
+            case 5:
+                return 15;
+            default:
+                return 5;
         }
     }
 
     public boolean canUsePeluit(int currentDay) {
-        if (!isPeluit()) return false;
+        if (!isPeluit())
+            return false;
         if (peluitLastUsedDay != currentDay) {
             peluitUsesToday = 0;
             peluitLastUsedDay = currentDay;
@@ -208,7 +215,8 @@ public class Item implements Showable, Upgrade {
     }
 
     public void incrementPeluitUse(int currentDay) {
-        if (!isPeluit()) return;
+        if (!isPeluit())
+            return;
         if (peluitLastUsedDay != currentDay) {
             peluitUsesToday = 0;
             peluitLastUsedDay = currentDay;
@@ -217,14 +225,17 @@ public class Item implements Showable, Upgrade {
     }
 
     public void resetPeluitUsage(int currentDay) {
-        if (!isPeluit()) return;
+        if (!isPeluit())
+            return;
         peluitUsesToday = 0;
         peluitLastUsedDay = currentDay;
     }
 
     public int getPeluitUsesToday(int currentDay) {
-        if (!isPeluit()) return 0;
-        if (peluitLastUsedDay != currentDay) return 0;
+        if (!isPeluit())
+            return 0;
+        if (peluitLastUsedDay != currentDay)
+            return 0;
         return peluitUsesToday;
     }
 }
