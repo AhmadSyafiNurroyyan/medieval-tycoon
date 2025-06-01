@@ -36,7 +36,7 @@ public class Player {
         this.username = username;
         this.ID = (int) (Math.random() * 9999999 + 80000000);
         this.level = 1;
-        this.money = 100000;
+        this.money = 10000000;
         this.inventory = new Inventory();
         this.gerobak = new Gerobak(); // Initialize gerobak
 

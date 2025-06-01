@@ -91,9 +91,7 @@ public class Item implements Showable, Upgrade {
 
     public double getJampiMultiplier() {
         return 1.5 + (level * 0.3); // 1.5x + 0.3x per level (max 3x di level 5)
-    }
-
-    public double getSemprotenPriceBoost() {
+    }    public double getSemprotenPriceBoost() {
         return 0.15 + (level * 0.05); // 15% + 5% per level (max 40% di level 5)
     }
 
@@ -165,15 +163,12 @@ public class Item implements Showable, Upgrade {
         return String.format(
                 "%s (Lv.%d/%d) - %s\n%s\nHarga: Rp%,d | Upgrade: Rp%,d",
                 nama, level, MAX_LEVEL, deskripsi, efekDetail, harga, biayaUpgrade);
-    }
-
-    private String getEfekDetail() {
+    }    private String getEfekDetail() {
         if (isHipnotis()) {
             return String.format("Efek: %.0f%% chance langsung beli", getHipnotisChance() * 100);
         } else if (isJampi()) {
-            return String.format("Efek: %.1fx multiplier penghasilan", getJampiMultiplier());
-        } else if (isSemproten()) {
-            return String.format("Efek: +%.0f%% harga jual", getSemprotenPriceBoost() * 100);
+            return String.format("Efek: %.1fx multiplier penghasilan", getJampiMultiplier());        } else if (isSemproten()) {
+            return String.format("Efek: +%.0f%% harga jual saat transaksi", getSemprotenPriceBoost() * 100);
         } else if (isTip()) {
             return String.format("Efek: %.0f%% chance bonus tip", getTipBonusRate() * 100);
         } else if (isPeluit()) {

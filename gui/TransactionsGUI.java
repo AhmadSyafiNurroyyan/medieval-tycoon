@@ -29,6 +29,7 @@ public class TransactionsGUI extends JPanel {
     private Image pembeliImage;
     private String pembeliName;
     private Player currentPlayer;
+    private ItemEffectManager itemEffectManager; // Add item effect manager
     // Trading system variables
     private Barang selectedBarang;
     private int offerPrice = 0;
@@ -61,13 +62,9 @@ public class TransactionsGUI extends JPanel {
 
     // References for trigger zone management
     private MapManager.TriggerZoneManager triggerZoneManager;
-    private String currentTriggerZoneId;
-
-    // --- Item JInternalFrame integration ---
+    private String currentTriggerZoneId;    // --- Item JInternalFrame integration ---
     private JInternalFrame itemFrame;
     private JTable itemGerobakTable;
-
-    private ItemEffectManager itemEffectManager;
 
     public TransactionsGUI(JPanel parentPanel) {
         this.parentPanel = parentPanel;
@@ -689,14 +686,12 @@ public class TransactionsGUI extends JPanel {
             int hargaJual = currentPlayer.getInventory().getHargaJual(barang);
             System.out.println("[BUYER SELECTION DEBUG] Checking item: " + barang.getNamaBarang() +
                     " (freshness: " + barang.getKesegaran() +
-                    ", sell price: " + hargaJual + ")");
-
-            if (hargaJual > 0) { // HANYA barang yang sudah ada harga jualnya
-                // Calculate buyer interest based on freshness
-                double freshnessMultiplier = calculateFreshnessMultiplier(barang.getKesegaran());
+                    ", sell price: " + hargaJual + ")");            if (hargaJual > 0) { // HANYA barang yang sudah ada harga jualnya
+                // Calculate buyer interest based on freshness with Semproten enhancement
+                double freshnessMultiplier = calculateEnhancedFreshnessMultiplier(barang.getKesegaran());
                 double buyerInterest = Math.random() * freshnessMultiplier;
 
-                System.out.println("[BUYER SELECTION DEBUG]   Freshness multiplier: " +
+                System.out.println("[BUYER SELECTION DEBUG]   Enhanced freshness multiplier: " +
                         String.format("%.2f", freshnessMultiplier) +
                         ", Buyer interest: " + String.format("%.3f", buyerInterest));
 
@@ -838,13 +833,12 @@ public class TransactionsGUI extends JPanel {
         revalidate();
         repaint();
         System.out.println("DEBUG: repaint called");
-    }
-
-    private void acceptOffer() {
+    }    private void acceptOffer() {
         // Transaksi SELALU berhasil saat Accept ditekan
         int finalUnitPrice = offerPrice;
         int finalTotalPrice = finalUnitPrice * selectedQuantity;
         if (itemEffectManager != null) {
+            finalTotalPrice = itemEffectManager.applySemproten(finalTotalPrice);
             finalTotalPrice = itemEffectManager.applyJampi(finalTotalPrice);
             finalTotalPrice = itemEffectManager.applyTip(finalTotalPrice);
         }
@@ -898,10 +892,10 @@ public class TransactionsGUI extends JPanel {
             if (!accepted && currentPembeli.chanceAcceptCounter(counterUnitPrice, offerPrice)) {
                 accepted = true;
             }
-            
-            if (accepted) {
+              if (accepted) {
                 int counterTotalPrice = counterUnitPrice * selectedQuantity;
                 if (itemEffectManager != null) {
+                    counterTotalPrice = itemEffectManager.applySemproten(counterTotalPrice);
                     counterTotalPrice = itemEffectManager.applyJampi(counterTotalPrice);
                     counterTotalPrice = itemEffectManager.applyTip(counterTotalPrice);
                 }
@@ -1300,46 +1294,76 @@ public class TransactionsGUI extends JPanel {
             JOptionPane.showMessageDialog(this, "Item ini hanya bisa digunakan otomatis atau di waktu tertentu!",
                     "Info", JOptionPane.WARNING_MESSAGE);
         }
-    }
-
-    /**
+    }    /**
      * Calculate buyer interest multiplier based on item freshness.
      * Fresh items (kesegaran > 75) get full interest.
      * Moderately fresh items (50-75) get reduced interest.
      * Low freshness items (25-50) get significantly reduced interest.
      * Very low freshness items (0-25) get minimal interest.
      * Rotten items (kesegaran <= 0) get almost no interest.
+     */    private double calculateFreshnessMultiplier(int kesegaran) {
+        if (kesegaran >= 76) return 1.0;
+        if (kesegaran >= 51) return 0.8;
+        if (kesegaran >= 26) return 0.6;
+        if (kesegaran >= 1) return 0.3;
+        return 0.1; // For kesegaran <= 0 (rotten items)
+    }
+
+    /**
+     * Calculate enhanced buyer interest multiplier with Semproten effect.
+     * This combines the base freshness multiplier with Semproten item bonus.
+     * Semproten adds extra appeal to items, making buyers more interested.
      */
-    private double calculateFreshnessMultiplier(int kesegaran) {
-        if (kesegaran <= 0) {
-            return 0.1; // Almost no interest in rotten items
-        } else if (kesegaran <= 25) {
-            return 0.3; // Very low interest in very stale items
-        } else if (kesegaran <= 50) {
-            return 0.6; // Reduced interest in stale items
-        } else if (kesegaran <= 75) {
-            return 0.8; // Slightly reduced interest in moderately fresh items
-        } else {
-            return 1.0; // Full interest in fresh items
+    private double calculateEnhancedFreshnessMultiplier(int kesegaran) {
+        double baseFreshnessMultiplier = calculateFreshnessMultiplier(kesegaran);
+        
+        // Check if player has active Semproten item
+        if (itemEffectManager != null) {
+            Item semproten = getActiveSemprotenItem();
+            if (semproten != null) {
+                // Semproten adds bonus interest based on item level
+                // Level 1: +20% interest, Level 2: +25%, Level 3: +30%, Level 4: +35%, Level 5: +40%
+                double semprotenBonus = 0.15 + (semproten.getLevel() * 0.05);
+                double enhancedMultiplier = baseFreshnessMultiplier * (1.0 + semprotenBonus);
+                
+                System.out.println("[SEMPROTEN INTEREST EFFECT] Base interest: " + 
+                    String.format("%.2f", baseFreshnessMultiplier) + 
+                    ", Semproten Level " + semproten.getLevel() + " bonus: +" + 
+                    String.format("%.0f", semprotenBonus * 100) + "%" + 
+                    ", Enhanced interest: " + String.format("%.2f", enhancedMultiplier));
+                
+                return Math.min(enhancedMultiplier, 1.5); // Cap at 150% to prevent overpowered effect
+            }
         }
+        
+        return baseFreshnessMultiplier;
+    }
+    
+    /**
+     * Helper method to get active Semproten item from player's inventory
+     */
+    private Item getActiveSemprotenItem() {
+        if (currentPlayer == null || currentPlayer.getInventory() == null) {
+            return null;
+        }
+        
+        for (Item item : currentPlayer.getInventory().getStokItem()) {
+            if (item.isSemproten() && item.isActive()) {
+                return item;
+            }
+        }
+        return null;
     }
 
     /**
      * Calculate price multiplier based on item freshness for buyer offers.
      * Fresh items maintain full offer value.
      * Less fresh items receive progressively lower offers from buyers.
-     */
-    private double calculateFreshnessPriceMultiplier(int kesegaran) {
-        if (kesegaran <= 0) {
-            return 0.4; // Buyers offer only 40% for rotten items
-        } else if (kesegaran <= 25) {
-            return 0.6; // Buyers offer 60% for very stale items
-        } else if (kesegaran <= 50) {
-            return 0.75; // Buyers offer 75% for stale items
-        } else if (kesegaran <= 75) {
-            return 0.9; // Buyers offer 90% for moderately fresh items
-        } else {
-            return 1.0; // Full price for fresh items
-        }
+     */    private double calculateFreshnessPriceMultiplier(int kesegaran) {
+        if (kesegaran >= 76) return 1.0;
+        if (kesegaran >= 51) return 0.8;
+        if (kesegaran >= 26) return 0.6;
+        if (kesegaran >= 1) return 0.3;
+        return 0.1; // For kesegaran <= 0 (rotten items)
     }
 }

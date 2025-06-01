@@ -36,18 +36,33 @@ public class ItemEffectManager {
       return boostedEarning;
     }
     return originalEarning;
-  }
-
-  // Semproten - meningkatkan harga jual
+  }  // Semproten - meningkatkan harga jual during transaction based on freshness
   public int applySemproten(int originalPrice) {
     Item semproten = getActiveItemByName("Semproten");
     if (semproten != null) {
-      int boostedPrice = (int) (originalPrice * (1 + semproten.getSemprotenPriceBoost()));
-      System.out.println("Semproten aktif! Harga naik dari Rp" + originalPrice +
-          " menjadi Rp" + boostedPrice);
+      double priceBoost = semproten.getSemprotenPriceBoost();
+      int boostedPrice = (int) (originalPrice * (1 + priceBoost));
+      System.out.println("[SEMPROTEN TRANSACTION EFFECT] Semproten Level " + semproten.getLevel() + " activated!");
+      System.out.println("[SEMPROTEN TRANSACTION EFFECT] Price boost: +" + String.format("%.0f", priceBoost * 100) + "%");
+      System.out.println("[SEMPROTEN TRANSACTION EFFECT] Price: " + originalPrice + " → " + boostedPrice);
       return boostedPrice;
     }
     return originalPrice;
+  }
+
+  // Check if Semproten can be used during transaction
+  public boolean canUseSemproten() {
+    Item semproten = getActiveItemByName("Semproten");
+    return semproten != null && !semproten.isUsed();
+  }
+
+  // Get Semproten price boost percentage for display
+  public double getSemprotenPriceBoost() {
+    Item semproten = getActiveItemByName("Semproten");
+    if (semproten != null) {
+      return semproten.getSemprotenPriceBoost();
+    }
+    return 0.0;
   }
 
   // Tip - bonus uang ekstra
@@ -115,18 +130,17 @@ public class ItemEffectManager {
       }
     }
     return null;
-  }
-
-  // Reset untuk hari baru
+  }  // Reset untuk hari baru
   public void resetDailyEffects() {
     jampiActiveToday = false;
     List<Item> items = player.getInventory().getStokItem();
     for (Item item : items) {
-      if (item.isHipnotis()) {
+      // Reset usage for all items that have daily usage limits
+      if (item.isHipnotis() || item.isSemproten() || item.isPeluit()) {
         item.resetUsage();
       }
     }
-    System.out.println("Efek item harian telah direset.");
+    System.out.println("Efek item harian telah direset untuk semua item.");
   }
 
   // Reset untuk transaksi baru

@@ -19,6 +19,7 @@ import model.Barang;
 import model.Gerobak;
 import model.Inventory;
 import model.Item;
+import model.ItemEffectManager;
 import model.Perk;
 import model.PerksManagement;
 import model.Player;
@@ -36,18 +37,19 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private JTable itemGerobakTable;
     private JLabel lblJumlah, lblGerobakInfo;
     private Image bgImage, tetoImage;
-    private final int currentSortBy = 0, currentSortOrder = 0;
-    private JTextField jumlahField, hargaField;
+    private final int currentSortBy = 0, currentSortOrder = 0;    private JTextField jumlahField, hargaField;
     private JTabbedPane tabbedPane;
     private Gerobak gerobak; // Tambahkan sistem DayTime sederhana
     private int currentDay = 1;
     private JLabel dayLabel; // Added dayLabel field
     private Runnable onSleepCallback;
     private Supplier supplier; // Add supplier reference for stock regeneration
+    private ItemEffectManager itemEffectManager; // Add item effect manager for using items
 
     public HomeBasePanel(Player player) {
         this.player = player;
         this.perksManagement = new PerksManagement();
+        this.itemEffectManager = new ItemEffectManager(player);
         setLayout(null);
         initializeComponents();
         loadImages();
@@ -167,8 +169,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             sortPanel.add(new JLabel("Order: "));
             sortPanel.add(orderCombo);
             goodsPanel.add(sortPanel, BorderLayout.NORTH);
-            goodsPanel.add(goodsScroll, BorderLayout.CENTER);
-            JButton btnHapus = StyledButton.create("Hapus Barang", 14, 150, 38);
+            goodsPanel.add(goodsScroll, BorderLayout.CENTER);            JButton btnHapus = StyledButton.create("Hapus Barang", 14, 150, 38);
             JButton btnMoveToGerobak = StyledButton.create("Move to Gerobak", 14, 180, 38);
             JButton btnBersihkanBusuk = StyledButton.create("Bersihkan Barang Busuk", 14, 180, 38);
 
@@ -284,8 +285,16 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
                 if (targetBarang == null) {
                     System.out.println("Debug: No matching barang found!");
-                }
-                if (targetBarang != null) {
+                }                if (targetBarang != null) {
+                    // Check if item is rotten (kesegaran <= 0)
+                    if (targetBarang.getKesegaran() <= 0) {
+                        JOptionPane.showMessageDialog(this,
+                                "Tidak bisa memindahkan barang busuk ke gerobak!\nBuang barang busuk terlebih dahulu.",
+                                "Barang Busuk",
+                                JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+
                     // Get the actual gerobak capacity from inventory
                     int kapasitasGerobak = 20; // Default fallback
                     if (inventory.getGerobak() != null) {
@@ -314,9 +323,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     JOptionPane.showMessageDialog(this, "Barang tidak ditemukan di inventory.", "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
-            });
-
-            btnBersihkanBusuk.addActionListener(_ -> {
+            });            btnBersihkanBusuk.addActionListener(_ -> {
                 if (inventory == null) {
                     JOptionPane.showMessageDialog(this, "Inventory tidak tersedia!", "Error",
                             JOptionPane.ERROR_MESSAGE);
@@ -335,8 +342,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                             "Sukses",
                             JOptionPane.INFORMATION_MESSAGE);
                     refreshInventoryAndGerobak();
-                }
-            });
+                }            });
 
             tabbedPane.addTab("Goods", goodsPanel);
 
@@ -2529,13 +2535,17 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         sleepButton.addActionListener(_ -> {
             currentDay++;
             updateDayLabel();
-            player.setHasSlept(true);
-
-            // IMPORTANT: Reduce freshness FIRST before any UI updates
+            player.setHasSlept(true);            // IMPORTANT: Reduce freshness FIRST before any UI updates
             System.out.println("Player sleeps. Day advanced to: " + currentDay);
             if (inventory != null) {
                 inventory.kurangiKesegaranSemua();
                 System.out.println("Debug: Freshness reduced for all items");
+            }
+
+            // Reset daily item effects (Hipnotis, Semproten, Peluit usage)
+            if (itemEffectManager != null) {
+                itemEffectManager.resetDailyEffects();
+                System.out.println("Debug: Daily item effects reset for new day");
             }
 
             // Regenerate supplier stock for the new day
