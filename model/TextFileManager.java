@@ -153,7 +153,6 @@ public class TextFileManager implements FileManager {
         return false;
       }
 
-      player.setLevel(level);
       player.tambahMoney(money - player.getMoney()); // Adjust money
       return saveGameWithContext(player, day, "HomeBase", 0);
     } catch (Exception e) {
@@ -278,7 +277,6 @@ public class TextFileManager implements FileManager {
       writer.println("=== PLAYER_DATA ===");
       writer.println("USERNAME:" + player.getUsername());
       writer.println("ID:" + player.getID());
-      writer.println("LEVEL:" + player.getLevel());
       writer.println("MONEY:" + player.getMoney());
       writer.println("CURRENT_DAY:" + currentDay);
       writer.println();
@@ -298,12 +296,12 @@ public class TextFileManager implements FileManager {
             jumlah);
       }
       writer.println("// Format: nama,kategori,hargaBeli,kesegaran,jumlah");
-      writer.println();      // === INVENTORY_ITEM ===
+      writer.println(); // === INVENTORY_ITEM ===
       writer.println("=== INVENTORY_ITEM ===");
       List<Item> allItems = new ArrayList<>();
       List<Item> stokItem = player.getInventory().getStokItem();
       List<Item> itemDibawa = player.getInventory().getItemDibawa();
-      
+
       // Add all items from inventory (not in gerobak)
       allItems.addAll(stokItem);
       // Add all items from gerobak
@@ -488,10 +486,6 @@ public class TextFileManager implements FileManager {
         // unique ID
         // This fixes the issue where all loaded players had the same ID
         System.out.println("  - Keeping generated ID instead of saved ID");
-        break;
-      case "LEVEL":
-        player.setLevel(Integer.parseInt(value));
-        System.out.println("  - Set level to: " + value);
         break;
       case "MONEY":
         int currentMoney = player.getMoney();

@@ -13,7 +13,6 @@ public class Player {
 
     private String username;
     private int ID;
-    private int level;
     private int money;
     private Inventory inventory;
     private Gerobak gerobak;
@@ -35,8 +34,7 @@ public class Player {
     public Player(String username) {
         this.username = username;
         this.ID = (int) (Math.random() * 9999999 + 80000000);
-        this.level = 1;
-        this.money = 10000000;
+        this.money = 100000;
         this.inventory = new Inventory();
         this.gerobak = new Gerobak(); // Initialize gerobak
 
@@ -64,14 +62,6 @@ public class Player {
 
     public void setID(int iD) {
         ID = iD;
-    }
-
-    public int getLevel() {
-        return level;
-    }
-
-    public void setLevel(int level) {
-        this.level = level;
     }
 
     public int getMoney() {

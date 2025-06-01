@@ -1,14 +1,21 @@
 === PLAYER_DATA ===
-USERNAME:ambalam
-ID:87031779
-LEVEL:1
-MONEY:10000000
+USERNAME:patak_solder
+ID:85448223
+MONEY:9547000
 CURRENT_DAY:1
 
 === INVENTORY_BARANG ===
+BARANG:Kangkung,Sayur,3000,100,10
+BARANG:Salak,Buah,3000,100,1
+BARANG:Jeruk,Buah,6000,100,15
 // Format: nama,kategori,hargaBeli,kesegaran,jumlah
 
 === INVENTORY_ITEM ===
+ITEM:Hipnotis,3,false,false
+ITEM:Peluit,3,false,false
+ITEM:Tip,3,false,false
+ITEM:Jampi,3,false,false
+ITEM:Semproten,3,false,false
 // Format: nama,level,active,inGerobak
 
 === GEROBAK ===
@@ -22,6 +29,7 @@ BIAYA_UPGRADE:100000
 
 === PERKS ===
 OWNED_PERK:Active,0,true
+OWNED_PERK:Charming,0,true
 // Format: nama,level,owned/active
 
 === GAME_PROGRESS ===

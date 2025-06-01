@@ -180,7 +180,6 @@ public class TokoItemPanel extends JPanel {
   private void populateUpgradeItems() {
     upgradeItemsPanel.removeAll();
 
-    // Change getAllItems() to getStokItem() to match the Inventory class
     if (inventory == null || inventory.getStokItem().isEmpty()) {
       JPanel messagePanel = new JPanel();
       messagePanel.setOpaque(false);
@@ -189,26 +188,16 @@ public class TokoItemPanel extends JPanel {
       messagePanel.add(noItemsLabel);
       upgradeItemsPanel.add(messagePanel);
     } else {
-      // Change getAllItems() to getStokItem() here as well
       for (Item item : inventory.getStokItem()) {
         JPanel itemRow = new JPanel(new GridBagLayout());
         itemRow.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 15, 5, 15); // Lebih lebar jarak antar kolom
+        gbc.insets = new Insets(5, 15, 5, 15);
         gbc.gridy = 0; // Icon dan nama
         ImageIcon scaledIcon = GamePanel.getIcon(item.getIconPath(), 40, 40);
         if (scaledIcon == null) {
           scaledIcon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40);
         }
-        // ImageIcon originalIcon = new ImageIcon("assets/icons/" + item.getIconPath());
-        // Image icon = originalIcon.getImage();
-        // // Make sure the image was loaded properly
-        // if (originalIcon.getIconWidth() > 0) {
-        //   icon = icon.getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-        // } else {
-        //   // Try alternative way to load the icon if direct loading fails
-        //   icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 40, 40).getImage();
-        // }
         JLabel nameLabel = new JLabel(item.getNama(), scaledIcon, JLabel.LEFT);
         nameLabel.setFont(new Font("Serif", Font.PLAIN, 22));
         gbc.gridx = 0;
@@ -310,19 +299,19 @@ public class TokoItemPanel extends JPanel {
   private String getItemEffectString(Item item) {
     if (item.isHipnotis()) {
       return "Efek: Meningkatkan peluang pembeli langsung membeli tanpa menawar (" +
-        String.format("%.0f%% chance langsung beli", item.getHipnotisChance() * 100) + ")";
+          String.format("%.0f%% chance langsung beli", item.getHipnotisChance() * 100) + ")";
     } else if (item.isJampi()) {
       return "Efek: Melipatgandakan penghasilan dari transaksi hari ini (" +
-        String.format("%.1fx multiplier penghasilan", item.getJampiMultiplier()) + ")";
+          String.format("%.1fx multiplier penghasilan", item.getJampiMultiplier()) + ")";
     } else if (item.isSemproten()) {
       return "Efek: Menambah kesan barang lebih fresh, harga bisa ditawar lebih mahal (" +
-        String.format("+%.0f%% harga jual", item.getSemprotenPriceBoost() * 100) + ")";
+          String.format("+%.0f%% harga jual", item.getSemprotenPriceBoost() * 100) + ")";
     } else if (item.isTip()) {
       return "Efek: Pembeli kadang memberi uang ekstra (" +
-        String.format("%.0f%% chance bonus tip", item.getTipBonusRate() * 100) + ")";
+          String.format("%.0f%% chance bonus tip", item.getTipBonusRate() * 100) + ")";
     } else if (item.isPeluit()) {
       return "Efek: Memanggil pembeli tambahan secara instan (" +
-        String.format("+%d pembeli tambahan", item.getPeluitExtraBuyers()) + ")";
+          String.format("+%d pembeli tambahan", item.getPeluitExtraBuyers()) + ")";
     }
     return "Efek tidak diketahui";
   }

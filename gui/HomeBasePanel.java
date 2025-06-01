@@ -1282,6 +1282,27 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         return "N/A";
     }
 
+    // Gets full descriptive text for item effects
+    private String getItemEffectDescription(Item item) {
+        if (item.isHipnotis()) {
+            return "Meningkatkan peluang pembeli langsung membeli tanpa menawar (" +
+                    String.format("%.0f%% chance langsung beli", item.getHipnotisChance() * 100) + ")";
+        } else if (item.isJampi()) {
+            return "Melipatgandakan penghasilan dari transaksi hari ini (" +
+                    String.format("%.1fx multiplier penghasilan", item.getJampiMultiplier()) + ")";
+        } else if (item.isSemproten()) {
+            return "Menambah kesan barang lebih fresh, harga bisa ditawar lebih mahal (" +
+                    String.format("+%.0f%% harga jual", item.getSemprotenPriceBoost() * 100) + ")";
+        } else if (item.isTip()) {
+            return "Pembeli kadang memberi uang ekstra (" +
+                    String.format("%.0f%% chance bonus tip", item.getTipBonusRate() * 100) + ")";
+        } else if (item.isPeluit()) {
+            return "Memanggil pembeli tambahan secara instan (" +
+                    String.format("+%d pembeli tambahan", item.getPeluitExtraBuyers()) + ")";
+        }
+        return "Efek tidak diketahui";
+    }
+
     private void updateItemGerobakTable() {
         System.out.println("Debug: updateItemGerobakTable called");
 
@@ -1313,7 +1334,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             data[i][2] = "Level " + item.getLevel();
             data[i][3] = getItemEffectPercentage(item);
             data[i][4] = item.isActive() ? "Aktif" : "Non-aktif";
-            data[i][5] = item.getDeskripsi();
+            data[i][5] = getItemEffectDescription(item);
         }
 
         DefaultTableModel model = new DefaultTableModel(data, cols) {
@@ -1784,13 +1805,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             if (icon == null) {
                 icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 32, 32);
             }
-
             data[i][0] = icon;
             data[i][1] = item.getNama();
             data[i][2] = "Level " + item.getLevel();
             data[i][3] = getItemEffectPercentage(item);
             data[i][4] = item.isActive() ? "Aktif" : "Non-aktif";
-            data[i][5] = item.getDeskripsi();
+            data[i][5] = getItemEffectDescription(item);
         }
 
         DefaultTableModel model = new DefaultTableModel(data, cols) {
@@ -2501,14 +2521,23 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         p.add(v, BorderLayout.EAST);
         p.setMaximumSize(new Dimension(400, 32));
         return p;
-    }    
+    }
+
     private void sleepAndAdvanceDay() {
+        currentDay++;
+        player.setHasSlept(true);
+        if (gamePanel != null) {
+            gamePanel.advanceDay(); // Sinkronkan hari dan reset efek harian item
+            this.currentDay = gamePanel.getCurrentDay();
+        }
         if (onSleepCallback != null)
             onSleepCallback.run();
-        JOptionPane.showMessageDialog(this,
-                "Hari berganti! Sekarang hari ke-" + currentDay
-                        + ". Arena trigger zone akan direset saat kamu ke kota lain.",
-                "Sleep", JOptionPane.INFORMATION_MESSAGE);
+        // Pesan hari berganti dihapus sesuai permintaan user
+        // JOptionPane.showMessageDialog(this,
+        // "Hari berganti! Sekarang hari ke-" + currentDay
+        // + ". Arena trigger zone akan direset saat kamu ke kota lain.",
+        // "Sleep", JOptionPane.INFORMATION_MESSAGE);
+        // Create integrated medieval-themed sleep dialog
         JDialog sleepDialog = createMedievalSleepDialog();
         sleepDialog.setVisible(true);
     }
@@ -2550,13 +2579,9 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         sleepButton.setBackground(new Color(120, 180, 120));
         sleepButton.setForeground(Color.WHITE);
         sleepButton.setFocusPainted(false);
-        sleepButton.setPreferredSize(new Dimension(140, 48));        
+        sleepButton.setPreferredSize(new Dimension(140, 48));
         sleepButton.addActionListener(_ -> {
-            if (gamePanel != null) {
-                gamePanel.advanceDay(); // This will increment currentDay and reset daily item effects
-                this.currentDay = gamePanel.getCurrentDay(); // Sync with GamePanel's day counter
-                System.out.println("HomeBasePanel: Day synchronized with GamePanel: " + this.currentDay);
-            }
+            currentDay++;
             updateDayLabel();
             player.setHasSlept(true); // IMPORTANT: Reduce freshness FIRST before any UI updates
             System.out.println("Player sleeps. Day advanced to: " + currentDay);

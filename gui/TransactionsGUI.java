@@ -556,73 +556,77 @@ public class TransactionsGUI extends JPanel {
         sellButton.addActionListener(e -> startSelling());
         sellButton.setEnabled(true);
         add(sellButton);
-        currentY += buttonHeight + buttonGap;        // Price input field for counter offers with increment/decrement buttons
+        currentY += buttonHeight + buttonGap; // Price input field for counter offers with increment/decrement buttons
         pricePanel = new JPanel();
         pricePanel.setLayout(null); // Use absolute positioning for precise control
         pricePanel.setOpaque(false);
         pricePanel.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, fieldHeight);
         pricePanel.setVisible(false);
         add(pricePanel);
-        
+
         // Calculate button dimensions and positions
         int smallButtonWidth = 50;
         int smallButtonHeight = fieldHeight;
         int priceFieldWidth = 120;
         int spacing = 5;
-        
+
         // Calculate total width needed
         int totalContentWidth = (smallButtonWidth * 4) + (spacing * 4) + priceFieldWidth + (spacing * 4);
         int startX = (tradingWidth - totalContentWidth) / 2;
-        
+
         // Left side decrement buttons (-10000, -1000, -100, -)
         JButton minus10000Button = StyledButton.create("-10000", 10, smallButtonWidth, smallButtonHeight);
         minus10000Button.setBounds(startX, 0, smallButtonWidth, smallButtonHeight);
         minus10000Button.addActionListener(e -> adjustPrice(-10000));
         pricePanel.add(minus10000Button);
-        
+
         JButton minus1000Button = StyledButton.create("-1000", 10, smallButtonWidth, smallButtonHeight);
         minus1000Button.setBounds(startX + smallButtonWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
         minus1000Button.addActionListener(e -> adjustPrice(-1000));
         pricePanel.add(minus1000Button);
-        
+
         JButton minus100Button = StyledButton.create("-100", 10, smallButtonWidth, smallButtonHeight);
         minus100Button.setBounds(startX + (smallButtonWidth + spacing) * 2, 0, smallButtonWidth, smallButtonHeight);
         minus100Button.addActionListener(e -> adjustPrice(-100));
         pricePanel.add(minus100Button);
-        
+
         JButton minus1Button = StyledButton.create("-", 12, smallButtonWidth, smallButtonHeight);
         minus1Button.setBounds(startX + (smallButtonWidth + spacing) * 3, 0, smallButtonWidth, smallButtonHeight);
         minus1Button.addActionListener(e -> adjustPrice(-1));
         pricePanel.add(minus1Button);
-        
+
         // Price input field in center
         priceField = new JTextField();
         priceField.setHorizontalAlignment(JTextField.CENTER);
         priceField.setFont(new Font("Serif", Font.PLAIN, 14));
         priceField.setBounds(startX + (smallButtonWidth + spacing) * 4, 0, priceFieldWidth, fieldHeight);
         pricePanel.add(priceField);
-        
+
         // Right side increment buttons (+, +100, +1000, +10000)
         JButton plus1Button = StyledButton.create("+", 12, smallButtonWidth, smallButtonHeight);
-        plus1Button.setBounds(startX + (smallButtonWidth + spacing) * 4 + priceFieldWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
+        plus1Button.setBounds(startX + (smallButtonWidth + spacing) * 4 + priceFieldWidth + spacing, 0,
+                smallButtonWidth, smallButtonHeight);
         plus1Button.addActionListener(e -> adjustPrice(1));
         pricePanel.add(plus1Button);
-        
+
         JButton plus100Button = StyledButton.create("+100", 10, smallButtonWidth, smallButtonHeight);
-        plus100Button.setBounds(startX + (smallButtonWidth + spacing) * 5 + priceFieldWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
+        plus100Button.setBounds(startX + (smallButtonWidth + spacing) * 5 + priceFieldWidth + spacing, 0,
+                smallButtonWidth, smallButtonHeight);
         plus100Button.addActionListener(e -> adjustPrice(100));
         pricePanel.add(plus100Button);
-        
+
         JButton plus1000Button = StyledButton.create("+1000", 10, smallButtonWidth, smallButtonHeight);
-        plus1000Button.setBounds(startX + (smallButtonWidth + spacing) * 6 + priceFieldWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
+        plus1000Button.setBounds(startX + (smallButtonWidth + spacing) * 6 + priceFieldWidth + spacing, 0,
+                smallButtonWidth, smallButtonHeight);
         plus1000Button.addActionListener(e -> adjustPrice(1000));
         pricePanel.add(plus1000Button);
-        
+
         JButton plus10000Button = StyledButton.create("+10000", 10, smallButtonWidth, smallButtonHeight);
-        plus10000Button.setBounds(startX + (smallButtonWidth + spacing) * 7 + priceFieldWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
+        plus10000Button.setBounds(startX + (smallButtonWidth + spacing) * 7 + priceFieldWidth + spacing, 0,
+                smallButtonWidth, smallButtonHeight);
         plus10000Button.addActionListener(e -> adjustPrice(10000));
         pricePanel.add(plus10000Button);
-        
+
         currentY += fieldHeight + buttonGap;
 
         // Accept Button - left side of center
@@ -901,21 +905,21 @@ public class TransactionsGUI extends JPanel {
         try {
             int currentPrice = 0;
             String currentText = priceField.getText().trim();
-            
+
             // Parse current price, default to 0 if empty or invalid
             if (!currentText.isEmpty()) {
                 currentPrice = Integer.parseInt(currentText);
             }
-            
+
             // Apply adjustment
             int newPrice = currentPrice + adjustment;
-            
+
             // Ensure price doesn't go below 0
             newPrice = Math.max(0, newPrice);
-            
+
             // Update the price field
             priceField.setText(String.valueOf(newPrice));
-            
+
         } catch (NumberFormatException e) {
             // If parsing fails, reset to 0 and apply adjustment
             int newPrice = Math.max(0, adjustment);
@@ -1172,11 +1176,8 @@ public class TransactionsGUI extends JPanel {
 
     private void deactivateConsumableItems() {
         // Deaktifkan item consumable yang dibawa di gerobak setelah transaksi
-        for (Item item : currentPlayer.getInventory().getItemDibawa()) {
-            if (item.isActive()) {
-                item.deactivate();
-                System.out.println("Item " + item.getNama() + " telah dinonaktifkan setelah transaksi.");
-            }
+        if (itemEffectManager != null) {
+            itemEffectManager.deactivateConsumableItems();
         }
     }
 
@@ -1344,7 +1345,7 @@ public class TransactionsGUI extends JPanel {
             data[i][2] = "Level " + item.getLevel();
             data[i][3] = getItemEffectPercentage(item);
             data[i][4] = item.isActive() ? "Aktif" : "Non-aktif";
-            data[i][5] = item.getDeskripsi();
+            data[i][5] = getItemEffectDescription(item);
         }
         javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel(data, cols) {
             @Override
@@ -1401,7 +1402,27 @@ public class TransactionsGUI extends JPanel {
         return "N/A";
     }
 
-    // Use the selected item in the table
+    // Gets full descriptive text for item effects
+    private String getItemEffectDescription(Item item) {
+        if (item.isHipnotis()) {
+            return "Efek: Meningkatkan peluang pembeli langsung membeli tanpa menawar (" +
+                    String.format("%.0f%% chance langsung beli", item.getHipnotisChance() * 100) + ")";
+        } else if (item.isJampi()) {
+            return "Efek: Melipatgandakan penghasilan dari transaksi hari ini (" +
+                    String.format("%.1fx multiplier penghasilan", item.getJampiMultiplier()) + ")";
+        } else if (item.isSemproten()) {
+            return "Efek: Menambah kesan barang lebih fresh, harga bisa ditawar lebih mahal (" +
+                    String.format("+%.0f%% harga jual", item.getSemprotenPriceBoost() * 100) + ")";
+        } else if (item.isTip()) {
+            return "Efek: Pembeli kadang memberi uang ekstra (" +
+                    String.format("%.0f%% chance bonus tip", item.getTipBonusRate() * 100) + ")";
+        } else if (item.isPeluit()) {
+            return "Efek: Memanggil pembeli tambahan secara instan (" +
+                    String.format("+%d pembeli tambahan", item.getPeluitExtraBuyers()) + ")";
+        }
+        return "Efek tidak diketahui";
+    } // Use the selected item in the table
+
     private void useSelectedItem() {
         int row = itemGerobakTable.getSelectedRow();
         if (row == -1) {
@@ -1410,20 +1431,37 @@ public class TransactionsGUI extends JPanel {
             return;
         }
         String namaItem = itemGerobakTable.getValueAt(row, 1).toString();
-        // Hanya Hipnotis & Semproten yang bisa diaktifkan di sini
-        if (itemEffectManager != null
-                && (namaItem.equalsIgnoreCase("Hipnotis") || namaItem.equalsIgnoreCase("Semproten"))) {
-            if (itemEffectManager.activateItem(namaItem)) {
-                JOptionPane.showMessageDialog(this,
-                        "Item " + namaItem + " berhasil diaktifkan untuk transaksi berikutnya!", "Sukses",
-                        JOptionPane.INFORMATION_MESSAGE);
+
+        // Cek jenis item dan kondisi penggunaan
+        if (namaItem.equalsIgnoreCase("Hipnotis") || namaItem.equalsIgnoreCase("Semproten")) {
+            // Item yang bisa digunakan sebelum Start Selling
+            if (!negotiationPhase) // Belum dalam fase negosiasi
+            {
+                if (itemEffectManager != null && itemEffectManager.activateItemForTransaction(namaItem)) {
+                    JOptionPane.showMessageDialog(this,
+                            "Item " + namaItem + " berhasil diaktifkan untuk transaksi berikutnya!", "Sukses",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    updateItemGerobakTableLocal(); // Refresh table
+                } else {
+                    JOptionPane.showMessageDialog(this, "Item sudah aktif atau tidak bisa digunakan sekarang!", "Info",
+                            JOptionPane.WARNING_MESSAGE);
+                }
             } else {
-                JOptionPane.showMessageDialog(this, "Item sudah aktif atau tidak bisa digunakan sekarang!", "Info",
+                JOptionPane.showMessageDialog(this, "Item ini hanya bisa digunakan sebelum Start Selling!", "Info",
                         JOptionPane.WARNING_MESSAGE);
             }
+        } else if (namaItem.equalsIgnoreCase("Jampi")) {
+            JOptionPane.showMessageDialog(this, "Jampi diaktifkan otomatis saat memulai hari baru!", "Info",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } else if (namaItem.equalsIgnoreCase("Tip")) {
+            JOptionPane.showMessageDialog(this, "Tip bekerja otomatis saat transaksi berhasil!", "Info",
+                    JOptionPane.INFORMATION_MESSAGE);
+        } else if (namaItem.equalsIgnoreCase("Peluit")) {
+            JOptionPane.showMessageDialog(this, "Peluit bisa digunakan dengan menekan tombol H saat di map!", "Info",
+                    JOptionPane.INFORMATION_MESSAGE);
         } else {
-            JOptionPane.showMessageDialog(this, "Item ini hanya bisa digunakan otomatis atau di waktu tertentu!",
-                    "Info", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Item ini tidak dikenali!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 

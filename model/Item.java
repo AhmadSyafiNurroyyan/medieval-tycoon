@@ -13,6 +13,9 @@ public class Item implements Showable, Upgrade {
     private int level;
     private final String iconPath;
     private boolean isUsed;
+    private boolean isConsumable; // Apakah item bisa habis
+    private int quantity; // Jumlah item (untuk consumable)
+    private int maxQuantity; // Maksimum quantity per level
 
     private static final int MAX_LEVEL = 5;
 
@@ -25,6 +28,17 @@ public class Item implements Showable, Upgrade {
         this.isActive = false;
         this.iconPath = iconPath;
         this.isUsed = false;
+
+        // Set consumable properties berdasarkan jenis item
+        if (isPeluit()) {
+            this.isConsumable = true;
+            this.maxQuantity = 10; // Base quantity
+            this.quantity = maxQuantity;
+        } else {
+            this.isConsumable = false;
+            this.quantity = 1;
+            this.maxQuantity = 1;
+        }
     }
 
     public String getNama() {
@@ -84,6 +98,39 @@ public class Item implements Showable, Upgrade {
         this.isUsed = false;
     }
 
+    // Methods untuk consumable system
+    public boolean isConsumable() {
+        return isConsumable;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = Math.max(0, quantity);
+    }
+
+    public int getMaxQuantity() {
+        return maxQuantity;
+    }
+
+    public boolean canUse() {
+        return quantity > 0;
+    }
+
+    public boolean consumeOne() {
+        if (isConsumable && quantity > 0) {
+            quantity--;
+            return true;
+        }
+        return false;
+    }
+
+    public void refillQuantity() {
+        this.quantity = maxQuantity;
+    }
+
     // Efek spesifik setiap item berdasarkan level
     public double getHipnotisChance() {
         return 0.3 + (level * 0.1); // 30% + 10% per level (max 80% di level 5)
@@ -130,6 +177,11 @@ public class Item implements Showable, Upgrade {
     public boolean upgradeLevel() {
         if (level < MAX_LEVEL) {
             level++;
+            // Update max quantity for consumable items when upgraded
+            if (isConsumable) {
+                maxQuantity = 10 + (level * 5); // Base 10 + 5 per level
+                quantity = maxQuantity; // Refill pada upgrade
+            }
             return true;
         }
         return false;
