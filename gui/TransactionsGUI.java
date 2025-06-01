@@ -562,68 +562,42 @@ public class TransactionsGUI extends JPanel {
         pricePanel.setOpaque(false);
         pricePanel.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, fieldHeight);
         pricePanel.setVisible(false);
-<<<<<<< HEAD
         add(pricePanel);
 
-        // Calculate button dimensions and positions
-        int smallButtonWidth = 50;
-        int smallButtonHeight = fieldHeight;
-        int priceFieldWidth = 120;
-        int spacing = 5;
-
-        // Calculate total width needed
-        int totalContentWidth = (smallButtonWidth * 4) + (spacing * 4) + priceFieldWidth + (spacing * 4);
-        int startX = (tradingWidth - totalContentWidth) / 2;
-
-        // Left side decrement buttons (-10000, -1000, -100, -)
-        JButton minus10000Button = StyledButton.create("-10000", 10, smallButtonWidth, smallButtonHeight);
-        minus10000Button.setBounds(startX, 0, smallButtonWidth, smallButtonHeight);
-        minus10000Button.addActionListener(e -> adjustPrice(-10000));
-        pricePanel.add(minus10000Button);
-
-        JButton minus1000Button = StyledButton.create("-1000", 10, smallButtonWidth, smallButtonHeight);
-        minus1000Button.setBounds(startX + smallButtonWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
-        minus1000Button.addActionListener(e -> adjustPrice(-1000));
-        pricePanel.add(minus1000Button);
-
-        JButton minus100Button = StyledButton.create("-100", 10, smallButtonWidth, smallButtonHeight);
-        minus100Button.setBounds(startX + (smallButtonWidth + spacing) * 2, 0, smallButtonWidth, smallButtonHeight);
-        minus100Button.addActionListener(e -> adjustPrice(-100));
-        pricePanel.add(minus100Button);
-
-        JButton minus1Button = StyledButton.create("-", 12, smallButtonWidth, smallButtonHeight);
-        minus1Button.setBounds(startX + (smallButtonWidth + spacing) * 3, 0, smallButtonWidth, smallButtonHeight);
-=======
-        add(pricePanel);        // Calculate button dimensions and positions - reconfigure for 3 left buttons + field + 3 right buttons
+        // Calculate button dimensions and positions - reconfigure for 3 left buttons +
+        // field + 3 right buttons
         int spacing = 3;
         int priceFieldWidth = Math.max(80, tradingWidth / 5); // Responsive price field width
-        
-        // Calculate available width for buttons after field and spacing (3 left + 3 right = 6 total buttons)
+
+        // Calculate available width for buttons after field and spacing (3 left + 3
+        // right = 6 total buttons)
         int totalButtons = 6; // 3 left + 3 right
-        int availableForButtons = tradingWidth - priceFieldWidth - (spacing * 8); // 8 spacings: left margin + 2 between left buttons + 1 before field + 1 after field + 2 between right buttons + right margin
+        int availableForButtons = tradingWidth - priceFieldWidth - (spacing * 8); // 8 spacings: left margin + 2 between
+                                                                                  // left buttons + 1 before field + 1
+                                                                                  // after field + 2 between right
+                                                                                  // buttons + right margin
         int smallButtonWidth = Math.max(35, availableForButtons / totalButtons);
         int smallButtonHeight = fieldHeight;
-        
+
         // Recalculate total width to ensure it fits
         int totalContentWidth = (smallButtonWidth * totalButtons) + priceFieldWidth + (spacing * 8);
         int startX = Math.max(0, (tradingWidth - totalContentWidth) / 2);
-        
+
         // Left side decrement buttons (-10000, -1000, -)
         int fontSize = Math.max(8, Math.min(12, smallButtonWidth / 5)); // Responsive font size
-        
+
         JButton minus10000Button = StyledButton.create("-10000", fontSize, smallButtonWidth, smallButtonHeight);
         minus10000Button.setBounds(startX, 0, smallButtonWidth, smallButtonHeight);
         minus10000Button.addActionListener(e -> adjustPrice(-10000));
         pricePanel.add(minus10000Button);
-        
+
         JButton minus1000Button = StyledButton.create("-1000", fontSize, smallButtonWidth, smallButtonHeight);
         minus1000Button.setBounds(startX + smallButtonWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
         minus1000Button.addActionListener(e -> adjustPrice(-1000));
         pricePanel.add(minus1000Button);
-        
+
         JButton minus1Button = StyledButton.create("-", fontSize + 2, smallButtonWidth, smallButtonHeight);
         minus1Button.setBounds(startX + (smallButtonWidth + spacing) * 2, 0, smallButtonWidth, smallButtonHeight);
->>>>>>> af49c007e90fc9b92633db3b9846c1b6ad37f553
         minus1Button.addActionListener(e -> adjustPrice(-1));
         pricePanel.add(minus1Button);
 
@@ -633,46 +607,24 @@ public class TransactionsGUI extends JPanel {
         priceField.setFont(new Font("Serif", Font.PLAIN, Math.max(10, fieldHeight / 3)));
         priceField.setBounds(startX + (smallButtonWidth + spacing) * 3, 0, priceFieldWidth, fieldHeight);
         pricePanel.add(priceField);
-<<<<<<< HEAD
 
-        // Right side increment buttons (+, +100, +1000, +10000)
-        JButton plus1Button = StyledButton.create("+", 12, smallButtonWidth, smallButtonHeight);
-        plus1Button.setBounds(startX + (smallButtonWidth + spacing) * 4 + priceFieldWidth + spacing, 0,
-                smallButtonWidth, smallButtonHeight);
-        plus1Button.addActionListener(e -> adjustPrice(1));
-        pricePanel.add(plus1Button);
-
-        JButton plus100Button = StyledButton.create("+100", 10, smallButtonWidth, smallButtonHeight);
-        plus100Button.setBounds(startX + (smallButtonWidth + spacing) * 5 + priceFieldWidth + spacing, 0,
-                smallButtonWidth, smallButtonHeight);
-        plus100Button.addActionListener(e -> adjustPrice(100));
-        pricePanel.add(plus100Button);
-
-        JButton plus1000Button = StyledButton.create("+1000", 10, smallButtonWidth, smallButtonHeight);
-        plus1000Button.setBounds(startX + (smallButtonWidth + spacing) * 6 + priceFieldWidth + spacing, 0,
-                smallButtonWidth, smallButtonHeight);
-        plus1000Button.addActionListener(e -> adjustPrice(1000));
-        pricePanel.add(plus1000Button);
-
-        JButton plus10000Button = StyledButton.create("+10000", 10, smallButtonWidth, smallButtonHeight);
-        plus10000Button.setBounds(startX + (smallButtonWidth + spacing) * 7 + priceFieldWidth + spacing, 0,
-                smallButtonWidth, smallButtonHeight);
-=======
-        
         // Right side increment buttons (+, +1000, +10000)
         JButton plus1Button = StyledButton.create("+", fontSize + 2, smallButtonWidth, smallButtonHeight);
-        plus1Button.setBounds(startX + (smallButtonWidth + spacing) * 3 + priceFieldWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
+        plus1Button.setBounds(startX + (smallButtonWidth + spacing) * 3 + priceFieldWidth + spacing, 0,
+                smallButtonWidth, smallButtonHeight);
         plus1Button.addActionListener(e -> adjustPrice(1));
         pricePanel.add(plus1Button);
-        
+
         JButton plus1000Button = StyledButton.create("+1000", fontSize, smallButtonWidth, smallButtonHeight);
-        plus1000Button.setBounds(startX + (smallButtonWidth + spacing) * 3 + priceFieldWidth + spacing + smallButtonWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
+        plus1000Button.setBounds(
+                startX + (smallButtonWidth + spacing) * 3 + priceFieldWidth + spacing + smallButtonWidth + spacing, 0,
+                smallButtonWidth, smallButtonHeight);
         plus1000Button.addActionListener(e -> adjustPrice(1000));
         pricePanel.add(plus1000Button);
-        
+
         JButton plus10000Button = StyledButton.create("+10000", fontSize, smallButtonWidth, smallButtonHeight);
-        plus10000Button.setBounds(startX + (smallButtonWidth + spacing) * 3 + priceFieldWidth + spacing + (smallButtonWidth + spacing) * 2, 0, smallButtonWidth, smallButtonHeight);
->>>>>>> af49c007e90fc9b92633db3b9846c1b6ad37f553
+        plus10000Button.setBounds(startX + (smallButtonWidth + spacing) * 3 + priceFieldWidth + spacing
+                + (smallButtonWidth + spacing) * 2, 0, smallButtonWidth, smallButtonHeight);
         plus10000Button.addActionListener(e -> adjustPrice(10000));
         pricePanel.add(plus10000Button);
 
@@ -945,7 +897,9 @@ public class TransactionsGUI extends JPanel {
         revalidate();
         repaint();
         System.out.println("DEBUG: repaint called");
-    }    /**
+    }
+
+    /**
      * Adjust the price field value by the specified amount
      */
     private void adjustPrice(int adjustment) {
@@ -956,21 +910,13 @@ public class TransactionsGUI extends JPanel {
             // Parse current price, default to 0 if empty or invalid
             if (!currentText.isEmpty()) {
                 currentPrice = Integer.parseInt(currentText);
-            }
-
-            // Apply adjustment
+            } // Apply adjustment
             int newPrice = currentPrice + adjustment;
-<<<<<<< HEAD
 
-            // Ensure price doesn't go below 0
-            newPrice = Math.max(0, newPrice);
-
-=======
-            
             // Get price constraints if we have a selected item
             int minPrice = 0;
             int maxPrice = Integer.MAX_VALUE;
-            
+
             if (selectedBarang != null) {
                 minPrice = selectedBarang.getHargaBeli(); // Cannot go below purchase price
                 int hargaJual = currentPlayer.getInventory().getHargaJual(selectedBarang);
@@ -978,11 +924,10 @@ public class TransactionsGUI extends JPanel {
                     maxPrice = hargaJual; // Cannot exceed selling price
                 }
             }
-            
+
             // Apply constraints
             newPrice = Math.max(minPrice, Math.min(maxPrice, newPrice));
-            
->>>>>>> af49c007e90fc9b92633db3b9846c1b6ad37f553
+
             // Update the price field
             priceField.setText(String.valueOf(newPrice));
 
@@ -1021,14 +966,15 @@ public class TransactionsGUI extends JPanel {
             currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
             // updateGerobakTablesLocal(); // Removed to prevent NPE if
             // gerobakWithPriceTable is null
-        }        currentMessage = String.format("Transaksi berhasil! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
+        }
+        currentMessage = String.format("Transaksi berhasil! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
                 selectedBarang.getNamaBarang(), selectedQuantity, finalUnitPrice, finalTotalPrice);
         // Deaktifkan item consumable setelah digunakan
         deactivateConsumableItems();
-        
+
         // Check if there are still items with selling prices available for trading
         boolean hasMoreItemsToSell = hasItemsWithSellingPrice();
-        
+
         if (hasMoreItemsToSell) {
             // Reset negotiation state but allow more transactions
             negotiationPhase = false;
@@ -1044,7 +990,7 @@ public class TransactionsGUI extends JPanel {
             sellButton.setVisible(false);
             currentMessage += " Semua barang sudah terjual.";
         }
-        
+
         // Refresh gerobak table setelah transaksi sukses
         // updateGerobakTablesLocal(); // Removed to prevent NPE if
         // gerobakWithPriceTable is null
@@ -1155,12 +1101,13 @@ public class TransactionsGUI extends JPanel {
                         // Jangan hide tombol, negosiasi lanjut
                         negotiationPhase = true;
                         repaint();
-                        return;                    } else {
+                        return;
+                    } else {
                         currentMessage = "Pembeli menolak counter offer mu dan mengakhiri negosiasi.";
-                        
+
                         // Check if there are still items with selling prices available for trading
                         boolean hasMoreItemsToSell = hasItemsWithSellingPrice();
-                        
+
                         if (hasMoreItemsToSell) {
                             // Reset negotiation state but allow more transactions
                             negotiationPhase = false;
@@ -1195,17 +1142,19 @@ public class TransactionsGUI extends JPanel {
             return;
         }
         repaint();
-    }    private void declineOffer() {
+    }
+
+    private void declineOffer() {
         if (transactionCompleted) {
             currentMessage = "Transaksi sudah selesai. Tidak bisa menolak lagi.";
             repaint();
             return;
         }
         currentMessage = "Kamu menolak tawaran pembeli.";
-        
+
         // Check if there are still items with selling prices available for trading
         boolean hasMoreItemsToSell = hasItemsWithSellingPrice();
-        
+
         if (hasMoreItemsToSell) {
             // Reset negotiation state but allow more transactions
             negotiationPhase = false;
@@ -1220,7 +1169,7 @@ public class TransactionsGUI extends JPanel {
             closeButton.setVisible(true);
             sellButton.setVisible(false);
         }
-        
+
         repaint();
     }
 
@@ -1292,18 +1241,19 @@ public class TransactionsGUI extends JPanel {
 
     /**
      * Check if there are still items in the gerobak with selling prices set
+     * 
      * @return true if there are items available for trading, false otherwise
      */
     private boolean hasItemsWithSellingPrice() {
         if (currentPlayer == null || currentPlayer.getInventory() == null) {
             return false;
         }
-        
+
         Map<Barang, Integer> barangDiGerobak = currentPlayer.getInventory().getBarangDibawaMutable();
         if (barangDiGerobak.isEmpty()) {
             return false;
         }
-        
+
         // Check if any items in the gerobak have selling prices set
         for (Barang barang : barangDiGerobak.keySet()) {
             int hargaJual = currentPlayer.getInventory().getHargaJual(barang);
@@ -1311,7 +1261,7 @@ public class TransactionsGUI extends JPanel {
                 return true;
             }
         }
-        
+
         return false;
     }
 
