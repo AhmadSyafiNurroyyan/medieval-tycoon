@@ -19,6 +19,15 @@ public class Player {
     private Gerobak gerobak;
     private List<Perk> semuaPerkDimiliki = new ArrayList<>();
     private List<Perk> perkDipilihUntukJualan = new ArrayList<>();
+    private boolean hasSlept = true;
+    
+    public boolean isHasSlept() {
+        return hasSlept;
+    }
+
+    public void setHasSlept(boolean hasSlept) {
+        this.hasSlept = hasSlept;
+    }
 
     public Player() {
     }
@@ -27,7 +36,7 @@ public class Player {
         this.username = username;
         this.ID = (int) (Math.random() * 9999999 + 80000000);
         this.level = 1;
-        this.money = 10000000;
+        this.money = 100000;
         this.inventory = new Inventory();
         this.gerobak = new Gerobak(); // Initialize gerobak
 
@@ -157,7 +166,7 @@ public class Player {
 
     public class PlayerMovement {
 
-        private int x = 885, y = 729;
+        private int x = 138, y = 198;
         private final int speed = 5;
         private boolean up, down, left, right;
         private Image[][] sprites = new Image[4][4];

@@ -228,6 +228,7 @@ public class MainMenu extends JFrame {
                 this.homeBasePanel.setInventory(newPlayer.getInventory());
             }
             if (this.tokoItemPanel != null) {
+                this.tokoItemPanel.updatePlayerData(newPlayer);
                 this.tokoItemPanel.setInventory(newPlayer.getInventory());
                 this.tokoItemPanel.refresh();
             }
@@ -806,6 +807,7 @@ public class MainMenu extends JFrame {
                                     MainMenu.this.homeBasePanel.setInventory(loadedPlayer.getInventory());
                                 }
                                 if (MainMenu.this.tokoItemPanel != null) {
+                                    MainMenu.this.tokoItemPanel.updatePlayerData(loadedPlayer);
                                     MainMenu.this.tokoItemPanel.setInventory(loadedPlayer.getInventory());
                                     MainMenu.this.tokoItemPanel.refresh();
                                 }

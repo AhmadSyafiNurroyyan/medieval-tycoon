@@ -23,10 +23,6 @@ public class TokoItemPanel extends JPanel {
   private Runnable updateInventoryCallback;
   private Runnable autoSaveCallback;
 
-  public TokoItemPanel() {
-    this(new TokoItem(new Player()), new Player());
-  }
-
   public TokoItemPanel(TokoItem toko, Player player) {
     this.toko = toko;
     this.player = player;
@@ -107,6 +103,19 @@ public class TokoItemPanel extends JPanel {
       gbc.anchor = GridBagConstraints.WEST;
       gbc.weightx = 1;
       itemRow.add(nameLabel, gbc);
+
+      // --- Efek item (deskripsi efek detail) ---
+      JLabel effectLabel = new JLabel(getItemEffectString(item));
+      effectLabel.setFont(new Font("Serif", Font.ITALIC, 16));
+      effectLabel.setForeground(new Color(80, 60, 20));
+      gbc.gridy = 1;
+      gbc.gridx = 0;
+      gbc.gridwidth = 3;
+      gbc.anchor = GridBagConstraints.WEST;
+      gbc.weightx = 1;
+      itemRow.add(effectLabel, gbc);
+      gbc.gridy = 0; // reset for next controls
+      gbc.gridwidth = 1;
 
       // Label harga item
       JLabel hargaLabel = new JLabel(item.getHarga() + "G");
@@ -300,15 +309,20 @@ public class TokoItemPanel extends JPanel {
 
   private String getItemEffectString(Item item) {
     if (item.isHipnotis()) {
-      return String.format("Efek: %.0f%% chance langsung beli", item.getHipnotisChance() * 100);
+      return "Efek: Meningkatkan peluang pembeli langsung membeli tanpa menawar (" +
+        String.format("%.0f%% chance langsung beli", item.getHipnotisChance() * 100) + ")";
     } else if (item.isJampi()) {
-      return String.format("Efek: %.1fx multiplier penghasilan", item.getJampiMultiplier());
+      return "Efek: Melipatgandakan penghasilan dari transaksi hari ini (" +
+        String.format("%.1fx multiplier penghasilan", item.getJampiMultiplier()) + ")";
     } else if (item.isSemproten()) {
-      return String.format("Efek: +%.0f%% harga jual", item.getSemprotenPriceBoost() * 100);
+      return "Efek: Menambah kesan barang lebih fresh, harga bisa ditawar lebih mahal (" +
+        String.format("+%.0f%% harga jual", item.getSemprotenPriceBoost() * 100) + ")";
     } else if (item.isTip()) {
-      return String.format("Efek: %.0f%% chance bonus tip", item.getTipBonusRate() * 100);
+      return "Efek: Pembeli kadang memberi uang ekstra (" +
+        String.format("%.0f%% chance bonus tip", item.getTipBonusRate() * 100) + ")";
     } else if (item.isPeluit()) {
-      return String.format("Efek: +%d pembeli tambahan", item.getPeluitExtraBuyers());
+      return "Efek: Memanggil pembeli tambahan secara instan (" +
+        String.format("+%d pembeli tambahan", item.getPeluitExtraBuyers()) + ")";
     }
     return "Efek tidak diketahui";
   }
@@ -334,5 +348,16 @@ public class TokoItemPanel extends JPanel {
     moneyLabel.setText("Uang: " + player.getMoney() + "G");
     populateBuyItems();
     populateUpgradeItems();
+  }
+
+  public void updatePlayerData(Player newPlayer) {
+    this.player = newPlayer;
+    this.moneyLabel.setText("Uang: " + player.getMoney() + "G");
+    // Optionally, update toko as well if needed
+    if (this.toko != null) {
+      this.toko = new TokoItem(newPlayer);
+    }
+    // Refresh UI
+    refresh();
   }
 }

@@ -29,7 +29,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private Player player;
     private PerksManagement perksManagement;
     private JDesktopPane desktopPane;
-    private JInternalFrame inventoryFrame, gerobakFrame, perksFrame;
+    private JInternalFrame inventoryFrame, gerobakFrame, perksFrame, statsFrame;
     private JTable goodsTable, gerobakNoPriceTable, gerobakWithPriceTable;
     // Tambah field untuk item gerobak table
     private JTable itemGerobakTable;
@@ -39,6 +39,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private JTextField jumlahField, hargaField;
     private JTabbedPane tabbedPane;
     private Gerobak gerobak;
+
+    // Tambahkan sistem DayTime sederhana
+    private int currentDay = 1;
+    private Runnable onSleepCallback;
 
     public HomeBasePanel(Player player) {
         this.player = player;
@@ -87,10 +91,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         btn1.addActionListener(_ -> showInventoryFrame());
         btn2.addActionListener(_ -> showGerobakFrame());
         btn3.addActionListener(_ -> showPerksFrame());
-        btn4.addActionListener(_ -> {
-        });
-        btn5.addActionListener(_ -> {
-        });
+        btn4.addActionListener(_ -> showStatsFrame());
+        btn5.addActionListener(_ -> sleepAndAdvanceDay());
     }
 
     private Font loadCustomFont() {
@@ -2291,5 +2293,104 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                 updateTableInPerksFrame((Container) comp);
             }
         }
+    }
+
+    // Tambahkan method baru untuk menampilkan stats
+    private void showStatsFrame() {
+        // Cegah duplikasi frame stats
+        if (statsFrame != null && statsFrame.isVisible()) {
+            statsFrame.toFront();
+            return;
+        }
+        statsFrame = new JInternalFrame("Stats", true, true, true, true);
+        statsFrame.setSize(520, 420);
+        statsFrame.setLayout(new BorderLayout());
+        statsFrame.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(6, 6, 16, 16, new Color(120, 90, 30, 180)),
+                BorderFactory.createLineBorder(new Color(212, 175, 55), 4)));
+        statsFrame.setOpaque(true);
+        statsFrame.getContentPane().setBackground(new Color(255, 248, 220));
+
+        // Judul
+        JLabel title = new JLabel("Statistik Pemain", JLabel.CENTER);
+        title.setFont(new Font("Serif", Font.BOLD, 32));
+        title.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+        statsFrame.add(title, BorderLayout.NORTH);
+
+        // Panel utama isi stats
+        JPanel statsPanel = new JPanel();
+        statsPanel.setOpaque(false);
+        statsPanel.setLayout(new BoxLayout(statsPanel, BoxLayout.Y_AXIS));
+        statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+
+        // Data statistik (dummy/real)
+        String username = player != null ? player.getUsername() : "-";
+        int uang = player != null ? player.getMoney() : 0;
+        int totalBarang = inventory != null ? inventory.getJumlahBarang() : 0;
+        int totalItem = inventory != null ? inventory.getStokItem().size() : 0;
+        int totalPerk = player != null ? player.getSemuaPerkDimiliki().size() : 0;
+        int gerobakLevel = (inventory != null && inventory.getGerobak() != null) ? inventory.getGerobak().getLevel() : 0;
+        // int totalTransaksi = player != null ? player.getTotalTransaksi() : 0; // Komentari, tidak ada di Player
+        // int totalUntung = player != null ? player.getTotalUntung() : 0; // Komentari, tidak ada di Player
+
+        // Tambahkan label statistik
+        statsPanel.add(makeStatsLabel("Nama Pemain:", username));
+        statsPanel.add(makeStatsLabel("Uang:", uang + "G"));
+        statsPanel.add(makeStatsLabel("Total Barang di Inventory:", String.valueOf(totalBarang)));
+        statsPanel.add(makeStatsLabel("Total Item Dimiliki:", String.valueOf(totalItem)));
+        statsPanel.add(makeStatsLabel("Total Perk Dimiliki:", String.valueOf(totalPerk)));
+        statsPanel.add(makeStatsLabel("Level Gerobak:", String.valueOf(gerobakLevel)));
+        // statsPanel.add(makeStatsLabel("Total Transaksi:", String.valueOf(totalTransaksi)));
+        // statsPanel.add(makeStatsLabel("Total Keuntungan:", totalUntung + "G"));
+
+        // Spacer
+        statsPanel.add(Box.createVerticalStrut(20));
+
+        // Bisa tambahkan grafik/ikon/quote motivasi di bawah
+        JLabel quote = new JLabel("\"Jadilah pedagang terhebat di sekai!\"", JLabel.CENTER);
+        quote.setFont(new Font("Serif", Font.ITALIC, 18));
+        quote.setForeground(new Color(120, 90, 30));
+        statsPanel.add(quote);
+
+        statsFrame.add(statsPanel, BorderLayout.CENTER);
+
+        // Tombol tutup
+        JButton closeBtn = StyledButton.create("Tutup", 16, 100, 36);
+        closeBtn.addActionListener(_ -> statsFrame.dispose());
+        JPanel closePanel = new JPanel();
+        closePanel.setOpaque(false);
+        closePanel.add(closeBtn);
+        statsFrame.add(closePanel, BorderLayout.SOUTH);
+
+        statsFrame.addInternalFrameListener(new javax.swing.event.InternalFrameAdapter() {
+            @Override
+            public void internalFrameClosed(javax.swing.event.InternalFrameEvent e) {
+                statsFrame = null;
+            }
+        });
+        desktopPane.add(statsFrame);
+        statsFrame.setVisible(true);
+        statsFrame.toFront();
+    }
+
+    // Helper untuk label statistik
+    private JPanel makeStatsLabel(String label, String value) {
+        JLabel l = new JLabel(label + "  ", JLabel.LEFT);
+        l.setFont(new Font("Serif", Font.BOLD, 20));
+        JLabel v = new JLabel(value, JLabel.RIGHT);
+        v.setFont(new Font("Serif", Font.PLAIN, 20));
+        JPanel p = new JPanel(new BorderLayout());
+        p.setOpaque(false);
+        p.add(l, BorderLayout.WEST);
+        p.add(v, BorderLayout.EAST);
+        p.setMaximumSize(new Dimension(400, 32));
+        return p;
+    }
+
+    private void sleepAndAdvanceDay() {
+        currentDay++;
+        player.setHasSlept(true);
+        if (onSleepCallback != null) onSleepCallback.run();
+        JOptionPane.showMessageDialog(this, "Hari berganti! Sekarang hari ke-" + currentDay + ". Arena trigger zone akan direset saat kamu ke kota lain.", "Sleep", JOptionPane.INFORMATION_MESSAGE);
     }
 }

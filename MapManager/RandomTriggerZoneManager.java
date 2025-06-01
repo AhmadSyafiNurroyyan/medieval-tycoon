@@ -149,6 +149,23 @@ public class RandomTriggerZoneManager {
     }
     
     /**
+     * Register all existing random zones to a TriggerZoneManager (tanpa generate ulang)
+     */
+    public void registerZonesToTriggerZoneManager(TriggerZoneManager triggerZoneManager) {
+        for (int i = 0; i < placedZones.size(); i++) {
+            Rectangle r = placedZones.get(i);
+            String zoneId = "RandomZone_" + (i + 1);
+            int x = r.x;
+            int y = r.y;
+            int width = r.width;
+            int height = r.height;
+            triggerZoneManager.addZone(zoneId, x, y, x + width, y + height, true, () -> {
+                handleRandomZoneTriggered(x, y, width, height);
+            });
+        }
+    }
+    
+    /**
      * Check if a new zone overlaps with any existing zones (including spacing)
      */
     private boolean overlapsWithExistingZones(Rectangle newZone) {
@@ -227,5 +244,32 @@ public class RandomTriggerZoneManager {
      */
     public int getZoneCount() {
         return placedZones.size();
+    }
+    
+    // Tambahkan: spawnSingleRandomZone untuk fitur Peluit
+    public boolean spawnSingleRandomZone(TriggerZoneManager triggerZoneManager) {
+        // Area map2: 0,1150,0,1450 (samakan dengan generateRandomZones)
+        int minX = 0, maxX = 1150, minY = 0, maxY = 1450;
+        int width = ZONE_WIDTH;
+        int height = ZONE_HEIGHT;
+        int attempts = 50;
+        for (int attempt = 0; attempt < attempts; attempt++) {
+            int x = (int)(Math.random() * (maxX - minX - width + 1)) + minX;
+            int y = (int)(Math.random() * (maxY - minY - height + 1)) + minY;
+            Rectangle newZone = new Rectangle(x, y, width, height);
+            if (!overlapsWithExistingZones(newZone)) {
+                placedZones.add(newZone);
+                String zoneId = "RandomZone_" + (placedZones.size());
+                triggerZoneManager.addZone(zoneId, x, y, x + width, y + height, true, () -> {
+                    handleRandomZoneTriggered(x, y, width, height);
+                });
+                Pembeli pembeli = (player != null) ? PerkEffectManager.createBuyerWithPerks(player) : Pembeli.buatPembeliAcak();
+                zoneBuyers.add(pembeli);
+                System.out.println("[Peluit] Spawned single random zone at (" + x + "," + y + ")");
+                return true;
+            }
+        }
+        System.out.println("[Peluit] Failed to spawn single random zone after " + attempts + " attempts");
+        return false;
     }
 }
