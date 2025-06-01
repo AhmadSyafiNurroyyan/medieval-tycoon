@@ -14,12 +14,15 @@ public class PerksActive extends Perk {
         this.level = other.level;
         this.kesaktianSekarang = other.kesaktianSekarang;
         this.isActive = other.isActive;
-    }    
+    }
+
     @Override
     public double getPerkEffect() {
         // Return level sebagai indicator untuk sistem pembeli
         return (double) level;
-    }    /**
+    }
+
+    /**
      * Calculate additional buyers using new formula:
      * 1. Generate random base number (1-5)
      * 2. Calculate perk multiplier based on level (0.5 * level)
@@ -37,30 +40,34 @@ public class PerksActive extends Perk {
 
         // Step 1: Generate random base number (1-5)
         double randomBase = 1 + (Math.random() * 4); // 1.0 - 5.0
-        
+
         // Step 2: Calculate perk multiplier based on level
         double perkMultiplier = 0.5 * level;
-        
+
         // Step 3: Multiply random by multiplier
         double multiplicationResult = randomBase * perkMultiplier;
-        
+
         // Step 4: Add multiplication result to original random
         double finalResult = randomBase + multiplicationResult;
-        
+
         // Convert to integer (round down)
         int additionalBuyers = (int) finalResult;
-        
+
         // Debug output showing the entire calculation
         System.out.println("[PERKS ACTIVE DEBUG] ===== BUYER COUNT CALCULATION =====");
         System.out.println("[PERKS ACTIVE DEBUG] Perk Level: " + level);
         System.out.println("[PERKS ACTIVE DEBUG] Step 1 - Random Base: " + String.format("%.2f", randomBase));
-        System.out.println("[PERKS ACTIVE DEBUG] Step 2 - Perk Multiplier: " + String.format("%.2f", perkMultiplier) + " (0.5 * " + level + ")");
-        System.out.println("[PERKS ACTIVE DEBUG] Step 3 - Multiplication: " + String.format("%.2f", randomBase) + " * " + String.format("%.2f", perkMultiplier) + " = " + String.format("%.2f", multiplicationResult));
-        System.out.println("[PERKS ACTIVE DEBUG] Step 4 - Final Addition: " + String.format("%.2f", randomBase) + " + " + String.format("%.2f", multiplicationResult) + " = " + String.format("%.2f", finalResult));
+        System.out.println("[PERKS ACTIVE DEBUG] Step 2 - Perk Multiplier: " + String.format("%.2f", perkMultiplier)
+                + " (0.5 * " + level + ")");
+        System.out.println("[PERKS ACTIVE DEBUG] Step 3 - Multiplication: " + String.format("%.2f", randomBase) + " * "
+                + String.format("%.2f", perkMultiplier) + " = " + String.format("%.2f", multiplicationResult));
+        System.out.println("[PERKS ACTIVE DEBUG] Step 4 - Final Addition: " + String.format("%.2f", randomBase) + " + "
+                + String.format("%.2f", multiplicationResult) + " = " + String.format("%.2f", finalResult));
         System.out.println("[PERKS ACTIVE DEBUG] Final Additional Buyers: " + additionalBuyers);
-        System.out.println("[PERKS ACTIVE DEBUG] Perk Impact: +" + String.format("%.2f", multiplicationResult) + " buyers (+" + String.format("%.1f", (multiplicationResult/randomBase)*100) + "% increase)");
+        System.out.println("[PERKS ACTIVE DEBUG] Perk Impact: +" + String.format("%.2f", multiplicationResult)
+                + " buyers (+" + String.format("%.1f", (multiplicationResult / randomBase) * 100) + "% increase)");
         System.out.println("[PERKS ACTIVE DEBUG] ==========================================");
-        
+
         return additionalBuyers;
     }
 
@@ -69,7 +76,8 @@ public class PerksActive extends Perk {
      * Level 1: 10% tajir, 65% standar, 25% miskin
      * Level 2-3: 15% tajir, 70% standar, 20% miskin
      * Level 4-5: 20% tajir, 75% standar, 15% miskin
-     */    public Pembeli buatPembeliDenganPerkActive() {
+     */
+    public Pembeli buatPembeliDenganPerkActive() {
         if (!isActive || level == 0) {
             return Pembeli.buatPembeliAcak(); // Default behavior
         }
@@ -88,14 +96,14 @@ public class PerksActive extends Perk {
             peluangStandar = 0.75;
         }
 
-        System.out.println("[PERKS ACTIVE DEBUG] Level " + level + 
-                          " - Tajir: " + (peluangTajir * 100) + "%, " +
-                          "Standar: " + (peluangStandar * 100) + "%, " +
-                          "Miskin: " + ((1 - peluangTajir - peluangStandar) * 100) + "%");
+        System.out.println("[PERKS ACTIVE DEBUG] Level " + level +
+                " - Tajir: " + (peluangTajir * 100) + "%, " +
+                "Standar: " + (peluangStandar * 100) + "%, " +
+                "Miskin: " + ((1 - peluangTajir - peluangStandar) * 100) + "%");
 
         String buyerType;
         Pembeli result;
-        
+
         if (random < peluangTajir) {
             buyerType = "PembeliTajir";
             result = new PembeliTajir();
@@ -106,10 +114,10 @@ public class PerksActive extends Perk {
             buyerType = "PembeliMiskin";
             result = new PembeliMiskin();
         }
-        
-        System.out.println("[PERKS ACTIVE DEBUG] Generated: " + buyerType + 
-                          " (random: " + String.format("%.3f", random) + ")");
-        
+
+        System.out.println("[PERKS ACTIVE DEBUG] Generated: " + buyerType +
+                " (random: " + String.format("%.3f", random) + ")");
+
         return result;
     }
 
@@ -122,11 +130,13 @@ public class PerksActive extends Perk {
             return true;
         }
         return false;
-    }    @Override
+    }
+
+    @Override
     public void tampilkanDetail() {
         String buyerQualityInfo = "";
         String buyerQuantityInfo = "";
-        
+
         if (level == 1) {
             buyerQualityInfo = " (10% Tajir, 65% Standar, 25% Miskin)";
             double perkMultiplier = 0.5 * level;
@@ -140,7 +150,7 @@ public class PerksActive extends Perk {
             double perkMultiplier = 0.5 * level;
             buyerQuantityInfo = " (Formula: random(1-5) + random*" + String.format("%.1f", perkMultiplier) + ")";
         }
-        
+
         String detailLevel = buyerQualityInfo + buyerQuantityInfo;
         System.out.println("[ACTIVE] " + nama + " Lv." + level + ": " + deskripsi + detailLevel);
     }

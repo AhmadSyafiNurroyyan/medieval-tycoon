@@ -1,6 +1,7 @@
 package model;
 
 import enums.PerkType;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PerksManagement {
@@ -54,14 +55,19 @@ public class PerksManagement {
   public boolean hasAvailablePerkSlot(Player player) {
     return player.getSemuaPerkDimiliki().size() < 2;
   }
-
   public boolean hasConvertiblePerk(Player player, PerkType targetType) {
     if (player.hasPerk(targetType)) {
       return false; // Already has target perk
     }
-    return !player.getSemuaPerkDimiliki().isEmpty(); // Has perks to convert from
+    
+    // Check if player has any perk that can convert to the target type
+    for (Perk perk : player.getSemuaPerkDimiliki()) {
+      if (perk.canConvertTo(targetType)) {
+        return true;
+      }
+    }
+    return false;
   }
-
   public Perk getPlayerPerkByType(Player player, PerkType perkType) {
     for (Perk perk : player.getSemuaPerkDimiliki()) {
       if (perk.getPerkType() == perkType) {
@@ -69,5 +75,15 @@ public class PerksManagement {
       }
     }
     return null;
+  }
+
+  public List<Perk> getConvertiblePerks(Player player, PerkType targetType) {
+    List<Perk> convertiblePerks = new ArrayList<>();
+    for (Perk perk : player.getSemuaPerkDimiliki()) {
+      if (perk.canConvertTo(targetType)) {
+        convertiblePerks.add(perk);
+      }
+    }
+    return convertiblePerks;
   }
 }
