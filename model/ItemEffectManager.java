@@ -28,7 +28,7 @@ public class ItemEffectManager {
       double chance = hipnotis.getHipnotisChance();
       if (Math.random() < chance) {
         hipnotis.markAsUsed(); // sekali pakai per transaksi
-        System.out.println("Hipnotis berhasil! Pembeli langsung membeli tanpa menawar.");
+        System.out.println("Hipnotis berhasil! Efek hipnotis membuat pembeli langsung tertarik tanpa menawar.");
         return true;
       }
     }
@@ -190,7 +190,8 @@ public class ItemEffectManager {
       if (item.isJampi() && !jampiActiveToday) {
         item.activate();
         jampiActiveToday = true;
-        return "Jampi telah diaktifkan otomatis untuk hari ini! Penghasilan akan dilipatgandakan.";
+        return "Jampi telah diaktifkan otomatis untuk hari ini! Semua penghasilan akan dilipatgandakan (" +
+            String.format("%.1fx multiplier", item.getJampiMultiplier()) + ").";
       }
     }
     return null;
@@ -212,6 +213,50 @@ public class ItemEffectManager {
       }
     }
     return false;
+  }
+
+  // Get detailed activation message for item
+  public String getItemActivationMessage(String namaItem) {
+    List<Item> items = player.getInventory().getItemDibawa();
+    for (Item item : items) {
+      if (item.getNama().equalsIgnoreCase(namaItem)) {
+        if (item.isHipnotis()) {
+          return "Hipnotis diaktifkan! Pembeli akan lebih tertarik untuk langsung membeli tanpa menawar.\n" +
+              "Efek: Meningkatkan peluang pembeli langsung membeli tanpa menawar (" +
+              String.format("%.0f%% peluang langsung beli", item.getHipnotisChance() * 100) + ").\n" +
+              "Kondisi: Dapat digunakan satu kali per transaksi tawar-menawar.\n" +
+              "Catatan: Sangat cocok untuk pembeli kategori miskin atau standar.";
+        } else if (item.isSemproten()) {
+          return "Semproten diaktifkan! Barang-barang akan terlihat lebih segar dan menarik, meningkatkan harga jual.\n"
+              +
+              "Efek: Menambah kesan barang terlihat lebih fresh, sehingga pembeli bisa menawar harga yang lebih mahal ("
+              +
+              String.format("+%.0f%% bonus harga", item.getSemprotenPriceBoost() * 100) + ").\n" +
+              "Kondisi: Diaktifkan aktif saat transaksi dimulai.\n" +
+              "Catatan: Ideal untuk menjual barang murah dengan harga lebih tinggi.";
+        } else if (item.isJampi()) {
+          return "Jampi diaktifkan! Semua penghasilan hari ini akan dilipatgandakan.\n" +
+              "Efek: Melipatgandakan penghasilan dari transaksi pada hari itu (" +
+              String.format("%.1fx multiplier", item.getJampiMultiplier()) + ").\n" +
+              "Kondisi: Dapat diaktifkan sekali per hari saat berjualan keliling.\n" +
+              "Catatan: Efektif jika pemain membawa banyak stok dan bertemu banyak pembeli.";
+        } else if (item.isTip()) {
+          return "Tip diaktifkan! Pembeli akan memberikan bonus uang ekstra.\n" +
+              "Efek: Membuat pembeli kadang-kadang menambahkan sedikit uang ekstra dari harga deal (" +
+              String.format("%.0f%% chance bonus tip", item.getTipBonusRate() * 100) + ").\n" +
+              "Kondisi: Aktif otomatis saat transaksi berhasil.\n" +
+              "Catatan: Efektif untuk pembeli tajir dan standar yang merasa puas.";
+        } else if (item.isPeluit()) {
+          return "Peluit siap digunakan! Tekan H di map untuk memanggil pembeli tambahan.\n" +
+              "Efek: Memanggil pembeli tambahan secara instan (" +
+              String.format("+%d pembeli tambahan", item.getPeluitExtraBuyers()) + ").\n" +
+              "Kondisi: Sekali pakai (Quantity: " + item.getQuantity() + "/" + item.getMaxQuantity() +
+              ", Daily limit: " + item.getPeluitUsesToday(currentDay) + "/" + item.getPeluitDailyLimit() + ").\n" +
+              "Catatan: Cocok untuk mempercepat jualan ketika waktu terbatas.";
+        }
+      }
+    }
+    return "Item " + namaItem + " berhasil diaktifkan untuk transaksi berikutnya!";
   }
 
   // Method untuk cek apakah item bisa digunakan
