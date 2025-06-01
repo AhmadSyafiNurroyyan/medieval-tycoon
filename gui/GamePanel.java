@@ -101,7 +101,7 @@ public class GamePanel extends JPanel implements Runnable {
         transactions.setPlayer(player); // Set player untuk transactions
         transactions.setTriggerZoneManager(triggerZoneManager); // Set trigger zone manager
         // Set RandomTriggerZoneManager agar TransactionsGUI bisa remove zone
-        transactions.setRandomTriggerZoneManager(randomTriggerZoneManager);
+        // transactions.setRandomTriggerZoneManager(randomTriggerZoneManager);
 
         randomTriggerZoneManager.setDialogSystem(transactions);
         randomTriggerZoneManager.setPlayer(player);

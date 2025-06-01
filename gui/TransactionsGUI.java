@@ -1471,16 +1471,15 @@ public class TransactionsGUI extends JPanel {
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
-        String namaItem = itemGerobakTable.getValueAt(row, 1).toString();
-
-        // Cek jenis item dan kondisi penggunaan
+        String namaItem = itemGerobakTable.getValueAt(row, 1).toString(); // Cek jenis item dan kondisi penggunaan
         if (namaItem.equalsIgnoreCase("Hipnotis") || namaItem.equalsIgnoreCase("Semproten")) {
             // Item yang bisa digunakan sebelum Start Selling
             if (!negotiationPhase) // Belum dalam fase negosiasi
             {
                 if (itemEffectManager != null && itemEffectManager.activateItemForTransaction(namaItem)) {
-                    JOptionPane.showMessageDialog(this,
-                            "Item " + namaItem + " berhasil diaktifkan untuk transaksi berikutnya!", "Sukses",
+                    // Gunakan detailed activation message dari ItemEffectManager
+                    String detailedMessage = itemEffectManager.getItemActivationMessage(namaItem);
+                    JOptionPane.showMessageDialog(this, detailedMessage, "Item Berhasil Diaktifkan",
                             JOptionPane.INFORMATION_MESSAGE);
                     updateItemGerobakTableLocal(); // Refresh table
                 } else {
@@ -1492,13 +1491,19 @@ public class TransactionsGUI extends JPanel {
                         JOptionPane.WARNING_MESSAGE);
             }
         } else if (namaItem.equalsIgnoreCase("Jampi")) {
-            JOptionPane.showMessageDialog(this, "Jampi diaktifkan otomatis saat memulai hari baru!", "Info",
+            // Tampilkan detailed message untuk Jampi juga
+            String detailedMessage = itemEffectManager.getItemActivationMessage(namaItem);
+            JOptionPane.showMessageDialog(this, detailedMessage, "Info Jampi",
                     JOptionPane.INFORMATION_MESSAGE);
         } else if (namaItem.equalsIgnoreCase("Tip")) {
-            JOptionPane.showMessageDialog(this, "Tip bekerja otomatis saat transaksi berhasil!", "Info",
+            // Tampilkan detailed message untuk Tip juga
+            String detailedMessage = itemEffectManager.getItemActivationMessage(namaItem);
+            JOptionPane.showMessageDialog(this, detailedMessage, "Info Tip",
                     JOptionPane.INFORMATION_MESSAGE);
         } else if (namaItem.equalsIgnoreCase("Peluit")) {
-            JOptionPane.showMessageDialog(this, "Peluit bisa digunakan dengan menekan tombol H saat di map!", "Info",
+            // Tampilkan detailed message untuk Peluit juga
+            String detailedMessage = itemEffectManager.getItemActivationMessage(namaItem);
+            JOptionPane.showMessageDialog(this, detailedMessage, "Info Peluit",
                     JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this, "Item ini tidak dikenali!", "Error",
