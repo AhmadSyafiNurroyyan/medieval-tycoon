@@ -9,7 +9,6 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import model.Inventory;
 import model.Player;
-import model.Supplier;
 import model.TextFileManager;
 
 public class MainMenu extends JFrame {
@@ -82,6 +81,8 @@ public class MainMenu extends JFrame {
         // Set auto-save callback for pause menu
         pauseMenuPanel.setAutoSaveCallback(() -> performAutoSave());
         this.homeBasePanel = new HomeBasePanel(player);
+        this.gamePanel = new GamePanel(player);
+        this.homeBasePanel.setGamePanel(this.gamePanel); // Integrasi hari dan efek harian
         this.supplierPanel = new SupplierPanel(gamePanel.getSupplier(), player);
         this.tokoItemPanel = new TokoItemPanel(gamePanel.getTokoItem(), player);
         this.tokoPerksPanel = new TokoPerksPanel(gamePanel.getPerksManagement(), player);

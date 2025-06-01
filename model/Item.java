@@ -1,8 +1,8 @@
 package model;
 
-import java.util.Objects;
 import interfaces.Showable;
 import interfaces.Upgrade;
+import java.util.Objects;
 
 public class Item implements Showable, Upgrade {
     private final String nama;
@@ -175,5 +175,51 @@ public class Item implements Showable, Upgrade {
             return String.format("Efek: +%d pembeli tambahan", getPeluitExtraBuyers());
         }
         return "Efek tidak diketahui";
+    }
+
+    // --- Peluit daily usage tracking ---
+    private int peluitUsesToday = 0;
+    private int peluitLastUsedDay = -1;
+
+    public int getPeluitDailyLimit() {
+        // Example: level 1 = 5, level 2 = 7, level 3 = 9, level 4 = 12, level 5 = 15
+        switch (level) {
+            case 1: return 5;
+            case 2: return 7;
+            case 3: return 9;
+            case 4: return 12;
+            case 5: return 15;
+            default: return 5;
+        }
+    }
+
+    public boolean canUsePeluit(int currentDay) {
+        if (!isPeluit()) return false;
+        if (peluitLastUsedDay != currentDay) {
+            peluitUsesToday = 0;
+            peluitLastUsedDay = currentDay;
+        }
+        return peluitUsesToday < getPeluitDailyLimit();
+    }
+
+    public void incrementPeluitUse(int currentDay) {
+        if (!isPeluit()) return;
+        if (peluitLastUsedDay != currentDay) {
+            peluitUsesToday = 0;
+            peluitLastUsedDay = currentDay;
+        }
+        peluitUsesToday++;
+    }
+
+    public void resetPeluitUsage(int currentDay) {
+        if (!isPeluit()) return;
+        peluitUsesToday = 0;
+        peluitLastUsedDay = currentDay;
+    }
+
+    public int getPeluitUsesToday(int currentDay) {
+        if (!isPeluit()) return 0;
+        if (peluitLastUsedDay != currentDay) return 0;
+        return peluitUsesToday;
     }
 }

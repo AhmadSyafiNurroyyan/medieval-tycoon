@@ -1,7 +1,6 @@
 package gui;
 
 import interfaces.InventoryChangeListener;
-import model.Supplier;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +22,7 @@ import model.ItemEffectManager;
 import model.Perk;
 import model.PerksManagement;
 import model.Player;
+import model.Supplier;
 
 public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private JButton btn1, btn2, btn3, btn4, btn5, backButton;
@@ -43,9 +43,19 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private int currentDay = 1;
     private JLabel dayLabel; // Added dayLabel field
     private Runnable onSleepCallback;
+    private GamePanel gamePanel; // Tambahkan referensi ke GamePanel
     private Supplier supplier; // Add supplier reference for stock regeneration
     private ItemEffectManager itemEffectManager; // Add item effect manager for using items
 
+    public void setGamePanel(GamePanel gamePanel) {
+        this.gamePanel = gamePanel;
+        // Sinkronkan hari jika perlu
+        if (gamePanel != null) {
+            this.currentDay = gamePanel.getCurrentDay();
+        }
+    }
+
+    // Tambahkan constructor dan method initializeComponents() yang sudah ada
     public HomeBasePanel(Player player) {
         this.player = player;
         this.perksManagement = new PerksManagement();
@@ -2489,6 +2499,14 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     }
 
     private void sleepAndAdvanceDay() {
+        currentDay++;
+        player.setHasSlept(true);
+        if (gamePanel != null) {
+            gamePanel.advanceDay(); // Sinkronkan hari dan reset efek harian item
+            this.currentDay = gamePanel.getCurrentDay();
+        }
+        if (onSleepCallback != null) onSleepCallback.run();
+        JOptionPane.showMessageDialog(this, "Hari berganti! Sekarang hari ke-" + currentDay + ". Arena trigger zone akan direset saat kamu ke kota lain.", "Sleep", JOptionPane.INFORMATION_MESSAGE);
         // Create integrated medieval-themed sleep dialog
         JDialog sleepDialog = createMedievalSleepDialog();
         sleepDialog.setVisible(true);
