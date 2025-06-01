@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 import interfaces.InventoryChangeListener;
@@ -57,7 +64,6 @@ public class Inventory {
     public List<Item> getStokItem() {
         List<Item> result = new ArrayList<>();
         for (Map.Entry<String, Item> entry : stokItem.entrySet()) {
-            // Only include items that are NOT in the gerobak
             if (!itemDibawa.contains(entry.getKey())) {
                 result.add(entry.getValue());
             }
@@ -76,7 +82,6 @@ public class Inventory {
         return itemsDibawa;
     }
 
-    // Tambahkan method untuk undo bawa item
     public boolean undoBawaItem(String namaItem) {
         String namaItemLower = namaItem.toLowerCase();
         if (itemDibawa.contains(namaItemLower)) {
@@ -105,11 +110,9 @@ public class Inventory {
     }
 
     public void kurangiKesegaranSemua() {
-        // Reduce freshness for items in main inventory
         for (Barang barang : stokBarang.keySet()) {
             barang.kurangiKesegaran();
         }
-        // Reduce freshness for items in gerobak as well
         for (Barang barang : barangDibawa.keySet()) {
             barang.kurangiKesegaran();
         }
@@ -150,21 +153,10 @@ public class Inventory {
     }
 
     public void bawaBarang(Barang barang, int jumlah, int kapasitasGerobak) {
-        System.out.println("Debug bawaBarang called:");
-        System.out.println("  - Barang: " + barang.getNamaBarang() + " (kesegaran: " + barang.getKesegaran() + ")");
-        System.out.println("  - Jumlah requested: " + jumlah);
-        System.out.println("  - Kapasitas gerobak: " + kapasitasGerobak);
-        System.out.println("  - Kapasitas tersisa: " + kapasitasBarangTersisa(kapasitasGerobak));
-        System.out.println("  - Stok available: " + stokBarang.getOrDefault(barang, 0));
-
         boolean hasCapacity = jumlah <= kapasitasBarangTersisa(kapasitasGerobak);
         boolean hasStock = stokBarang.getOrDefault(barang, 0) >= jumlah;
 
-        System.out.println("  - Has capacity: " + hasCapacity);
-        System.out.println("  - Has stock: " + hasStock);
-
         if (hasCapacity && hasStock) {
-            System.out.println("  - SUCCESS: Moving barang to gerobak");
             barangDibawa.put(barang, barangDibawa.getOrDefault(barang, 0) + jumlah);
             int sisa = stokBarang.get(barang) - jumlah;
             if (sisa > 0) {
@@ -173,27 +165,20 @@ public class Inventory {
                 stokBarang.remove(barang);
             }
             notifyInventoryChanged();
-        } else {
-            System.out.println("  - FAILED: Cannot move barang to gerobak");
-            System.out.println("    - Reason: " + (hasCapacity ? "Stock insufficient" : "Capacity full"));
         }
     }
 
     public boolean bawaItem(String namaItem, int kapasitasGerobak) {
         String namaItemLower = namaItem.toLowerCase();
-        System.out.println("bawaItem called: " + namaItem + ", kapasitasGerobak=" + kapasitasGerobak);
-        System.out.println("stokItem: " + stokItem.keySet());
-        System.out.println("itemDibawa: " + itemDibawa);
 
         if (itemDibawa.size() >= kapasitasGerobak)
             return false;
         if (!stokItem.containsKey(namaItemLower))
             return false;
         if (itemDibawa.contains(namaItemLower))
-            return false; // Sudah dibawa
+            return false;
 
         itemDibawa.add(namaItemLower);
-        System.out.println("itemDibawa after add: " + itemDibawa);
         notifyInventoryChanged();
         return true;
     }
@@ -243,7 +228,6 @@ public class Inventory {
         return hargaJualBarang.getOrDefault(barang, 0);
     }
 
-    // Backward compatibility methods (deprecated)
     @Deprecated
     public void setHargaJual(Barang barang, int jumlah, int harga) {
         setHargaJual(barang, harga);
@@ -267,11 +251,9 @@ public class Inventory {
                 barangDibawa.remove(barang);
             }
             notifyInventoryChanged();
-            System.out.println("Undo bawa " + barang.getNamaBarang() + ": -" + pengurangan);
         }
     }
 
-    // Tambah/kurangi barang di gerobak (barangDibawa) secara aman
     public void tambahBarangDibawa(Barang barang, int jumlah) {
         barangDibawa.put(barang, barangDibawa.getOrDefault(barang, 0) + jumlah);
     }

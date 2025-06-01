@@ -1,9 +1,16 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
-import interfaces.Upgrade;
-import interfaces.Showable;
 import enums.PerkType;
 import exceptions.PerkConversionException;
+import interfaces.Showable;
+import interfaces.Upgrade;
 
 public abstract class Perk implements Upgrade, Showable {
 
@@ -83,12 +90,6 @@ public abstract class Perk implements Upgrade, Showable {
         return biayaUpgrade;
     }
 
-    /**
-     * Menghitung biaya upgrade untuk level tertentu dengan progressive pricing
-     * 
-     * @param targetLevel level target yang ingin dicapai
-     * @return biaya upgrade untuk mencapai level tersebut
-     */
     public int getUpgradeCostForLevel(int targetLevel) {
         if (targetLevel <= level || targetLevel > MAX_LEVEL) {
             return 0;
@@ -97,7 +98,6 @@ public abstract class Perk implements Upgrade, Showable {
         int baseCost = getBiayaUpgrade();
         int cost = baseCost;
 
-        // Calculate cost dengan 25% increase per level
         for (int i = level; i < targetLevel - 1; i++) {
             cost = (int) (cost * 1.25);
         }
@@ -120,15 +120,10 @@ public abstract class Perk implements Upgrade, Showable {
     public abstract boolean upgradeLevel();
 
     public boolean canConvertTo(PerkType targetType) {
-        // Validasi sama type tidak boleh convert ke dirinya sendiri
         if (this.type == targetType) {
             return false;
         }
 
-        // Aturan konversi berdasarkan spesifikasi:
-        // • Elegan dapat diubah menjadi charming, tetapi tidak bisa menjadi active
-        // • Charming dapat diubah menjadi active, tapi tidak bisa menjadi elegan
-        // • Active dapat diubah menjadi elegan, tetapi tidak bisa menjadi charming
         if (this.type == PerkType.ELEGAN && targetType == PerkType.CHARMING) {
             return true;
         } else if (this.type == PerkType.CHARMING && targetType == PerkType.ACTIVE) {
@@ -139,11 +134,6 @@ public abstract class Perk implements Upgrade, Showable {
         return false;
     }
 
-    /**
-     * Mendapatkan perk type yang dapat dikonversi dari perk ini
-     * 
-     * @return PerkType yang dapat dikonversi, atau null jika tidak ada
-     */
     public PerkType getAllowedConversionTarget() {
         switch (this.type) {
             case ELEGAN:
@@ -158,24 +148,20 @@ public abstract class Perk implements Upgrade, Showable {
     }
 
     public void convertTo(PerkType targetType) {
-        // Validasi null check
         if (targetType == null) {
             throw new PerkConversionException("Target perk type tidak boleh null.");
         }
 
-        // Validasi same type
         if (this.type == targetType) {
             throw new PerkConversionException(
                     "Tidak dapat mengkonversi perk " + this.type.getNama() + " ke tipe yang sama.");
         }
 
-        // Validasi level requirement - hanya boleh convert jika level > 0
         if (this.level <= 0) {
             throw new PerkConversionException(
                     "Perk " + this.nama + " harus di-upgrade minimal ke level 1 sebelum dapat dikonversi.");
         }
 
-        // Validasi conversion rules
         if (!canConvertTo(targetType)) {
             String allowedConversions = getAllowedConversionsString();
             throw new PerkConversionException(

@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package gui;
 
 import java.awt.*;
@@ -67,11 +74,9 @@ public class StyledButton {
         label.setForeground(color);
         return label;
     }
-
     public static JLabel createLabel(String text, int fontSize, Color color) {
         return createLabel(text, fontSize, color, Font.BOLD, JLabel.LEFT);
     }
-
     public static JLabel createLabel(String text) {
         return createLabel(text, 24, Color.WHITE, Font.BOLD, JLabel.LEFT);
     }

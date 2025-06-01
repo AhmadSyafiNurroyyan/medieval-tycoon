@@ -1,19 +1,23 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package gui;
 
-import model.Player;
-import model.Perk;
-import model.PerksManagement;
-
-import javax.swing.*;
 import enums.PerkType;
 import exceptions.PerkConversionException;
-
 import java.awt.*;
 import java.io.File;
 import java.util.List;
+import javax.swing.*;
+import model.Perk;
+import model.PerksManagement;
+import model.Player;
 
 public class TokoPerksPanel extends JPanel {
-
   private PerksManagement perksManagement;
   private Player player;
   private JPanel perksPanel;
@@ -68,15 +72,12 @@ public class TokoPerksPanel extends JPanel {
     List<Perk> daftarPerk = perksManagement.getDaftarPerkDiToko();
     List<Perk> ownedPerks = perksManagement.getPerkYangDimiliki(player);
 
-    // First, show owned perks
     for (Perk perk : daftarPerk) {
       boolean alreadyOwned = player.hasPerk(perk.getPerkType());
       if (alreadyOwned) {
         addPerkRow(perk, true, ownedPerks);
       }
     }
-    
-    // Then show unowned perks
     for (Perk perk : daftarPerk) {
       boolean alreadyOwned = player.hasPerk(perk.getPerkType());
       if (!alreadyOwned) {
@@ -98,14 +99,12 @@ public class TokoPerksPanel extends JPanel {
     gbc.gridy = 0;
     gbc.anchor = GridBagConstraints.WEST;
 
-    // Icon perk
     ImageIcon perkIcon = loadIcon(perk.getIconPath(), 40, 40);
     JLabel iconLabel = new JLabel(perkIcon);
     gbc.gridx = 0;
     gbc.anchor = GridBagConstraints.WEST;
     perkRow.add(iconLabel, gbc);
 
-    // --- LEVEL DAN LABEL ---
     Perk ownedPerk = null;
     int level = 0;
     if (alreadyOwned) {
@@ -125,7 +124,6 @@ public class TokoPerksPanel extends JPanel {
     gbc.fill = GridBagConstraints.HORIZONTAL;
     perkRow.add(nameLabel, gbc);
 
-    // --- DESKRIPSI DENGAN EFEK LEVEL ---
     String descText = perk.getDeskripsi();
     int showLevel = (alreadyOwned && ownedPerk != null) ? ownedPerk.getLevel() : 0;
     if (perk.getPerkType() == PerkType.ACTIVE) {
@@ -141,9 +139,8 @@ public class TokoPerksPanel extends JPanel {
     gbc.gridy = 1;
     gbc.weightx = 1.0;
     perkRow.add(descLabel, gbc);
-    gbc.gridy = 0; // Reset for next elements
+    gbc.gridy = 0;
 
-    // --- STATUS LABEL ---
     JLabel statusLabel;
     if (alreadyOwned) {
         statusLabel = new JLabel("Dimiliki", JLabel.CENTER);
@@ -157,7 +154,6 @@ public class TokoPerksPanel extends JPanel {
     gbc.anchor = GridBagConstraints.CENTER;
     perkRow.add(statusLabel, gbc);
 
-    // --- TOMBOL UPGRADE ---
     if (alreadyOwned && ownedPerk != null) {
         JLabel biayaLabel = new JLabel(ownedPerk.isMaxLevel() ? "MAX" : ownedPerk.getBiayaUpgrade() + "G");
         biayaLabel.setFont(new Font("Serif", Font.PLAIN, 20));
@@ -205,7 +201,6 @@ public class TokoPerksPanel extends JPanel {
             }
         });
     } else {
-        // --- TOMBOL BELI / CONVERT ---
         boolean hasAllPerkSlots = ownedPerks.size() >= 2;
         boolean canBuy = !hasAllPerkSlots && perksManagement.canPlayerAffordPerk(player, perk.getPerkType());
         boolean canConvert = hasAllPerkSlots && perksManagement.hasConvertiblePerk(player, perk.getPerkType());
@@ -296,17 +291,12 @@ public class TokoPerksPanel extends JPanel {
     populatePerks();
   }
 
-  // FIXED: Add updatePlayerData method for TokoPerksPanel
   public void updatePlayerData(Player newPlayer) {
-    System.out.println("DEBUG: TokoPerksPanel.updatePlayerData() called with player: " + newPlayer.getUsername());
-    System.out.println("  - Old player: " + (this.player != null ? this.player.getUsername() : "null"));
-    System.out.println("  - New player: " + newPlayer.getUsername());
     this.player = newPlayer;
     updateMoneyDisplay();
-    populatePerks(); // Refresh the perks display with new player data
+    populatePerks();
   }
 
-  // Tambahkan method ini di kelas TokoPerksPanel
   private ImageIcon loadIcon(String iconName, int width, int height) {
     try {
       File iconFile = new File("assets/icons/" + iconName);

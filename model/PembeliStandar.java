@@ -1,27 +1,31 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 public class PembeliStandar extends Pembeli {
-    private int lastOffer = 0; // Menyimpan tawaran terakhir
+    private int lastOffer = 0;
     private int counterCount = 0;
     private static final int MAX_COUNTER = 5;
     private String lastRejectionReason = "";
 
     public PembeliStandar() {
         super("Standar", 0.8);
-        peluangMuncul = 0.7;  // Very high chance to encounter
+        peluangMuncul = 0.7;
     }
 
     @Override
     public int tawarHarga(int hargaAwal) {
         counterCount++;
-        // Standar: tawar antara 60%–90% dari hargaAwal
         double minRate = 0.6, maxRate = 0.9;
         int offer = (int)(hargaAwal * (minRate + Math.random() * (maxRate - minRate)));
-        // Jika ini counter, jangan turun dari lastOffer
         if (lastOffer > 0 && offer < lastOffer) {
             offer = lastOffer;
         }
-        // Batasi agar tidak pernah lebih dari hargaAwal
         if (offer > hargaAwal) {
             offer = hargaAwal;
             lastRejectionReason = "Pembeli Standar menolak karena tawaran terlalu tinggi.";
@@ -39,7 +43,6 @@ public class PembeliStandar extends Pembeli {
             lastRejectionReason = "Pembeli Standar menolak karena terlalu banyak negosiasi (>5x).";
             return false;
         }
-        // Terima jika hargaFinal <= maxTawaran (hasil tawarHarga terakhir)
         return hargaFinal <= maxTawaran;
     }
 

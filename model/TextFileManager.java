@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 import interfaces.FileManager;
@@ -7,39 +14,31 @@ import java.nio.file.*;
 import java.util.*;
 
 public class TextFileManager implements FileManager {
-
   private static final String SAVE_DIRECTORY = "saves";
   private static final String SAVE_EXTENSION = ".txt";
   private static final String AUTOSAVE_SUFFIX = "_autosave";
   private static final String HIGHSCORE_FILE = "highscores.txt";
-
   public TextFileManager() {
-    // Create saves directory if it doesn't exist
     try {
       Files.createDirectories(Paths.get(SAVE_DIRECTORY));
     } catch (IOException e) {
       System.err.println("Failed to create saves directory: " + e.getMessage());
     }
   }
-
   private String getSaveFilePath(String username) {
     return SAVE_DIRECTORY + File.separator + username + SAVE_EXTENSION;
   }
-
   private String getAutoSaveFilePath(String username) {
     return SAVE_DIRECTORY + File.separator + username + AUTOSAVE_SUFFIX + SAVE_EXTENSION;
   }
-
   @Override
   public boolean saveGame(Player player) {
     return saveGameWithContext(player, 1, "HomeBase", 0);
   }
-
   @Override
   public Player loadGame(String username) {
     return loadGameWithContext(username);
   }
-
   @Override
   public boolean saveGameWithContext(Player player, int currentDay, String currentLocation, int gameScore) {
     try {
@@ -59,7 +58,6 @@ public class TextFileManager implements FileManager {
       return false;
     }
   }
-
   @Override
   public Player loadGameWithContext(String username) {
     try {
@@ -74,7 +72,6 @@ public class TextFileManager implements FileManager {
         System.out.println("Money: " + result.getMoney());
         System.out.println("Inventory barang count: " + getInventoryBarang(result.getInventory()).size());
         System.out.println("Perks owned: " + result.getSemuaPerkDimiliki().size());
-        // Debug perks detail
         for (Perk perk : result.getSemuaPerkDimiliki()) {
           System.out.println("  - Perk: " + perk.getName() + " (Level: " + perk.getLevel() + ")");
         }
@@ -88,23 +85,19 @@ public class TextFileManager implements FileManager {
       return null;
     }
   }
-
   @Override
   public boolean saveHighScore(Player player, int finalScore) {
     try {
       List<String> highScores = new ArrayList<>();
 
-      // Load existing high scores
       String filePath = SAVE_DIRECTORY + File.separator + HIGHSCORE_FILE;
       if (Files.exists(Paths.get(filePath))) {
         highScores = Files.readAllLines(Paths.get(filePath));
       }
 
-      // Add new score
       String newScore = player.getUsername() + ":" + finalScore;
       highScores.add(newScore);
 
-      // Sort by score (descending) and keep top 10
       highScores.sort((a, b) -> {
         int scoreA = Integer.parseInt(a.split(":")[1]);
         int scoreB = Integer.parseInt(b.split(":")[1]);
@@ -122,7 +115,6 @@ public class TextFileManager implements FileManager {
       return false;
     }
   }
-
   @Override
   public String[] loadHighScores() {
     try {
@@ -138,13 +130,10 @@ public class TextFileManager implements FileManager {
       return new String[0];
     }
   }
-
   @Override
   public boolean saveInventory(String username, Inventory inventory) {
-    // This is handled within saveGameWithContext
     return true;
   }
-
   @Override
   public boolean savePlayerProgress(String username, int level, int money, int day) {
     try {
@@ -153,14 +142,13 @@ public class TextFileManager implements FileManager {
         return false;
       }
 
-      player.tambahMoney(money - player.getMoney()); // Adjust money
+      player.tambahMoney(money - player.getMoney());
       return saveGameWithContext(player, day, "HomeBase", 0);
     } catch (Exception e) {
       System.err.println("Error saving player progress: " + e.getMessage());
       return false;
     }
   }
-
   @Override
   public boolean saveGameSettings(String username, boolean bgmEnabled, int difficulty) {
     try {
@@ -169,19 +157,17 @@ public class TextFileManager implements FileManager {
         return false;
       }
 
-      return saveGameWithContext(player, 1, "HomeBase", 0); // Save with updated settings
+      return saveGameWithContext(player, 1, "HomeBase", 0);
     } catch (Exception e) {
       System.err.println("Error saving game settings: " + e.getMessage());
       return false;
     }
   }
-
   @Override
   public boolean doesSaveFileExist(String username) {
     String filePath = getSaveFilePath(username);
     return Files.exists(Paths.get(filePath));
   }
-
   @Override
   public boolean deleteSaveFile(String username) {
     try {
@@ -205,7 +191,6 @@ public class TextFileManager implements FileManager {
       return false;
     }
   }
-
   @Override
   public String[] getAllSaveFiles() {
     try {
@@ -236,7 +221,6 @@ public class TextFileManager implements FileManager {
       return new String[0];
     }
   }
-
   @Override
   public boolean autoSave(Player player, int currentDay) {
     try {
@@ -255,7 +239,6 @@ public class TextFileManager implements FileManager {
       return false;
     }
   }
-
   @Override
   public Player loadAutoSave(String username) {
     try {
@@ -266,14 +249,12 @@ public class TextFileManager implements FileManager {
       return null;
     }
   }
-
   private boolean writePlayerDataToFile(Player player, String filePath, int currentDay,
       String currentLocation, int gameScore, boolean bgmEnabled, int difficulty) {
     try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
 
       System.out.println("DEBUG: Writing player data to file...");
 
-      // === PLAYER_DATA ===
       writer.println("=== PLAYER_DATA ===");
       writer.println("USERNAME:" + player.getUsername());
       writer.println("ID:" + player.getID());
@@ -281,7 +262,6 @@ public class TextFileManager implements FileManager {
       writer.println("CURRENT_DAY:" + currentDay);
       writer.println();
 
-      // === INVENTORY_BARANG ===
       writer.println("=== INVENTORY_BARANG ===");
       Map<Barang, Integer> stokBarang = getInventoryBarang(player.getInventory());
       System.out.println("DEBUG: Writing " + stokBarang.size() + " barang items:");
@@ -296,15 +276,13 @@ public class TextFileManager implements FileManager {
             jumlah);
       }
       writer.println("// Format: nama,kategori,hargaBeli,kesegaran,jumlah");
-      writer.println(); // === INVENTORY_ITEM ===
+      writer.println();
       writer.println("=== INVENTORY_ITEM ===");
       List<Item> allItems = new ArrayList<>();
       List<Item> stokItem = player.getInventory().getStokItem();
       List<Item> itemDibawa = player.getInventory().getItemDibawa();
 
-      // Add all items from inventory (not in gerobak)
       allItems.addAll(stokItem);
-      // Add all items from gerobak
       allItems.addAll(itemDibawa);
 
       for (Item item : allItems) {
@@ -317,7 +295,6 @@ public class TextFileManager implements FileManager {
       writer.println("// Format: nama,level,active,inGerobak");
       writer.println();
 
-      // === GEROBAK ===
       writer.println("=== GEROBAK ===");
       Gerobak gerobak = player.getInventory().getGerobak();
       writer.println("LEVEL:" + gerobak.getLevel());
@@ -326,7 +303,6 @@ public class TextFileManager implements FileManager {
       writer.println("BIAYA_UPGRADE:" + gerobak.getBiayaUpgrade());
       writer.println();
 
-      // === GEROBAK_BARANG ===
       writer.println("=== GEROBAK_BARANG ===");
       Map<Barang, Integer> barangDibawa = player.getInventory().getBarangDibawaMutable();
       for (Map.Entry<Barang, Integer> entry : barangDibawa.entrySet()) {
@@ -341,7 +317,7 @@ public class TextFileManager implements FileManager {
             hargaJual);
       }
       writer.println("// Format: nama,kategori,hargaBeli,kesegaran,jumlah,hargaJual");
-      writer.println(); // === PERKS ===
+      writer.println();
       writer.println("=== PERKS ===");
       List<Perk> ownedPerks = player.getSemuaPerkDimiliki();
       List<Perk> activePerks = player.getPerkDipilihUntukJualan();
@@ -365,7 +341,6 @@ public class TextFileManager implements FileManager {
       writer.println("// Format: nama,level,owned/active");
       writer.println();
 
-      // === GAME_PROGRESS ===
       writer.println("=== GAME_PROGRESS ===");
       writer.println("SCORE:" + gameScore);
       writer.println("LOCATION:" + currentLocation);
@@ -378,7 +353,6 @@ public class TextFileManager implements FileManager {
       return false;
     }
   }
-
   private Player loadPlayerFromFile(String filePath) throws IOException {
     if (!Files.exists(Paths.get(filePath))) {
       return null;
@@ -388,7 +362,6 @@ public class TextFileManager implements FileManager {
     System.out.println("DEBUG: Loading from file: " + filePath);
     System.out.println("DEBUG: File has " + lines.size() + " lines");
 
-    // First, read the username to properly initialize the Player
     String username = extractUsernameFromFile(lines);
     System.out.println("DEBUG: Extracted username: " + username);
     Player player = new Player(username != null ? username : "Unknown");
@@ -451,8 +424,6 @@ public class TextFileManager implements FileManager {
 
     return player;
   }
-
-  // Helper method to extract username from save file lines
   private String extractUsernameFromFile(List<String> lines) {
     for (String line : lines) {
       line = line.trim();
@@ -465,7 +436,6 @@ public class TextFileManager implements FileManager {
     }
     return null;
   }
-
   private void parsePlayerData(String line, Player player) {
     String[] parts = line.split(":", 2);
     if (parts.length != 2)
@@ -478,13 +448,9 @@ public class TextFileManager implements FileManager {
 
     switch (key) {
       case "USERNAME":
-        // Username already set during Player construction
         System.out.println("  - Username already set during construction");
         break;
       case "ID":
-        // Don't override the ID generated in constructor - let each player keep their
-        // unique ID
-        // This fixes the issue where all loaded players had the same ID
         System.out.println("  - Keeping generated ID instead of saved ID");
         break;
       case "MONEY":
@@ -495,7 +461,6 @@ public class TextFileManager implements FileManager {
         break;
     }
   }
-
   private void parseInventoryBarang(String line, Inventory inventory) {
     if (!line.startsWith("BARANG:"))
       return;
@@ -513,18 +478,14 @@ public class TextFileManager implements FileManager {
 
     System.out.println("DEBUG: Loading barang - " + nama + " x" + jumlah + " (Category: " + kategori + ")");
 
-    // Create barang with icon path
     String iconPath = nama.toLowerCase() + ".png";
     Barang barang = new Barang(nama, kategori, hargaBeli, iconPath);
 
-    // Set kesegaran by reducing from 100
     int kesegaranToReduce = 100 - kesegaran;
     for (int i = 0; i < kesegaranToReduce / 25; i++) {
       barang.kurangiKesegaran();
     }
 
-    // FIX: Add the barang with correct quantity directly to stokBarang map
-    // instead of calling tambahBarang multiple times
     try {
       java.lang.reflect.Field stokBarangField = Inventory.class.getDeclaredField("stokBarang");
       stokBarangField.setAccessible(true);
@@ -534,13 +495,11 @@ public class TextFileManager implements FileManager {
       System.out.println("  - Successfully added " + nama + " x" + jumlah + " to inventory via reflection");
     } catch (Exception e) {
       System.out.println("  - Reflection failed, using fallback method");
-      // Fallback to original method
       for (int i = 0; i < jumlah; i++) {
         inventory.tambahBarang(barang);
       }
     }
   }
-
   private void parseInventoryItem(String line, Inventory inventory) {
     if (!line.startsWith("ITEM:"))
       return;
@@ -558,11 +517,9 @@ public class TextFileManager implements FileManager {
     System.out.println("DEBUG: Loading item - " + nama + " (Level: " + level + ", Active: " + active + ", InGerobak: "
         + inGerobak + ")");
 
-    // Get correct icon path for the item
     String iconPath = getCorrectItemIconPath(nama);
     Item item = new Item(nama, "Item description", 100000, 50000, iconPath);
 
-    // Set level
     for (int i = 0; i < level; i++) {
       item.upgradeLevel();
     }
@@ -575,11 +532,10 @@ public class TextFileManager implements FileManager {
     System.out.println("  - Successfully added item: " + nama + " with icon: " + iconPath);
 
     if (inGerobak) {
-      inventory.bawaItem(nama, 999); // Assuming large capacity
+      inventory.bawaItem(nama, 999);
       System.out.println("  - Item " + nama + " placed in gerobak");
     }
   }
-
   private void parseGerobak(String line, Gerobak gerobak) {
     String[] parts = line.split(":", 2);
     if (parts.length != 2)
@@ -590,7 +546,6 @@ public class TextFileManager implements FileManager {
 
     if ("LEVEL".equals(key)) {
       int targetLevel = Integer.parseInt(value);
-      // Upgrade gerobak to target level
       for (int i = 0; i < targetLevel; i++) {
         gerobak.upgradeLevel();
       }
@@ -616,33 +571,25 @@ public class TextFileManager implements FileManager {
     
     Barang barang;
     if (hargaJual > 0) {
-      // Create unique anonymous object for items with selling price (same as HomeBasePanel)
       barang = new Barang(nama, kategori, hargaBeli, iconPath) {
-        // Anonymous class untuk memastikan objek ini unik
         private final long uniqueId = System.nanoTime();
 
         @Override
         public boolean equals(Object obj) {
-          // Setiap instance dengan harga adalah unik - hanya equal dengan dirinya sendiri
           if (this == obj)
             return true;
-          // Tidak pernah equal dengan objek lain, bahkan jika objek tersebut memiliki
-          // properti yang sama
           return false;
         }
 
         @Override
         public int hashCode() {
-          // Hash berdasarkan identitas objek + uniqueId
           return System.identityHashCode(this) + (int) (uniqueId % Integer.MAX_VALUE);
         }
       };
     } else {
-      // Create standard object for items without selling price
       barang = new Barang(nama, kategori, hargaBeli, iconPath);
     }
 
-    // Set kesegaran
     int kesegaranToReduce = 100 - kesegaran;
     for (int i = 0; i < kesegaranToReduce / 25; i++) {
       barang.kurangiKesegaran();
@@ -651,7 +598,6 @@ public class TextFileManager implements FileManager {
     inventory.tambahBarangDibawa(barang, jumlah);
     inventory.setHargaJual(barang, hargaJual);
   }
-
   private void parsePerks(String line, Player player) {
     System.out.println("DEBUG: Parsing perk line: " + line);
 
@@ -664,10 +610,8 @@ public class TextFileManager implements FileManager {
 
         System.out.println("  - Creating owned perk: " + nama + " (Level: " + level + ")");
 
-        // Create and add perk based on name
         Perk perk = createPerkByName(nama);
         if (perk != null) {
-          // Upgrade to target level
           for (int i = 0; i < level; i++) {
             perk.upgradeLevel();
           }
@@ -686,7 +630,6 @@ public class TextFileManager implements FileManager {
 
         System.out.println("  - Setting active perk: " + nama + " (Active: " + active + ")");
 
-        // Find the perk in player's owned perks and activate if needed
         for (Perk perk : player.getSemuaPerkDimiliki()) {
           if (perk.getName().equals(nama)) {
             if (active) {
@@ -699,12 +642,8 @@ public class TextFileManager implements FileManager {
       }
     }
   }
-
   private void parseGameProgress(String line, Player player) {
-    // Game progress parsing can be extended as needed
-    // Currently just parsing for completeness
   }
-
   private Perk createPerkByName(String nama) {
     System.out.println("DEBUG: Creating perk by name: " + nama);
     switch (nama.toLowerCase()) {
@@ -722,9 +661,6 @@ public class TextFileManager implements FileManager {
         return null;
     }
   }
-
-  // Helper method to get correct icon path for items based on TokoItem
-  // definitions
   private String getCorrectItemIconPath(String itemName) {
     switch (itemName.toLowerCase()) {
       case "hipnotis":
@@ -738,13 +674,9 @@ public class TextFileManager implements FileManager {
       case "tip":
         return "peluang_beli.png";
       default:
-        // Fallback to lowercase name + .png
         return itemName.toLowerCase() + ".png";
     }
   }
-
-  // Helper methods that need to access private fields - these might need
-  // reflection or getter methods
   @SuppressWarnings("unchecked")
   private Map<Barang, Integer> getInventoryBarang(Inventory inventory) {
     try {
@@ -756,7 +688,6 @@ public class TextFileManager implements FileManager {
       return new HashMap<>();
     }
   }
-
   private void setPlayerInventory(Player player, Inventory inventory) {
     try {
       java.lang.reflect.Field field = Player.class.getDeclaredField("inventory");

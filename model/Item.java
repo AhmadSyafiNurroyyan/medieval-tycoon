@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 import interfaces.Showable;
@@ -13,9 +20,9 @@ public class Item implements Showable, Upgrade {
     private int level;
     private final String iconPath;
     private boolean isUsed;
-    private boolean isConsumable; // Apakah item bisa habis
-    private int quantity; // Jumlah item (untuk consumable)
-    private int maxQuantity; // Maksimum quantity per level
+    private boolean isConsumable;
+    private int quantity;
+    private int maxQuantity;
 
     private static final int MAX_LEVEL = 5;
 
@@ -28,11 +35,9 @@ public class Item implements Showable, Upgrade {
         this.isActive = false;
         this.iconPath = iconPath;
         this.isUsed = false;
-
-        // Set consumable properties berdasarkan jenis item
         if (isPeluit()) {
             this.isConsumable = true;
-            this.maxQuantity = 10; // Base quantity
+            this.maxQuantity = 10;
             this.quantity = maxQuantity;
         } else {
             this.isConsumable = false;
@@ -98,7 +103,6 @@ public class Item implements Showable, Upgrade {
         this.isUsed = false;
     }
 
-    // Methods untuk consumable system
     public boolean isConsumable() {
         return isConsumable;
     }
@@ -131,28 +135,26 @@ public class Item implements Showable, Upgrade {
         this.quantity = maxQuantity;
     }
 
-    // Efek spesifik setiap item berdasarkan level
     public double getHipnotisChance() {
-        return 0.3 + (level * 0.1); // 30% + 10% per level (max 80% di level 5)
+        return 0.3 + (level * 0.1);
     }
 
     public double getJampiMultiplier() {
-        return 1.5 + (level * 0.3); // 1.5x + 0.3x per level (max 3x di level 5)
+        return 1.5 + (level * 0.3);
     }
 
     public double getSemprotenPriceBoost() {
-        return 0.15 + (level * 0.05); // 15% + 5% per level (max 40% di level 5)
+        return 0.15 + (level * 0.05);
     }
 
     public double getTipBonusRate() {
-        return 0.08 + (level * 0.04); // 8% + 4% per level (max 28% di level 5)
+        return 0.08 + (level * 0.04);
     }
 
     public int getPeluitExtraBuyers() {
-        return level; // 1 pembeli per level (max 5 pembeli di level 5)
+        return level;
     }
 
-    // Method untuk cek tipe item berdasarkan nama
     public boolean isHipnotis() {
         return nama.equalsIgnoreCase("Hipnotis");
     }
@@ -177,10 +179,9 @@ public class Item implements Showable, Upgrade {
     public boolean upgradeLevel() {
         if (level < MAX_LEVEL) {
             level++;
-            // Update max quantity for consumable items when upgraded
             if (isConsumable) {
-                maxQuantity = 10 + (level * 5); // Base 10 + 5 per level
-                quantity = maxQuantity; // Refill pada upgrade
+                maxQuantity = 10 + (level * 5);
+                quantity = maxQuantity;
             }
             return true;
         }
@@ -234,12 +235,10 @@ public class Item implements Showable, Upgrade {
         return "Efek tidak diketahui";
     }
 
-    // --- Peluit daily usage tracking ---
     private int peluitUsesToday = 0;
     private int peluitLastUsedDay = -1;
 
     public int getPeluitDailyLimit() {
-        // Example: level 1 = 5, level 2 = 7, level 3 = 9, level 4 = 12, level 5 = 15
         switch (level) {
             case 1:
                 return 5;

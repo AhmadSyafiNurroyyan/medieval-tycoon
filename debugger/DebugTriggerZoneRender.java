@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package debugger;
 
 import MapManager.TriggerZoneManager;
@@ -19,17 +26,12 @@ public class DebugTriggerZoneRender {
         }
     }
     
-    /**
-     * Draw only non-random trigger zones (skip zones with IDs starting with "ArenaPembeli_")
-     */
     public static void drawNonRandomZones(Graphics g, TriggerZoneManager triggerZoneManager, Camera camera) {
         Graphics2D g2d = (Graphics2D) g;
         for (TriggerZoneManager.TriggerZone zone : triggerZoneManager.getAllZones()) {
-            // Skip random trigger zones (they will be rendered as NPCs instead)
             if (zone.getId().startsWith("ArenaPembeli_")) {
                 continue;
             }
-            
             Rectangle r = zone.getBounds();
             g2d.setColor(new Color(255, 0, 0, 80));
             g2d.fillRect(r.x - camera.getX(), r.y - camera.getY(), r.width, r.height);

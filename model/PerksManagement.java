@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 import enums.PerkType;
@@ -60,10 +67,9 @@ public class PerksManagement {
 
   public boolean hasConvertiblePerk(Player player, PerkType targetType) {
     if (player.hasPerk(targetType)) {
-      return false; // Already has target perk
+      return false;
     }
 
-    // Check if player has any perk that can convert to the target type
     for (Perk perk : player.getSemuaPerkDimiliki()) {
       if (perk.canConvertTo(targetType)) {
         return true;
@@ -91,13 +97,6 @@ public class PerksManagement {
     return convertiblePerks;
   }
 
-  /**
-   * Mendapatkan semua pilihan konversi yang tersedia untuk player
-   * 
-   * @param player player yang akan dicek
-   * @return Map dengan key = perk yang dimiliki, value = target konversi yang
-   *         diizinkan
-   */
   public Map<Perk, PerkType> getAvailableConversions(Player player) {
     Map<Perk, PerkType> conversions = new HashMap<>();
     for (Perk perk : player.getSemuaPerkDimiliki()) {

@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package MapManager;
 
 import gui.GamePanel;
@@ -26,7 +33,7 @@ public class TileManager {
                 File file = new File("assets/tiles/" + i + ".png");
                 if (file.exists()) {
                     BufferedImage image = ImageIO.read(file);
-                    boolean collision = (i == 2 || i == 3); // collision adder
+                    boolean collision = (i == 2 || i == 3);
                     tiles[i] = new Tile(image, collision);
                 }
             }

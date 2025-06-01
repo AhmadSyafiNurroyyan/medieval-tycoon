@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 import enums.PerkType;
@@ -19,42 +26,21 @@ public class PerksActive extends Perk {
 
     @Override
     public double getPerkEffect() {
-        // Return level sebagai indicator untuk sistem pembeli
         return (double) level;
     }
 
-    /**
-     * Calculate additional buyers using new formula:
-     * 1. Generate random base number (1-5)
-     * 2. Calculate perk multiplier based on level (0.5 * level)
-     * 3. Multiply random by multiplier
-     * 4. Add multiplication result to original random
-     * Formula: finalResult = randomBase + (randomBase * perkMultiplier)
-     * 
-     * @return number of additional buyers to spawn
-     */
     public int getAdditionalBuyersCount() {
         if (!isActive || level == 0) {
             System.out.println("[PERKS ACTIVE DEBUG] Perk not active or level 0 - no additional buyers");
             return 0;
         }
 
-        // Step 1: Generate random base number (1-5)
-        double randomBase = 1 + (Math.random() * 4); // 1.0 - 5.0
-
-        // Step 2: Calculate perk multiplier based on level
+        double randomBase = 1 + (Math.random() * 4);
         double perkMultiplier = 0.5 * level;
-
-        // Step 3: Multiply random by multiplier
         double multiplicationResult = randomBase * perkMultiplier;
-
-        // Step 4: Add multiplication result to original random
         double finalResult = randomBase + multiplicationResult;
-
-        // Convert to integer (round down)
         int additionalBuyers = (int) finalResult;
 
-        // Debug output showing the entire calculation
         System.out.println("[PERKS ACTIVE DEBUG] ===== BUYER COUNT CALCULATION =====");
         System.out.println("[PERKS ACTIVE DEBUG] Perk Level: " + level);
         System.out.println("[PERKS ACTIVE DEBUG] Step 1 - Random Base: " + String.format("%.2f", randomBase));
@@ -72,15 +58,9 @@ public class PerksActive extends Perk {
         return additionalBuyers;
     }
 
-    /**
-     * Membuat pembeli berdasarkan level PerksActive
-     * Level 1: 10% tajir, 65% standar, 25% miskin
-     * Level 2-3: 15% tajir, 70% standar, 20% miskin
-     * Level 4-5: 20% tajir, 75% standar, 15% miskin
-     */
     public Pembeli buatPembeliDenganPerkActive() {
         if (!isActive || level == 0) {
-            return Pembeli.buatPembeliAcak(); // Default behavior
+            return Pembeli.buatPembeliAcak();
         }
 
         double random = Math.random();

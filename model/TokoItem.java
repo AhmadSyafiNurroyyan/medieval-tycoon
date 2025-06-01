@@ -1,7 +1,14 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
-import interfaces.Transaksi;
 import interfaces.Showable;
+import interfaces.Transaksi;
 import java.util.*;
 
 public class TokoItem implements Transaksi<Item>, Showable {
@@ -62,7 +69,7 @@ public class TokoItem implements Transaksi<Item>, Showable {
     public boolean beliItem(Player player, String namaItem) {
         for (Item item : listItem) {
             if (item.getNama().equalsIgnoreCase(namaItem)) {
-                return beli(player, item); // panggil method beli yang sudah ada
+                return beli(player, item);
             }
         }
         System.out.println("Item dengan nama '" + namaItem + "' tidak ditemukan di toko.");
@@ -75,7 +82,7 @@ public class TokoItem implements Transaksi<Item>, Showable {
             System.out.println("Item belum dimiliki.");
             return;
         }
-        int biaya = item.getBiayaUpgrade() * item.getLevel(); // biaya meningkat per level
+        int biaya = item.getBiayaUpgrade() * item.getLevel();
         if (player.getMoney() < biaya) {
             System.out.println("Uang tidak cukup untuk upgrade. Dibutuhkan: Rp" + biaya);
             return;

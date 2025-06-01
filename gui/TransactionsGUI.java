@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package gui;
 
 import MapManager.RandomTriggerZoneManager;
@@ -14,7 +21,6 @@ import model.Pembeli;
 import model.Player;
 
 public class TransactionsGUI extends JPanel {
-    // Base constants for scaling
     private Image tetoImage;
     private Image neuvilletteImage;
     private String currentMessage;
@@ -25,49 +31,33 @@ public class TransactionsGUI extends JPanel {
     private static final Color BORDER_COLOR = new Color(212, 175, 55);
     private static final Color TEXT_COLOR = new Color(60, 40, 10);
     private static final Color SHADOW_COLOR = new Color(120, 90, 30, 80);
-
     private Pembeli currentPembeli;
     private Image pembeliImage;
     private String pembeliName;
     private Player currentPlayer;
-    private ItemEffectManager itemEffectManager; // Add item effect manager
-    // Trading system variables
+    private ItemEffectManager itemEffectManager;
     private Barang selectedBarang;
     private int offerPrice = 0;
-    private boolean negotiationPhase = false; // Trading buttons
+    private boolean negotiationPhase = false;
     private JButton sellButton;
     private JButton acceptButton;
     private JButton counterOfferButton;
     private JButton declineButton;
     private JButton closeButton;
-    // Trading input fields
     private JTextField priceField;
-    private JPanel pricePanel; // Tambahkan field untuk pricePanel
+    private JPanel pricePanel;
     private int selectedQuantity = 1;
-
-    // Top UI buttons for all dialogs
-    @SuppressWarnings("unused")
     private JButton useItemButton;
-    @SuppressWarnings("unused")
     private JButton cartButton;
-
-    // --- Gerobak JInternalFrame integration ---
     private JInternalFrame gerobakFrame;
     private JTable gerobakWithPriceTable;
-
-    @SuppressWarnings("unused")
     private JDesktopPane desktopPane;
     private boolean transactionCompleted = false;
-    @SuppressWarnings("unused")
-    private JLabel pembeliTitleLabel; // Label judul pembeli kiri atas
-
-    // References for trigger zone management
+    private JLabel pembeliTitleLabel;
     private MapManager.TriggerZoneManager triggerZoneManager;
-    private String currentTriggerZoneId; // --- Item JInternalFrame integration ---
+    private String currentTriggerZoneId;
     private JInternalFrame itemFrame;
     private JTable itemGerobakTable;
-
-    // --- Random trigger zone management ---
     private MapManager.RandomTriggerZoneManager randomTriggerZoneManager;
 
     public TransactionsGUI(JPanel parentPanel) {
@@ -80,19 +70,15 @@ public class TransactionsGUI extends JPanel {
 
         setOpaque(false);
         setLayout(null);
-        // initialize desktop for internal frames
         desktopPane = new JDesktopPane();
         desktopPane.setOpaque(false);
         add(desktopPane);
-        // Pastikan desktopPane selalu di paling bawah hanya sekali
         setComponentZOrder(desktopPane, getComponentCount() - 1);
 
-        // Initialize top buttons
         useItemButton = StyledButton.create("Use Item", 16, 100, 40);
         cartButton = StyledButton.create("Gerobak", 16, 100, 40);
         add(useItemButton);
         add(cartButton);
-        // Do not let these buttons grab focus so key events (E) still go to GamePanel
         useItemButton.setFocusable(false);
         cartButton.setFocusable(false);
         useItemButton.setVisible(false);
@@ -105,7 +91,7 @@ public class TransactionsGUI extends JPanel {
         pembeliTitleLabel.setForeground(TEXT_COLOR);
         pembeliTitleLabel.setOpaque(false);
         pembeliTitleLabel.setVisible(false);
-        setLayout(null); // Sudah ada, pastikan absolute
+        setLayout(null);
         add(pembeliTitleLabel);
     }
 
@@ -137,7 +123,6 @@ public class TransactionsGUI extends JPanel {
 
             setBounds(0, 0, parentPanel.getWidth(), parentPanel.getHeight());
             setVisible(true);
-            // Layout and show top buttons
             layoutTopButtons();
             useItemButton.setVisible(true);
             cartButton.setVisible(true);
@@ -148,7 +133,6 @@ public class TransactionsGUI extends JPanel {
     public void hideDialog() {
         this.isVisible = false;
         setVisible(false);
-        // Hide top buttons
         useItemButton.setVisible(false);
         cartButton.setVisible(false);
 
@@ -161,29 +145,21 @@ public class TransactionsGUI extends JPanel {
         return isVisible;
     }
 
-    /**
-     * Check if dialog is in a "no items" state - when there are no goods to sell
-     * This allows the dialog to be closed even during trading mode
-     */
     public boolean isNoItemsState() {
         if (!isVisible || currentMessage == null) {
             return false;
         }
 
-        // Check if the current message indicates a "no items" state
         return currentMessage.contains("tidak membawa barang untuk dijual") ||
                 currentMessage.contains("Tidak ada barang dengan harga jual yang ditetapkan");
     }
 
-    /**
-     * Set Pembeli to be displayed in dialog
-     */
     public void setPembeli(Pembeli pembeli) {
         this.currentPembeli = pembeli;
         String displayName = null;
         String jenis = null;
         if (pembeli != null) {
-            String tipe = pembeli.getKategori(); // "Tajir", "Miskin", "Standar"
+            String tipe = pembeli.getKategori();
             String folderPath = null;
             if ("Tajir".equalsIgnoreCase(tipe)) {
                 folderPath = "assets/backgrounds/PembeliTajir/";
@@ -213,7 +189,6 @@ public class TransactionsGUI extends JPanel {
                 loadedImage = neuvilletteImage;
             }
             this.pembeliImage = loadedImage;
-            // Ambil nama dari fileName jika ada, jika tidak fallback ke pembeliName
             if (fileName != null) {
                 int dotIdx = fileName.lastIndexOf('.');
                 if (dotIdx > 0)
@@ -236,7 +211,6 @@ public class TransactionsGUI extends JPanel {
             displayName = null;
             jenis = null;
         }
-        // Update label judul
         if (displayName != null && jenis != null) {
             pembeliTitleLabel.setText(displayName + " (Pembeli " + jenis + ")");
             pembeliTitleLabel.setVisible(true);
@@ -246,20 +220,15 @@ public class TransactionsGUI extends JPanel {
         repaint();
     }
 
-    /**
-     * Show dialog for current Pembeli with a proper message
-     */
     public void showPembeliDialog() {
         System.out.println("DEBUG: showPembeliDialog() called");
 
         if (currentPembeli != null) {
             String message = "Kamu bertemu dengan " + pembeliName + "! Mereka terlihat tertarik untuk berbelanja.";
             showDialog(message);
-            // Langsung mulai trading agar tombol muncul
             startTrading();
             System.out.println("DEBUG: showPembeliDialog completed with pembeli");
         } else {
-            // Fallback if no pembeli is set
             showDialog("Kamu menemukan tempat yang menarik untuk berdagang!");
             System.out.println("DEBUG: showPembeliDialog completed without pembeli");
         }
@@ -278,7 +247,6 @@ public class TransactionsGUI extends JPanel {
         int panelWidth = getWidth();
         int panelHeight = getHeight();
 
-        // Dynamic sizing based on window dimensions
         int DIALOG_HEIGHT = Math.max(150, Math.min(300, panelHeight / 4));
         int DIALOG_MARGIN = Math.max(15, panelWidth / 50);
         int TEXT_PADDING = Math.max(10, DIALOG_HEIGHT / 15);
@@ -287,26 +255,20 @@ public class TransactionsGUI extends JPanel {
         int dialogX = DIALOG_MARGIN;
         int dialogY = panelHeight - DIALOG_HEIGHT - DIALOG_MARGIN;
 
-        // Draw semi-transparent overlay
         g2d.setColor(new Color(0, 0, 0, 100));
         g2d.fillRect(0, 0, panelWidth, panelHeight);
-        // Calculate dynamic image sizes based on window size with center spacing
-        int centerSpacing = Math.max(50, panelWidth / 8); // Dynamic center spacing (12.5% of width)
-        int availableWidthPerSide = (panelWidth - centerSpacing) / 2; // Width available for each image side
-        int imageMargin = Math.max(10, panelWidth / 80); // Dynamic margin
-        int maxImageWidth = Math.max(80, availableWidthPerSide - (imageMargin * 2)); // Use available width minus
-                                                                                     // margins
-        // Draw Teto image (left side) - behind dialog
+        int centerSpacing = Math.max(50, panelWidth / 8);
+        int availableWidthPerSide = (panelWidth - centerSpacing) / 2;
+        int imageMargin = Math.max(10, panelWidth / 80);
+        int maxImageWidth = Math.max(80, availableWidthPerSide - (imageMargin * 2));
         if (tetoImage != null) {
             int iw = tetoImage.getWidth(this);
             int ih = tetoImage.getHeight(this);
             if (iw > 0 && ih > 0) {
-                // Dynamic scaling based on window size - 1.5x larger
                 double maxW = maxImageWidth * 1.5;
-                double maxH = (panelHeight - DIALOG_HEIGHT - 60) * 1.5; // Leave space for dialog
+                double maxH = (panelHeight - DIALOG_HEIGHT - 60) * 1.5;
                 double scale = Math.min(maxW / iw, maxH / ih);
 
-                // Dynamic scale limits based on window size - 1.5x larger
                 double minScale = Math.max(0.15, Math.min(panelWidth, panelHeight) / (Math.max(iw, ih) * 4.0)) * 1.5;
                 double maxScale = Math.min(3.0, Math.max(panelWidth, panelHeight) / (Math.min(iw, ih) * 0.67)) * 1.5;
                 scale = Math.max(scale, minScale);
@@ -315,7 +277,7 @@ public class TransactionsGUI extends JPanel {
                 int w = (int) (iw * scale);
                 int h = (int) (ih * scale);
                 int x = imageMargin;
-                int y = Math.max(10, (panelHeight - DIALOG_HEIGHT - h) / 4); // Dynamic Y positioning
+                int y = Math.max(10, (panelHeight - DIALOG_HEIGHT - h) / 4);
 
                 g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -323,8 +285,6 @@ public class TransactionsGUI extends JPanel {
                 g2d.drawImage(tetoImage, x, y, w, h, this);
             }
         }
-        // Draw Pembeli image (right side) - behind dialog, ganti posisi
-        // neuvilletteImage
         if (pembeliImage != null) {
             int iw = pembeliImage.getWidth(this);
             int ih = pembeliImage.getHeight(this);
@@ -338,8 +298,8 @@ public class TransactionsGUI extends JPanel {
                 scale = Math.min(scale, maxScale);
                 int w = (int) (iw * scale);
                 int h = (int) (ih * scale);
-                int x = panelWidth - w - imageMargin; // align buyer image to the right edge with margin
-                int y = Math.max(10, (panelHeight - DIALOG_HEIGHT - h) / 4); // Dynamic Y positioning
+                int x = panelWidth - w - imageMargin;
+                int y = Math.max(10, (panelHeight - DIALOG_HEIGHT - h) / 4);
 
                 g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
                 g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -348,20 +308,16 @@ public class TransactionsGUI extends JPanel {
             }
         }
 
-        // NOW draw dialog box OVER the images - dialog takes full width
         int textAreaX = dialogX;
         int textAreaWidth = dialogWidth;
         int textAreaHeight = DIALOG_HEIGHT - (2 * TEXT_PADDING);
 
-        // Draw dialog box shadow
         g2d.setColor(SHADOW_COLOR);
         g2d.fillRoundRect(textAreaX + 4, dialogY + 4, textAreaWidth, DIALOG_HEIGHT, 15, 15);
 
-        // Draw dialog box background
         g2d.setColor(DIALOG_BG);
         g2d.fillRoundRect(textAreaX, dialogY, textAreaWidth, DIALOG_HEIGHT, 15, 15);
 
-        // Draw dialog box border
         g2d.setStroke(new BasicStroke(3));
         g2d.setColor(BORDER_COLOR);
         g2d.drawRoundRect(textAreaX, dialogY, textAreaWidth, DIALOG_HEIGHT, 15, 15);
@@ -369,10 +325,8 @@ public class TransactionsGUI extends JPanel {
         g2d.setStroke(new BasicStroke(1));
         g2d.setColor(BORDER_COLOR.darker());
         g2d.drawRoundRect(textAreaX + 2, dialogY + 2, textAreaWidth - 4, DIALOG_HEIGHT - 4, 12, 12);
-        // Draw text in dialog with dynamic font size
         g2d.setColor(TEXT_COLOR);
 
-        // Dynamic font size based on dialog height
         int fontSize = Math.max(16, Math.min(24, DIALOG_HEIGHT / 10));
         Font scaledFont = dialogFont.deriveFont((float) fontSize);
         g2d.setFont(scaledFont);
@@ -407,7 +361,7 @@ public class TransactionsGUI extends JPanel {
 
         if (currentLine.length() > 0 && currentLineCount < maxLines) {
             g2d.drawString(currentLine.toString(), textAreaX + TEXT_PADDING, textY);
-        } // Draw hint text with dynamic font size
+        }
         int hintFontSize = Math.max(14, Math.min(20, DIALOG_HEIGHT / 12));
         g2d.setFont(scaledFont.deriveFont((float) hintFontSize));
         g2d.setColor(TEXT_COLOR.brighter());
@@ -417,8 +371,6 @@ public class TransactionsGUI extends JPanel {
         g2d.drawString(hintText, textAreaX + textAreaWidth - hintWidth - TEXT_PADDING,
                 dialogY + DIALOG_HEIGHT - 8);
 
-        // --- Gambar kotak khusus untuk pembeliTitleLabel di kanan atas dialog (pakai
-        // g2d) ---
         if (pembeliTitleLabel.isVisible()) {
             Font labelFont = pembeliTitleLabel.getFont();
             FontMetrics labelFm = getFontMetrics(labelFont);
@@ -429,8 +381,8 @@ public class TransactionsGUI extends JPanel {
             int paddingY = 8;
             int boxW = textWidth + paddingX * 2;
             int boxH = textHeight + paddingY;
-            int boxX = dialogX + dialogWidth - boxW - TEXT_PADDING; // align ke kanan dialog
-            int boxY = dialogY - boxH - 10; // 10px di atas dialog
+            int boxX = dialogX + dialogWidth - boxW - TEXT_PADDING;
+            int boxY = dialogY - boxH - 10;
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setColor(new Color(255, 255, 240, 240));
             g2d.fillRoundRect(boxX, boxY, boxW, boxH, 16, 16);
@@ -458,23 +410,14 @@ public class TransactionsGUI extends JPanel {
     @Override
     public void setBounds(int x, int y, int width, int height) {
         super.setBounds(x, y, width, height);
-        // Trigger repaint when bounds change to update dynamic scaling
         if (isVisible) {
             repaint();
-            // Update top buttons layout
             layoutTopButtons();
             useItemButton.setVisible(true);
             cartButton.setVisible(true);
-            // HAPUS: createTradingButtons() di sini agar tidak add tombol berulang
-            // if (showTradingInterface && !negotiationPhase) {
-            // createTradingButtons();
-            // }
         }
     }
 
-    /**
-     * Update the parent panel reference and bounds
-     */
     public void updateParent(JPanel newParent) {
         this.parentPanel = newParent;
         if (isVisible && parentPanel != null) {
@@ -482,17 +425,11 @@ public class TransactionsGUI extends JPanel {
         }
     }
 
-    /**
-     * Set Player untuk trading system
-     */
     public void setPlayer(Player player) {
         this.currentPlayer = player;
         this.itemEffectManager = new ItemEffectManager(player);
     }
 
-    /**
-     * Set trigger zone manager and current zone ID for cleanup after transaction
-     */
     public void setTriggerZoneManager(MapManager.TriggerZoneManager triggerZoneManager) {
         this.triggerZoneManager = triggerZoneManager;
     }
@@ -501,15 +438,11 @@ public class TransactionsGUI extends JPanel {
         this.currentTriggerZoneId = zoneId;
     }
 
-    /**
-     * Mulai trading interface
-     */
     public void startTrading() {
         System.out.println("DEBUG: startTrading() called");
         System.out.println("DEBUG: currentPembeli != null: " + (currentPembeli != null));
         System.out.println("DEBUG: currentPlayer != null: " + (currentPlayer != null));
 
-        // Reset transaction state when starting new trading session
         transactionCompleted = false;
         negotiationPhase = false;
 
@@ -522,69 +455,52 @@ public class TransactionsGUI extends JPanel {
         }
     }
 
-    /**
-     * Buat button-button untuk trading
-     */
     private void createTradingButtons() {
         System.out.println("DEBUG: createTradingButtons() called");
         removeAllTradingButtons();
 
-        // Calculate dynamic sizes based on current panel dimensions
         int panelWidth = getWidth();
         int panelHeight = getHeight();
         int centerX = panelWidth / 2;
         int centerY = panelHeight / 2;
 
-        // Dynamic sizing with proper centering
         int tradingWidth = Math.min(400, Math.max(300, panelWidth / 3));
         int buttonHeight = Math.max(40, Math.min(50, panelHeight / 15));
         int buttonGap = Math.max(10, Math.min(20, panelHeight / 40));
         int fieldHeight = Math.max(30, Math.min(40, panelHeight / 20));
 
-        // Button width for side-by-side buttons
         int buttonWidth = (tradingWidth / 2) - (buttonGap / 2);
 
-        // Calculate total height needed for all elements
         int totalElementsHeight = buttonHeight + buttonGap + buttonHeight + buttonGap + buttonHeight + buttonGap
                 + buttonHeight;
         int startY = centerY - (totalElementsHeight / 2);
         int currentY = startY;
 
-        // Sell Button - always centered
+        int fontSize = Math.max(16, Math.min(24, panelHeight / 10));
+
         sellButton = StyledButton.create("Start Selling", 20, tradingWidth, buttonHeight);
         sellButton.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, buttonHeight);
         sellButton.addActionListener(e -> startSelling());
         sellButton.setEnabled(true);
         add(sellButton);
-        currentY += buttonHeight + buttonGap; // Price input field for counter offers with increment/decrement buttons
+        currentY += buttonHeight + buttonGap;
         pricePanel = new JPanel();
-        pricePanel.setLayout(null); // Use absolute positioning for precise control
+        pricePanel.setLayout(null);
         pricePanel.setOpaque(false);
         pricePanel.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, fieldHeight);
         pricePanel.setVisible(false);
         add(pricePanel);
 
-        // Calculate button dimensions and positions - reconfigure for 3 left buttons +
-        // field + 3 right buttons
         int spacing = 3;
-        int priceFieldWidth = Math.max(80, tradingWidth / 5); // Responsive price field width
+        int priceFieldWidth = Math.max(80, tradingWidth / 5);
 
-        // Calculate available width for buttons after field and spacing (3 left + 3
-        // right = 6 total buttons)
-        int totalButtons = 6; // 3 left + 3 right
-        int availableForButtons = tradingWidth - priceFieldWidth - (spacing * 8); // 8 spacings: left margin + 2 between
-                                                                                  // left buttons + 1 before field + 1
-                                                                                  // after field + 2 between right
-                                                                                  // buttons + right margin
+        int totalButtons = 6;
+        int availableForButtons = tradingWidth - priceFieldWidth - (spacing * 8);
         int smallButtonWidth = Math.max(35, availableForButtons / totalButtons);
         int smallButtonHeight = fieldHeight;
 
-        // Recalculate total width to ensure it fits
         int totalContentWidth = (smallButtonWidth * totalButtons) + priceFieldWidth + (spacing * 8);
         int startX = Math.max(0, (tradingWidth - totalContentWidth) / 2);
-
-        // Left side decrement buttons (-10000, -1000, -)
-        int fontSize = Math.max(8, Math.min(12, smallButtonWidth / 5)); // Responsive font size
 
         JButton minus10000Button = StyledButton.create("-10000", fontSize, smallButtonWidth, smallButtonHeight);
         minus10000Button.setBounds(startX, 0, smallButtonWidth, smallButtonHeight);
@@ -601,14 +517,12 @@ public class TransactionsGUI extends JPanel {
         minus1Button.addActionListener(e -> adjustPrice(-1));
         pricePanel.add(minus1Button);
 
-        // Price input field in center
         priceField = new JTextField();
         priceField.setHorizontalAlignment(JTextField.CENTER);
         priceField.setFont(new Font("Serif", Font.PLAIN, Math.max(10, fieldHeight / 3)));
         priceField.setBounds(startX + (smallButtonWidth + spacing) * 3, 0, priceFieldWidth, fieldHeight);
         pricePanel.add(priceField);
 
-        // Right side increment buttons (+, +1000, +10000)
         JButton plus1Button = StyledButton.create("+", fontSize + 2, smallButtonWidth, smallButtonHeight);
         plus1Button.setBounds(startX + (smallButtonWidth + spacing) * 3 + priceFieldWidth + spacing, 0,
                 smallButtonWidth, smallButtonHeight);
@@ -630,14 +544,12 @@ public class TransactionsGUI extends JPanel {
 
         currentY += fieldHeight + buttonGap;
 
-        // Accept Button - left side of center
         acceptButton = StyledButton.create("Accept", 16, buttonWidth, buttonHeight);
         acceptButton.setBounds(centerX - tradingWidth / 2, currentY, buttonWidth, buttonHeight);
         acceptButton.setVisible(false);
         acceptButton.setEnabled(true);
         acceptButton.addActionListener(e -> acceptOffer());
         add(acceptButton);
-        // Counter Offer Button - right side of center
         counterOfferButton = StyledButton.create("Counter", 16, buttonWidth, buttonHeight);
         counterOfferButton.setBounds(centerX + (buttonGap / 2), currentY, buttonWidth, buttonHeight);
         counterOfferButton.setVisible(false);
@@ -646,7 +558,6 @@ public class TransactionsGUI extends JPanel {
         add(counterOfferButton);
         currentY += buttonHeight + buttonGap;
 
-        // Decline Button - full width, centered
         declineButton = StyledButton.create("Decline", 20, tradingWidth, buttonHeight);
         declineButton.setBackground(Color.RED.darker());
         declineButton.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, buttonHeight);
@@ -656,18 +567,15 @@ public class TransactionsGUI extends JPanel {
         add(declineButton);
         currentY += buttonHeight + buttonGap;
 
-        // Close Button - appears when transaction is completed
         closeButton = StyledButton.create("Close", 20, tradingWidth, buttonHeight);
         closeButton.setBackground(Color.GRAY.darker());
         closeButton.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, buttonHeight);
-        closeButton.setVisible(false); // Initially hidden
-        closeButton.setEnabled(true); // ensure enabled
+        closeButton.setVisible(false);
+        closeButton.setEnabled(true);
         closeButton.addActionListener(e -> closeTradingSession());
         add(closeButton);
 
-        // Ensure desktopPane is always at the bottom
         setComponentZOrder(desktopPane, getComponentCount() - 1);
-        // Ensure initial button state is correct based on transaction status
         if (transactionCompleted) {
             sellButton.setVisible(false);
             closeButton.setVisible(true);
@@ -675,8 +583,6 @@ public class TransactionsGUI extends JPanel {
             sellButton.setVisible(true);
             closeButton.setVisible(false);
         }
-        // --- Tambahan: pastikan tombol negosiasi di-add dan visible jika
-        // negotiationPhase aktif ---
         if (negotiationPhase) {
             if (acceptButton != null)
                 acceptButton.setVisible(true);
@@ -696,7 +602,6 @@ public class TransactionsGUI extends JPanel {
             if (pricePanel != null)
                 pricePanel.setVisible(false);
         }
-        // --- Pastikan tombol di panel dan update layout ---
         revalidate();
         repaint();
         System.out.println("DEBUG: All trading buttons and fields created");
@@ -714,7 +619,7 @@ public class TransactionsGUI extends JPanel {
         if (closeButton != null)
             remove(closeButton);
         if (pricePanel != null)
-            remove(pricePanel); // Ganti dari priceField.getParent() ke pricePanel
+            remove(pricePanel);
     }
 
     private void startSelling() {
@@ -724,19 +629,16 @@ public class TransactionsGUI extends JPanel {
             repaint();
             return;
         }
-        // Cek barang di gerobak terlebih dahulu, bukan di inventory utama
         Map<Barang, Integer> barangDiGerobak = currentPlayer.getInventory().getBarangDibawaMutable();
         if (barangDiGerobak.isEmpty()) {
             currentMessage = "Kamu tidak membawa barang untuk dijual! Pergi ke home base untuk mengisi gerobak. Tekan E untuk keluar.";
-            // Hide selling button and show message only
             if (sellButton != null) {
                 sellButton.setVisible(false);
                 System.out.println("DEBUG: sellButton hidden (no items in cart)");
             }
             repaint();
             return;
-        } // HANYA pilih barang yang ada di hargaJualBarang (sudah ditetapkan harga
-          // jualnya) // Implement freshness-based buyer interest system
+        }
         selectedBarang = null;
         Barang bestBarang = null;
         double bestInterestScore = -1;
@@ -750,8 +652,7 @@ public class TransactionsGUI extends JPanel {
             System.out.println("[BUYER SELECTION DEBUG] Checking item: " + barang.getNamaBarang() +
                     " (freshness: " + barang.getKesegaran() +
                     ", sell price: " + hargaJual + ")");
-            if (hargaJual > 0) { // HANYA barang yang sudah ada harga jualnya
-                // Calculate buyer interest based on freshness with Semproten enhancement
+            if (hargaJual > 0) {
                 double freshnessMultiplier = calculateEnhancedFreshnessMultiplier(barang.getKesegaran());
                 double buyerInterest = Math.random() * freshnessMultiplier;
 
@@ -759,8 +660,7 @@ public class TransactionsGUI extends JPanel {
                         String.format("%.2f", freshnessMultiplier) +
                         ", Buyer interest: " + String.format("%.3f", buyerInterest));
 
-                // Check if buyer is interested enough to consider this item
-                if (buyerInterest > 0.3) { // 30% minimum interest threshold
+                if (buyerInterest > 0.3) {
                     System.out.println("[BUYER SELECTION DEBUG]   Item meets interest threshold (>0.3)");
                     if (bestBarang == null || buyerInterest > bestInterestScore) {
                         System.out.println("[BUYER SELECTION DEBUG]   New best item! Previous best: " +
@@ -790,10 +690,8 @@ public class TransactionsGUI extends JPanel {
         } else {
             System.out.println("[BUYER SELECTION DEBUG] No item selected - none met criteria");
         }
-        // Jika tidak ada barang dengan harga jual, beri pesan error
         if (selectedBarang == null) {
             currentMessage = "Tidak ada barang dengan harga jual yang ditetapkan! Pergi ke home base untuk menetapkan harga jual barang. Tekan E untuk keluar.";
-            // Hide selling button and show message only
             if (sellButton != null) {
                 sellButton.setVisible(false);
                 System.out.println("DEBUG: sellButton hidden (no priced items)");
@@ -801,28 +699,22 @@ public class TransactionsGUI extends JPanel {
             repaint();
             return;
         }
-        // Pilih jumlah barang yang akan dibeli pembeli secara random (minimal 1,
-        // maksimal stok di gerobak)
         int stokBarang = barangDiGerobak.get(selectedBarang);
         if (stokBarang > 1) {
-            selectedQuantity = 1 + (int) (Math.random() * stokBarang); // random antara 1 sampai stokBarang
+            selectedQuantity = 1 + (int) (Math.random() * stokBarang);
         } else {
             selectedQuantity = 1;
         }
-        // Show price panel for counter offers
         if (pricePanel != null)
-            pricePanel.setVisible(true); // Ganti akses ke field
-        // Hitung harga dengan multiplier dari perk dan item
+            pricePanel.setVisible(true);
         System.out.println("DEBUG: Valid item found: " + selectedBarang.getNamaBarang());
         int baseUnitPrice = currentPlayer.getInventory().getHargaJual(selectedBarang);
         int adjustedUnitPrice = (int) (baseUnitPrice);
-        int totalPrice = adjustedUnitPrice * selectedQuantity;        // Initial refusal chance for miskin
+        int totalPrice = adjustedUnitPrice * selectedQuantity;
         if (currentPembeli instanceof model.PembeliMiskin) {
-            // 30% chance langsung menolak
             if (Math.random() < 0.3) {
                 currentMessage = "Pembeli miskin menolak membeli barangmu.";
                 transactionCompleted = true;
-                // Hide sell button and show close button
                 if (sellButton != null)
                     sellButton.setVisible(false);
                 if (closeButton != null)
@@ -830,22 +722,18 @@ public class TransactionsGUI extends JPanel {
                 repaint();
                 return;
             }
-        }// Buyer makes an offer - use unit price for negotiation
-          // Apply freshness penalty to the price before buyer consideration
+        }
         double freshnessPenalty = calculateFreshnessPriceMultiplier(selectedBarang.getKesegaran());
         int freshnessAdjustedPrice = (int) (adjustedUnitPrice * freshnessPenalty);
         int offerUnitPrice = currentPembeli.tawarHarga(freshnessAdjustedPrice);
-        // Ensure not below supplier purchase price (per unit)
         int supplierUnitCost = selectedBarang.getHargaBeli();
         offerUnitPrice = Math.max(offerUnitPrice, supplierUnitCost);
-        offerPrice = offerUnitPrice; // offerPrice now always unit price
+        offerPrice = offerUnitPrice;
         currentMessage = String.format(
                 "Pembeli tertarik dengan %s x%d (Harga Satuan: %d, Total: %d).\nMereka menawar: %d per unit (Total: %d)",
                 selectedBarang.getNamaBarang(), selectedQuantity, adjustedUnitPrice, totalPrice, offerUnitPrice,
                 offerUnitPrice * selectedQuantity);
-        // Set suggested counter offer price (unit price)
         priceField.setText(String.valueOf(adjustedUnitPrice));
-        // Show negotiation buttons
         System.out.println("DEBUG: About to hide sellButton and show negotiation buttons");
         if (sellButton != null) {
             sellButton.setVisible(false);
@@ -872,7 +760,6 @@ public class TransactionsGUI extends JPanel {
             System.out.println("DEBUG: declineButton is null!");
         }
         negotiationPhase = true;
-        // --- Tambahan: pastikan tombol negosiasi di-add dan visible ---
         if (acceptButton != null && !isAncestorOf(acceptButton))
             add(acceptButton);
         if (counterOfferButton != null && !isAncestorOf(counterOfferButton))
@@ -889,7 +776,6 @@ public class TransactionsGUI extends JPanel {
             declineButton.setVisible(true);
         if (pricePanel != null)
             pricePanel.setVisible(true);
-        // Pastikan tombol di z-order paling atas
         if (acceptButton != null)
             setComponentZOrder(acceptButton, 0);
         if (counterOfferButton != null)
@@ -898,46 +784,37 @@ public class TransactionsGUI extends JPanel {
             setComponentZOrder(declineButton, 0);
         if (pricePanel != null)
             setComponentZOrder(pricePanel, 0);
-        // Force a repaint and revalidate
         revalidate();
         repaint();
         System.out.println("DEBUG: repaint called");
     }
 
-    /**
-     * Adjust the price field value by the specified amount
-     */
     private void adjustPrice(int adjustment) {
         try {
             int currentPrice = 0;
             String currentText = priceField.getText().trim();
 
-            // Parse current price, default to 0 if empty or invalid
             if (!currentText.isEmpty()) {
                 currentPrice = Integer.parseInt(currentText);
-            } // Apply adjustment
+            }
             int newPrice = currentPrice + adjustment;
 
-            // Get price constraints if we have a selected item
             int minPrice = 0;
             int maxPrice = Integer.MAX_VALUE;
 
             if (selectedBarang != null) {
-                minPrice = selectedBarang.getHargaBeli(); // Cannot go below purchase price
+                minPrice = selectedBarang.getHargaBeli();
                 int hargaJual = currentPlayer.getInventory().getHargaJual(selectedBarang);
                 if (hargaJual > 0) {
-                    maxPrice = hargaJual; // Cannot exceed selling price
+                    maxPrice = hargaJual;
                 }
             }
 
-            // Apply constraints
             newPrice = Math.max(minPrice, Math.min(maxPrice, newPrice));
 
-            // Update the price field
             priceField.setText(String.valueOf(newPrice));
 
         } catch (NumberFormatException e) {
-            // If parsing fails, set to minimum allowed price
             int minPrice = 0;
             if (selectedBarang != null) {
                 minPrice = selectedBarang.getHargaBeli();
@@ -948,7 +825,6 @@ public class TransactionsGUI extends JPanel {
     }
 
     private void acceptOffer() {
-        // Transaksi SELALU berhasil saat Accept ditekan
         int finalUnitPrice = offerPrice;
         int finalTotalPrice = finalUnitPrice * selectedQuantity;
         if (itemEffectManager != null) {
@@ -957,33 +833,22 @@ public class TransactionsGUI extends JPanel {
             finalTotalPrice = itemEffectManager.applyTip(finalTotalPrice);
         }
         currentPlayer.tambahMoney(finalTotalPrice);
-        // Hapus barang dari gerobak (barangDibawa) berdasarkan jumlah yang dipilih
         Map<Barang, Integer> barangDiGerobak = currentPlayer.getInventory().getBarangDibawaMutable();
         int jumlahSekarang = barangDiGerobak.getOrDefault(selectedBarang, 0);
         if (jumlahSekarang > selectedQuantity) {
-            // Masih ada sisa barang
             barangDiGerobak.put(selectedBarang, jumlahSekarang - selectedQuantity);
-            // updateGerobakTablesLocal(); // Removed to prevent NPE if
-            // gerobakWithPriceTable is null
         } else {
-            // Tidak ada sisa barang, hapus dari gerobak dan reset harga jual
             barangDiGerobak.remove(selectedBarang);
             currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
-            // updateGerobakTablesLocal(); // Removed to prevent NPE if
-            // gerobakWithPriceTable is null
-        }        currentMessage = String.format("Transaksi berhasil! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
+        }
+        currentMessage = String.format("Transaksi berhasil! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
                 selectedBarang.getNamaBarang(), selectedQuantity, finalUnitPrice, finalTotalPrice);
-        // Deaktifkan item consumable setelah digunakan
         deactivateConsumableItems();
         transactionCompleted = true;
         hideNegotiationButtons();
-        // When transaction is completed, ONLY show close button, never show sell button again
         closeButton.setVisible(true);
         sellButton.setVisible(false);
 
-        // Refresh gerobak table setelah transaksi sukses
-        // updateGerobakTablesLocal(); // Removed to prevent NPE if
-        // gerobakWithPriceTable is null
         repaint();
     }
 
@@ -992,13 +857,11 @@ public class TransactionsGUI extends JPanel {
         int supplierUnitCost = 0;
         try {
             counterUnitPrice = Integer.parseInt(priceField.getText());
-            // Validate counter price is not below supplier cost (per unit)
             supplierUnitCost = selectedBarang.getHargaBeli();
             if (counterUnitPrice < supplierUnitCost) {
                 currentMessage = String.format(
                         "Harga counter terlalu rendah! Minimal harga satuan: %d (harga beli: %d)",
                         supplierUnitCost, selectedBarang.getHargaBeli());
-                // Pastikan tombol tetap aktif
                 if (acceptButton != null)
                     acceptButton.setEnabled(true);
                 if (counterOfferButton != null)
@@ -1021,31 +884,25 @@ public class TransactionsGUI extends JPanel {
                     counterTotalPrice = itemEffectManager.applyTip(counterTotalPrice);
                 }
                 currentPlayer.tambahMoney(counterTotalPrice);
-                // Hapus barang dari gerobak berdasarkan jumlah yang dipilih
                 Map<Barang, Integer> barangDiGerobak = currentPlayer.getInventory().getBarangDibawaMutable();
                 int jumlahSekarang = barangDiGerobak.getOrDefault(selectedBarang, 0);
                 if (jumlahSekarang > selectedQuantity) {
                     barangDiGerobak.put(selectedBarang, jumlahSekarang - selectedQuantity);
-                    // updateGerobakTablesLocal(); // Removed to prevent NPE if
-                    // gerobakWithPriceTable is null
                 } else {
                     barangDiGerobak.remove(selectedBarang);
                     currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
-                    // updateGerobakTablesLocal(); // Removed to prevent NPE if
-                    // gerobakWithPriceTable is null
-                }                currentMessage = String.format(
+                }
+                currentMessage = String.format(
                         "Counter offer diterima! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
                         selectedBarang.getNamaBarang(), selectedQuantity, counterUnitPrice, counterTotalPrice);
                 deactivateConsumableItems();
                 transactionCompleted = true;
                 hideNegotiationButtons();
-                // When transaction is completed, ONLY show close button, never show sell button again
                 if (closeButton != null)
                     closeButton.setVisible(true);
                 if (sellButton != null)
                     sellButton.setVisible(false);
             } else {
-                // Buyer rejected, implement multi-round bargaining
                 String reason = null;
                 if (currentPembeli instanceof model.PembeliStandar) {
                     reason = ((model.PembeliStandar) currentPembeli).getLastRejectionReason();
@@ -1053,9 +910,9 @@ public class TransactionsGUI extends JPanel {
                     reason = ((model.PembeliTajir) currentPembeli).getLastRejectionReason();
                 } else if (currentPembeli instanceof model.PembeliMiskin) {
                     reason = ((model.PembeliMiskin) currentPembeli).getLastRejectionReason();
-                }                if (reason != null && !reason.isEmpty()) {
+                }
+                if (reason != null && !reason.isEmpty()) {
                     currentMessage = reason;
-                    // Negosiasi selesai jika reason diberikan
                     transactionCompleted = true;
                     hideNegotiationButtons();
                     if (closeButton != null)
@@ -1065,12 +922,11 @@ public class TransactionsGUI extends JPanel {
                 } else {
                     int newOfferUnitPrice = currentPembeli.tawarHarga(counterUnitPrice);
                     if (newOfferUnitPrice != counterUnitPrice) {
-                        offerPrice = Math.max(newOfferUnitPrice, supplierUnitCost); // Ensure not below cost
+                        offerPrice = Math.max(newOfferUnitPrice, supplierUnitCost);
                         currentMessage = String.format(
                                 "Pembeli menolak offer-mu dan memberikan counter: %d per unit (Total: %d)", offerPrice,
                                 offerPrice * selectedQuantity);
                         priceField.setText(String.valueOf(offerPrice));
-                        // Pastikan tombol tetap aktif dan visible
                         if (acceptButton != null) {
                             acceptButton.setVisible(true);
                             acceptButton.setEnabled(true);
@@ -1082,9 +938,9 @@ public class TransactionsGUI extends JPanel {
                         if (declineButton != null) {
                             declineButton.setVisible(true);
                             declineButton.setEnabled(true);
-                        }                        if (pricePanel != null)
+                        }
+                        if (pricePanel != null)
                             pricePanel.setVisible(true);
-                        // Jangan hide tombol, negosiasi lanjut
                         negotiationPhase = true;
                         repaint();
                         return;
@@ -1101,7 +957,6 @@ public class TransactionsGUI extends JPanel {
             }
         } catch (NumberFormatException e) {
             currentMessage = "Masukkan harga satuan yang valid!";
-            // Pastikan tombol tetap aktif
             if (acceptButton != null)
                 acceptButton.setEnabled(true);
             if (counterOfferButton != null)
@@ -1119,11 +974,11 @@ public class TransactionsGUI extends JPanel {
             currentMessage = "Transaksi sudah selesai. Tidak bisa menolak lagi.";
             repaint();
             return;
-        }        currentMessage = "Kamu menolak tawaran pembeli.";
-        transactionCompleted = true; // Mark as completed when declining
+        }
+        currentMessage = "Kamu menolak tawaran pembeli.";
+        transactionCompleted = true;
         hideNegotiationButtons();
 
-        // Show close button when transaction is completed/declined
         closeButton.setVisible(true);
         sellButton.setVisible(false);
 
@@ -1138,13 +993,10 @@ public class TransactionsGUI extends JPanel {
     }
 
     private void closeTradingSession() {
-        // Hide all trading interface elements
         removeAllTradingButtons();
 
-        // Close the dialog
         hideDialog();
 
-        // Remove the trigger zone if we have reference to it
         if (currentTriggerZoneId != null) {
             System.out.println("DEBUG: Attempting to remove zone: " + currentTriggerZoneId);
             System.out.println("DEBUG: randomTriggerZoneManager != null: " + (randomTriggerZoneManager != null));
@@ -1159,26 +1011,22 @@ public class TransactionsGUI extends JPanel {
             } else {
                 System.out.println("DEBUG: No trigger zone manager available for removal");
             }
-            currentTriggerZoneId = null; // Prevent double-removal
+            currentTriggerZoneId = null;
         } else {
             System.out.println("DEBUG: No currentTriggerZoneId set for removal");
         }
 
-        // Tutup gerobakFrame jika masih terbuka
         if (gerobakFrame != null && gerobakFrame.isVisible()) {
             gerobakFrame.dispose();
         }
 
-        // Remove this panel from parentPanel agar event tidak tertahan
         if (parentPanel != null && this.getParent() == parentPanel) {
             parentPanel.remove(this);
             parentPanel.revalidate();
             parentPanel.repaint();
-            // Kembalikan focus ke parentPanel (atau GamePanel)
             parentPanel.requestFocusInWindow();
         }
 
-        // Reset transaction state completely
         transactionCompleted = false;
         negotiationPhase = false;
         currentPembeli = null;
@@ -1190,17 +1038,11 @@ public class TransactionsGUI extends JPanel {
     }
 
     private void deactivateConsumableItems() {
-        // Deaktifkan item consumable yang dibawa di gerobak setelah transaksi
         if (itemEffectManager != null) {
             itemEffectManager.deactivateConsumableItems();
         }
     }
 
-    /**
-     * Check if there are still items in the gerobak with selling prices set
-     * 
-     * @return true if there are items available for trading, false otherwise
-     */
     private boolean hasItemsWithSellingPrice() {
         if (currentPlayer == null || currentPlayer.getInventory() == null) {
             return false;
@@ -1211,7 +1053,6 @@ public class TransactionsGUI extends JPanel {
             return false;
         }
 
-        // Check if any items in the gerobak have selling prices set
         for (Barang barang : barangDiGerobak.keySet()) {
             int hargaJual = currentPlayer.getInventory().getHargaJual(barang);
             if (hargaJual > 0) {
@@ -1222,9 +1063,6 @@ public class TransactionsGUI extends JPanel {
         return false;
     }
 
-    /**
-     * Layout the top-center buttons for Use Item and Gerobak
-     */
     private void layoutTopButtons() {
         int panelWidth = getWidth();
         int panelHeight = getHeight();
@@ -1239,26 +1077,22 @@ public class TransactionsGUI extends JPanel {
         cartButton.setBounds(startX + buttonWidth + spacing, y, buttonWidth, buttonHeight);
     }
 
-    // Revised Gerobak window: only 'with price' list, styled like HomeBasePanel
     private void showGerobakFrame() {
         if (gerobakFrame != null && gerobakFrame.isVisible()) {
             gerobakFrame.toFront();
             return;
         }
-        // Create internal frame
         gerobakFrame = new JInternalFrame("Gerobak - Barang Sudah Ada Harga Jual", true, true, true, true);
         gerobakFrame.setSize(600, 350);
         gerobakFrame.setLayout(new BorderLayout());
         gerobakFrame.getContentPane().setBackground(DIALOG_BG);
 
-        // Table for items with price
         gerobakWithPriceTable = new JTable();
         JScrollPane scroll = new JScrollPane(gerobakWithPriceTable);
         scroll.getViewport().setBackground(new Color(255, 255, 240));
         scroll.setBorder(BorderFactory.createTitledBorder("Barang Sudah Ada Harga Jual"));
         gerobakFrame.add(scroll, BorderLayout.CENTER);
 
-        // Close button
         JButton closeBtn = StyledButton.create("Tutup", 14, 100, 32);
         closeBtn.addActionListener(e -> gerobakFrame.dispose());
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -1266,24 +1100,20 @@ public class TransactionsGUI extends JPanel {
         btnPanel.add(closeBtn);
         gerobakFrame.add(btnPanel, BorderLayout.SOUTH);
 
-        // Add to parent layered pane
         JRootPane root = SwingUtilities.getRootPane(this);
         if (root != null) {
             JLayeredPane layered = root.getLayeredPane();
             layered.add(gerobakFrame, JLayeredPane.POPUP_LAYER);
-            // center
             gerobakFrame.setLocation((layered.getWidth() - gerobakFrame.getWidth()) / 2,
                     (layered.getHeight() - gerobakFrame.getHeight()) / 2);
             gerobakFrame.setVisible(true);
             gerobakFrame.toFront();
-            // Populate data
             updateGerobakTablesLocal();
         } else {
             System.err.println("[ERROR] Tidak dapat menemukan root pane untuk Gerobak frame");
         }
     }
 
-    // Update Gerobak 'with price' table only
     private void updateGerobakTablesLocal() {
         if (currentPlayer == null || currentPlayer.getInventory() == null)
             return;
@@ -1304,14 +1134,12 @@ public class TransactionsGUI extends JPanel {
         }
         gerobakWithPriceTable.setModel(model);
         gerobakWithPriceTable.setRowHeight(36);
-        // Set column widths
         gerobakWithPriceTable.getColumnModel().getColumn(0).setPreferredWidth(40);
         gerobakWithPriceTable.getColumnModel().getColumn(1).setPreferredWidth(120);
         gerobakWithPriceTable.getColumnModel().getColumn(2).setPreferredWidth(80);
         gerobakWithPriceTable.getColumnModel().getColumn(3).setPreferredWidth(60);
         gerobakWithPriceTable.getColumnModel().getColumn(4).setPreferredWidth(60);
         gerobakWithPriceTable.getColumnModel().getColumn(5).setPreferredWidth(80);
-        // Renderers
         gerobakWithPriceTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -1325,7 +1153,6 @@ public class TransactionsGUI extends JPanel {
         }
     }
 
-    // Show the item frame (JInternalFrame) for using items in gerobak
     private void showItemFrame() {
         if (itemFrame != null && itemFrame.isVisible()) {
             itemFrame.toFront();
@@ -1336,14 +1163,12 @@ public class TransactionsGUI extends JPanel {
         itemFrame.setLayout(new BorderLayout());
         itemFrame.getContentPane().setBackground(DIALOG_BG);
 
-        // Table for items in gerobak
         itemGerobakTable = new JTable();
         JScrollPane scroll = new JScrollPane(itemGerobakTable);
         scroll.getViewport().setBackground(new Color(255, 255, 240));
         scroll.setBorder(BorderFactory.createTitledBorder("Item di Gerobak"));
         itemFrame.add(scroll, BorderLayout.CENTER);
 
-        // Use and Close buttons
         JButton useBtn = StyledButton.create("Use", 14, 100, 32);
         JButton closeBtn = StyledButton.create("Tutup", 14, 100, 32);
         useBtn.addActionListener(e -> useSelectedItem());
@@ -1354,7 +1179,6 @@ public class TransactionsGUI extends JPanel {
         btnPanel.add(closeBtn);
         itemFrame.add(btnPanel, BorderLayout.SOUTH);
 
-        // Add to parent layered pane
         JRootPane root = SwingUtilities.getRootPane(this);
         if (root != null) {
             JLayeredPane layered = root.getLayeredPane();
@@ -1369,7 +1193,6 @@ public class TransactionsGUI extends JPanel {
         }
     }
 
-    // Update the item table for items in gerobak
     private void updateItemGerobakTableLocal() {
         if (currentPlayer == null || currentPlayer.getInventory() == null)
             return;
@@ -1407,27 +1230,22 @@ public class TransactionsGUI extends JPanel {
         itemGerobakTable.getColumnModel().getColumn(3).setPreferredWidth(60);
         itemGerobakTable.getColumnModel().getColumn(4).setPreferredWidth(80);
         itemGerobakTable.getColumnModel().getColumn(5).setPreferredWidth(240);
-        // Icon renderer
         itemGerobakTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
             label.setIcon(value instanceof Icon ? (Icon) value : null);
             return label;
         });
-        // Center renderer for other columns
         javax.swing.table.DefaultTableCellRenderer centerRenderer = new javax.swing.table.DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 1; i < 5; i++) {
             itemGerobakTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
-        // Left align description
         javax.swing.table.DefaultTableCellRenderer leftRenderer = new javax.swing.table.DefaultTableCellRenderer();
         leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
         itemGerobakTable.getColumnModel().getColumn(5).setCellRenderer(leftRenderer);
     }
 
-    // Helper to get effect string for item (matches HomeBasePanel and
-    // TokoItemPanel)
     private String getItemEffectPercentage(Item item) {
         if (item.isHipnotis()) {
             return String.format("%.0f%%", item.getHipnotisChance() * 100);
@@ -1443,7 +1261,6 @@ public class TransactionsGUI extends JPanel {
         return "N/A";
     }
 
-    // Gets full descriptive text for item effects
     private String getItemEffectDescription(Item item) {
         if (item.isHipnotis()) {
             return "Efek: Meningkatkan peluang pembeli langsung membeli tanpa menawar (" +
@@ -1462,7 +1279,7 @@ public class TransactionsGUI extends JPanel {
                     String.format("+%d pembeli tambahan", item.getPeluitExtraBuyers()) + ")";
         }
         return "Efek tidak diketahui";
-    } // Use the selected item in the table
+    }
 
     private void useSelectedItem() {
         int row = itemGerobakTable.getSelectedRow();
@@ -1471,17 +1288,14 @@ public class TransactionsGUI extends JPanel {
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
-        String namaItem = itemGerobakTable.getValueAt(row, 1).toString(); // Cek jenis item dan kondisi penggunaan
+        String namaItem = itemGerobakTable.getValueAt(row, 1).toString();
         if (namaItem.equalsIgnoreCase("Hipnotis") || namaItem.equalsIgnoreCase("Semproten")) {
-            // Item yang bisa digunakan sebelum Start Selling
-            if (!negotiationPhase) // Belum dalam fase negosiasi
-            {
+            if (!negotiationPhase) {
                 if (itemEffectManager != null && itemEffectManager.activateItemForTransaction(namaItem)) {
-                    // Gunakan detailed activation message dari ItemEffectManager
                     String detailedMessage = itemEffectManager.getItemActivationMessage(namaItem);
                     JOptionPane.showMessageDialog(this, detailedMessage, "Item Berhasil Diaktifkan",
                             JOptionPane.INFORMATION_MESSAGE);
-                    updateItemGerobakTableLocal(); // Refresh table
+                    updateItemGerobakTableLocal();
                 } else {
                     JOptionPane.showMessageDialog(this, "Item sudah aktif atau tidak bisa digunakan sekarang!", "Info",
                             JOptionPane.WARNING_MESSAGE);
@@ -1491,17 +1305,14 @@ public class TransactionsGUI extends JPanel {
                         JOptionPane.WARNING_MESSAGE);
             }
         } else if (namaItem.equalsIgnoreCase("Jampi")) {
-            // Tampilkan detailed message untuk Jampi juga
             String detailedMessage = itemEffectManager.getItemActivationMessage(namaItem);
             JOptionPane.showMessageDialog(this, detailedMessage, "Info Jampi",
                     JOptionPane.INFORMATION_MESSAGE);
         } else if (namaItem.equalsIgnoreCase("Tip")) {
-            // Tampilkan detailed message untuk Tip juga
             String detailedMessage = itemEffectManager.getItemActivationMessage(namaItem);
             JOptionPane.showMessageDialog(this, detailedMessage, "Info Tip",
                     JOptionPane.INFORMATION_MESSAGE);
         } else if (namaItem.equalsIgnoreCase("Peluit")) {
-            // Tampilkan detailed message untuk Peluit juga
             String detailedMessage = itemEffectManager.getItemActivationMessage(namaItem);
             JOptionPane.showMessageDialog(this, detailedMessage, "Info Peluit",
                     JOptionPane.INFORMATION_MESSAGE);
@@ -1511,14 +1322,6 @@ public class TransactionsGUI extends JPanel {
         }
     }
 
-    /**
-     * Calculate buyer interest multiplier based on item freshness.
-     * Fresh items (kesegaran > 75) get full interest.
-     * Moderately fresh items (50-75) get reduced interest.
-     * Low freshness items (25-50) get significantly reduced interest.
-     * Very low freshness items (0-25) get minimal interest.
-     * Rotten items (kesegaran <= 0) get almost no interest.
-     */
     private double calculateFreshnessMultiplier(int kesegaran) {
         if (kesegaran >= 76)
             return 1.0;
@@ -1528,24 +1331,15 @@ public class TransactionsGUI extends JPanel {
             return 0.6;
         if (kesegaran >= 1)
             return 0.3;
-        return 0.1; // For kesegaran <= 0 (rotten items)
+        return 0.1;
     }
 
-    /**
-     * Calculate enhanced buyer interest multiplier with Semproten effect.
-     * This combines the base freshness multiplier with Semproten item bonus.
-     * Semproten adds extra appeal to items, making buyers more interested.
-     */
     private double calculateEnhancedFreshnessMultiplier(int kesegaran) {
         double baseFreshnessMultiplier = calculateFreshnessMultiplier(kesegaran);
 
-        // Check if player has active Semproten item
         if (itemEffectManager != null) {
             Item semproten = getActiveSemprotenItem();
             if (semproten != null) {
-                // Semproten adds bonus interest based on item level
-                // Level 1: +20% interest, Level 2: +25%, Level 3: +30%, Level 4: +35%, Level 5:
-                // +40%
                 double semprotenBonus = 0.15 + (semproten.getLevel() * 0.05);
                 double enhancedMultiplier = baseFreshnessMultiplier * (1.0 + semprotenBonus);
 
@@ -1555,16 +1349,13 @@ public class TransactionsGUI extends JPanel {
                         String.format("%.0f", semprotenBonus * 100) + "%" +
                         ", Enhanced interest: " + String.format("%.2f", enhancedMultiplier));
 
-                return Math.min(enhancedMultiplier, 1.5); // Cap at 150% to prevent overpowered effect
+                return Math.min(enhancedMultiplier, 1.5);
             }
         }
 
         return baseFreshnessMultiplier;
     }
 
-    /**
-     * Helper method to get active Semproten item from player's inventory
-     */
     private Item getActiveSemprotenItem() {
         if (currentPlayer == null || currentPlayer.getInventory() == null) {
             return null;
@@ -1578,11 +1369,6 @@ public class TransactionsGUI extends JPanel {
         return null;
     }
 
-    /**
-     * Calculate price multiplier based on item freshness for buyer offers.
-     * Fresh items maintain full offer value.
-     * Less fresh items receive progressively lower offers from buyers.
-     */
     private double calculateFreshnessPriceMultiplier(int kesegaran) {
         if (kesegaran >= 76)
             return 1.0;
@@ -1592,7 +1378,7 @@ public class TransactionsGUI extends JPanel {
             return 0.6;
         if (kesegaran >= 1)
             return 0.3;
-        return 0.1; // For kesegaran <= 0 (rotten items)
+        return 0.1;
     }
 
     public void setRandomTriggerZoneManager(RandomTriggerZoneManager mgr) {

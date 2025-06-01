@@ -1,20 +1,17 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 import java.util.List;
 
-/**
- * Kelas untuk mengelola dan mengintegrasikan efek dari semua perk
- * dalam sistem jual beli game Medieval Tycoon
- */
 public class PerkEffectManager {
 
-  /**
-   * Membuat pembeli dengan mempertimbangkan semua perk aktif
-   * Priority: Active > Elegan > Default
-   * 
-   * @param player player yang memiliki perk
-   * @return pembeli yang dimodifikasi sesuai perk
-   */  public static Pembeli createBuyerWithPerks(Player player) {
+  public static Pembeli createBuyerWithPerks(Player player) {
     List<Perk> activePerks = player.getPerkDipilihUntukJualan();
     
     System.out.println("[PERK DEBUG] Creating buyer with perks...");
@@ -25,7 +22,6 @@ public class PerkEffectManager {
                         " Lv." + perk.getLevel() + " (active: " + perk.isActive() + ")");
     }
 
-    // Cek perk yang mempengaruhi spawning pembeli (prioritas: Active > Elegan)
     for (Perk perk : activePerks) {
       if (perk instanceof PerksActive && perk.isActive()) {
         System.out.println("[PERK DEBUG] Using PerksActive for buyer generation");
@@ -41,16 +37,8 @@ public class PerkEffectManager {
     }
 
     System.out.println("[PERK DEBUG] Using default buyer generation");
-    return Pembeli.buatPembeliAcak(); // Default jika tidak ada perk aktif
+    return Pembeli.buatPembeliAcak();
   }
-  /**
-   * Menerapkan efek charming pada transaksi
-   * 
-   * @param player     player yang memiliki perk
-   * @param hargaFinal harga final yang ditawarkan
-   * @param pembeli    pembeli yang bernegosiasi
-   * @return true jika transaksi berhasil
-   */
   public static boolean applyCharmingEffect(Player player, int hargaFinal, Pembeli pembeli) {
     List<Perk> activePerks = player.getPerkDipilihUntukJualan();
 
@@ -65,15 +53,8 @@ public class PerkEffectManager {
     }
 
     System.out.println("[PERK EFFECT DEBUG] No active PerksCharming found - using default transaction decision");
-    return pembeli.putuskanTransaksi(hargaFinal); // Default behavior
+    return pembeli.putuskanTransaksi(hargaFinal);
   }
-  /**
-   * Menerapkan bonus charming pada max tawaran pembeli
-   * 
-   * @param player     player yang memiliki perk
-   * @param maxTawaran max tawaran original
-   * @return max tawaran yang sudah dimodifikasi
-   */
   public static double applyCharmingToMaxOffer(Player player, double maxTawaran) {
     List<Perk> activePerks = player.getPerkDipilihUntukJualan();
 
@@ -88,15 +69,8 @@ public class PerkEffectManager {
     }
 
     System.out.println("[PERK EFFECT DEBUG] No active PerksCharming found - using default max offer");
-    return maxTawaran; // Default value
+    return maxTawaran;
   }
-  /**
-   * Menerapkan bonus elegan pada multiplier pembeli
-   * 
-   * @param player  player yang memiliki perk
-   * @param pembeli pembeli yang akan dimodifikasi
-   * @return multiplier yang sudah dimodifikasi
-   */
   public static double applyEleganBonus(Player player, Pembeli pembeli) {
     List<Perk> activePerks = player.getPerkDipilihUntukJualan();
 
@@ -114,14 +88,8 @@ public class PerkEffectManager {
     }
 
     System.out.println("[PERK EFFECT DEBUG] No active PerksElegan found - using default multiplier");
-    return pembeli.getMultiplier(); // Default multiplier
+    return pembeli.getMultiplier();
   }
-  /**
-   * Menghitung total efek dari semua perk aktif untuk display
-   * 
-   * @param player player yang memiliki perk
-   * @return string describing all active perk effects
-   */
   public static String getActivePerkEffectsSummary(Player player) {
     List<Perk> activePerks = player.getPerkDipilihUntukJualan();
     StringBuilder summary = new StringBuilder();
@@ -139,7 +107,7 @@ public class PerkEffectManager {
           int charmBonus = perk.getLevel() * 15;
           summary.append("Charming +").append(charmBonus).append("%");
         } else if (perk instanceof PerksElegan) {
-          int eleganBonus = perk.getLevel() * 10; // Fixed from 8% to 10%
+          int eleganBonus = perk.getLevel() * 10;
           summary.append("Elegan +").append(eleganBonus).append("% tajir");
         }
       }
@@ -147,13 +115,6 @@ public class PerkEffectManager {
 
     return summary.length() > 0 ? "Perk Aktif: " + summary.toString() : "Tidak ada perk aktif";
   }
-  /**
-   * Cek apakah player memiliki perk tertentu yang aktif
-   * 
-   * @param player    player yang akan dicek
-   * @param perkClass class dari perk yang dicari
-   * @return true jika player memiliki perk tersebut dan aktif
-   */
   public static boolean hasActivePerk(Player player, Class<? extends Perk> perkClass) {
     List<Perk> activePerks = player.getPerkDipilihUntukJualan();
 
@@ -165,12 +126,6 @@ public class PerkEffectManager {
 
     return false;
   }
-  /**
-   * Calculate additional buyers based on PerksActive level
-   * 
-   * @param player player yang memiliki perk
-   * @return number of additional buyers to generate
-   */
   public static int getAdditionalBuyersFromPerks(Player player) {
     List<Perk> activePerks = player.getPerkDipilihUntukJualan();
 
@@ -186,6 +141,6 @@ public class PerkEffectManager {
     }
 
     System.out.println("[PERK EFFECT DEBUG] No active PerksActive found - returning 0 additional buyers");
-    return 0; // No additional buyers
+    return 0;
   }
 }

@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 import java.util.List;
@@ -6,13 +13,12 @@ public class ItemEffectManager {
 
   private Player player;
   private boolean jampiActiveToday = false;
-  private int currentDay = 0; // Track current day
+  private int currentDay = 0;
 
   public ItemEffectManager(Player player) {
     this.player = player;
   }
 
-  // Set current day untuk tracking daily effects
   public void setCurrentDay(int day) {
     this.currentDay = day;
   }
@@ -21,13 +27,12 @@ public class ItemEffectManager {
     return currentDay;
   }
 
-  // Hipnotis - meningkatkan chance beli langsung
   public boolean applyHipnotis(Pembeli pembeli) {
     Item hipnotis = getActiveItemByName("Hipnotis");
     if (hipnotis != null && !hipnotis.isUsed()) {
       double chance = hipnotis.getHipnotisChance();
       if (Math.random() < chance) {
-        hipnotis.markAsUsed(); // sekali pakai per transaksi
+        hipnotis.markAsUsed();
         System.out.println("Hipnotis berhasil! Efek hipnotis membuat pembeli langsung tertarik tanpa menawar.");
         return true;
       }
@@ -35,7 +40,6 @@ public class ItemEffectManager {
     return false;
   }
 
-  // Jampi - menggandakan penghasilan hari ini
   public int applyJampi(int originalEarning) {
     Item jampi = getActiveItemByName("Jampi");
     if (jampi != null && !jampiActiveToday) {
@@ -46,7 +50,7 @@ public class ItemEffectManager {
       return boostedEarning;
     }
     return originalEarning;
-  } // Semproten - meningkatkan harga jual during transaction based on freshness
+  }
 
   public int applySemproten(int originalPrice) {
     Item semproten = getActiveItemByName("Semproten");
@@ -62,13 +66,11 @@ public class ItemEffectManager {
     return originalPrice;
   }
 
-  // Check if Semproten can be used during transaction
   public boolean canUseSemproten() {
     Item semproten = getActiveItemByName("Semproten");
     return semproten != null && !semproten.isUsed();
   }
 
-  // Get Semproten price boost percentage for display
   public double getSemprotenPriceBoost() {
     Item semproten = getActiveItemByName("Semproten");
     if (semproten != null) {
@@ -77,20 +79,17 @@ public class ItemEffectManager {
     return 0.0;
   }
 
-  // Tip - bonus uang ekstra
   public int applyTip(int finalPrice) {
     Item tip = getActiveItemByName("Tip");
     if (tip != null && Math.random() < tip.getTipBonusRate()) {
-      int bonus = (int) (finalPrice * 0.15); // 15% bonus
+      int bonus = (int) (finalPrice * 0.15);
       System.out.println("Tip bonus! Pembeli memberi uang ekstra Rp" + bonus);
       return finalPrice + bonus;
     }
     return finalPrice;
   }
 
-  // Peluit - panggil pembeli tambahan (consumable item)
   public int applyPeluit(int currentDay) {
-    // Cari item Peluit di gerobak/inventory
     List<Item> items = player.getInventory().getItemDibawa();
 
     System.out.println("=== DEBUG PELUIT DETECTION ===");
@@ -105,7 +104,7 @@ public class ItemEffectManager {
       if (item.isPeluit() && item.canUse()) {
         if (item.consumeOne()) {
           System.out.println("Peluit digunakan! Sisa: " + item.getQuantity() + "/" + item.getMaxQuantity());
-          return item.getPeluitExtraBuyers(); // Jumlah pembeli tambahan berdasarkan level
+          return item.getPeluitExtraBuyers();
         }
       }
     }
@@ -113,7 +112,6 @@ public class ItemEffectManager {
     return 0;
   }
 
-  // Method untuk menggunakan Peluit secara manual (tombol H)
   public boolean usePeluitManually() {
     List<Item> items = player.getInventory().getItemDibawa();
     for (Item item : items) {
@@ -124,13 +122,11 @@ public class ItemEffectManager {
     return false;
   }
 
-  // Cek apakah item tertentu aktif
   public boolean isItemActive(String namaItem) {
     Item item = getActiveItemByName(namaItem);
     return item != null;
   }
 
-  // Aktifkan item
   public boolean activateItem(String namaItem) {
     List<Item> items = player.getInventory().getStokItem();
     for (Item item : items) {
@@ -144,7 +140,6 @@ public class ItemEffectManager {
     return false;
   }
 
-  // Deaktifkan item
   public boolean deactivateItem(String namaItem) {
     List<Item> items = player.getInventory().getStokItem();
     for (Item item : items) {
@@ -166,13 +161,12 @@ public class ItemEffectManager {
       }
     }
     return null;
-  } // Reset untuk hari baru
+  }
 
   public void resetDailyEffects() {
     jampiActiveToday = false;
     List<Item> items = player.getInventory().getStokItem();
     for (Item item : items) {
-      // Reset usage for all items that have daily usage limits
       if (item.isHipnotis() || item.isSemproten() || item.isPeluit()) {
         item.resetUsage();
       }
@@ -183,7 +177,6 @@ public class ItemEffectManager {
     System.out.println("Efek item harian telah direset untuk semua item.");
   }
 
-  // Methods untuk aktivasi otomatis Jampi saat create/reset random trigger zone
   public String activateJampiIfAvailable() {
     List<Item> items = player.getInventory().getItemDibawa();
     for (Item item : items) {
@@ -197,11 +190,9 @@ public class ItemEffectManager {
     return null;
   }
 
-  // Method untuk aktivasi manual item sebelum Start Selling (Hipnotis &
-  // Semproten)
   public boolean activateItemForTransaction(String namaItem) {
     if (!namaItem.equalsIgnoreCase("Hipnotis") && !namaItem.equalsIgnoreCase("Semproten")) {
-      return false; // Hanya Hipnotis dan Semproten yang bisa diaktifkan manual untuk transaksi
+      return false;
     }
 
     List<Item> items = player.getInventory().getItemDibawa();
@@ -215,7 +206,6 @@ public class ItemEffectManager {
     return false;
   }
 
-  // Get detailed activation message for item
   public String getItemActivationMessage(String namaItem) {
     List<Item> items = player.getInventory().getItemDibawa();
     for (Item item : items) {
@@ -259,7 +249,6 @@ public class ItemEffectManager {
     return "Item " + namaItem + " berhasil diaktifkan untuk transaksi berikutnya!";
   }
 
-  // Method untuk cek apakah item bisa digunakan
   public boolean canUseItem(String namaItem) {
     List<Item> items = player.getInventory().getItemDibawa();
     for (Item item : items) {
@@ -274,19 +263,17 @@ public class ItemEffectManager {
     return false;
   }
 
-  // Method untuk deaktivasi item consumable setelah transaksi
   public void deactivateConsumableItems() {
     List<Item> items = player.getInventory().getItemDibawa();
     for (Item item : items) {
       if (item.isActive() && !item.isConsumable()) {
         item.deactivate();
-        item.markAsUsed(); // Mark as used untuk non-consumable items
+        item.markAsUsed();
         System.out.println("Item " + item.getNama() + " telah dinonaktifkan setelah transaksi.");
       }
     }
   }
 
-  // Reset untuk transaksi baru
   public void resetTransactionEffects() {
     List<Item> items = player.getInventory().getStokItem();
     for (Item item : items) {
@@ -296,7 +283,6 @@ public class ItemEffectManager {
     }
   }
 
-  // Tampilkan status semua item aktif
   public void displayActiveItems() {
     List<Item> items = player.getInventory().getStokItem();
     System.out.println("=== Item Aktif ===");

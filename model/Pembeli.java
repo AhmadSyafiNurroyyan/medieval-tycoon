@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 import interfaces.Menawar;
@@ -35,7 +42,7 @@ public abstract class Pembeli implements Menawar {
 
     public boolean chanceAcceptCounter(int hargaPlayer, int hargaPembeli) {
         if (hargaPlayer > hargaPembeli) {
-            return Math.random() < 0.1; // default 10%
+            return Math.random() < 0.1;
         }
         return false;
     }

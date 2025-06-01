@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package gui;
 
 import interfaces.InventoryChangeListener;
@@ -33,30 +40,27 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private JDesktopPane desktopPane;
     private JInternalFrame inventoryFrame, gerobakFrame, perksFrame, statsFrame;
     private JTable goodsTable, gerobakNoPriceTable, gerobakWithPriceTable;
-    // Tambah field untuk item gerobak table
     private JTable itemGerobakTable;
     private JLabel lblJumlah, lblGerobakInfo;
     private Image bgImage, tetoImage;
     private final int currentSortBy = 0, currentSortOrder = 0;
     private JTextField jumlahField, hargaField;
     private JTabbedPane tabbedPane;
-    private Gerobak gerobak; // Tambahkan sistem DayTime sederhana
+    private Gerobak gerobak;
     private int currentDay = 1;
-    private JLabel dayLabel; // Added dayLabel field
+    private JLabel dayLabel;
     private Runnable onSleepCallback;
-    private GamePanel gamePanel; // Tambahkan referensi ke GamePanel
-    private Supplier supplier; // Add supplier reference for stock regeneration
-    private ItemEffectManager itemEffectManager; // Add item effect manager for using items
+    private GamePanel gamePanel;
+    private Supplier supplier;
+    private ItemEffectManager itemEffectManager;
 
     public void setGamePanel(GamePanel gamePanel) {
         this.gamePanel = gamePanel;
-        // Sinkronkan hari jika perlu
         if (gamePanel != null) {
             this.currentDay = gamePanel.getCurrentDay();
         }
     }
 
-    // Tambahkan constructor dan method initializeComponents() yang sudah ada
     public HomeBasePanel(Player player) {
         this.player = player;
         this.perksManagement = new PerksManagement();
@@ -67,26 +71,23 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         this.itemGerobakTable = new JTable();
     }
 
-    // Method to update the day label - shows current day number
-
     public void updateDayLabel() {
         if (dayLabel != null) {
             dayLabel.setText("Day " + currentDay);
         }
     }
 
-    private void initializeComponents() { // Title
+    private void initializeComponents() {
         JLabel titleLabel = new JLabel("Home Base");
         titleLabel.setFont(loadCustomFont().deriveFont(80f));
         titleLabel.setBounds(20, 15, 100000, 200);
-        add(titleLabel); // Day Label - positioned in the black circle, aligned with "Home Base" text
+        add(titleLabel);
         dayLabel = new JLabel("Day " + currentDay, JLabel.CENTER);
-        dayLabel.setFont(new Font("Serif", Font.BOLD, 32)); // Reduced font size to avoid text cutoff
-        dayLabel.setForeground(new Color(120, 90, 30)); // Medieval brown color
-        dayLabel.setBounds(670, 70, 140, 40); // Increased width and height to accommodate the text
+        dayLabel.setFont(new Font("Serif", Font.BOLD, 32));
+        dayLabel.setForeground(new Color(120, 90, 30));
+        dayLabel.setBounds(670, 70, 140, 40);
         add(dayLabel);
 
-        // Buttons
         btn1 = StyledButton.create("Inventory");
         btn2 = StyledButton.create("Gerobak");
         btn3 = StyledButton.create("Perks");
@@ -100,7 +101,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         backButton = StyledButton.create("Kembali", 20, 120, 40);
         backButton.addActionListener(_ -> {
             if (backToGameCallback != null) {
-                // Stop HomeBase BGM and start Map BGM when returning to game
                 System.out.println("HomeBasePanel: Back button clicked - stopping HomeBase BGM and starting Map BGM");
                 BGMPlayer.getInstance().stopHomeBaseBGM();
                 BGMPlayer.getInstance().playMapBGM();
@@ -109,11 +109,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         });
         add(backButton);
 
-        // Desktop pane
         desktopPane = new JDesktopPane();
         desktopPane.setOpaque(false);
         add(desktopPane);
-        setComponentZOrder(desktopPane, 0); // Action listeners
+        setComponentZOrder(desktopPane, 0);
         btn1.addActionListener(_ -> showInventoryFrame());
         btn2.addActionListener(_ -> showGerobakFrame());
         btn3.addActionListener(_ -> showPerksFrame());
@@ -187,8 +186,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
             lblJumlah = new JLabel("Jumlah barang: " + (inventory != null ? inventory.getJumlahBarang() : 0));
             lblJumlah.setFont(new Font("SansSerif", Font.PLAIN, 14));
-            lblJumlah.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 13)); // Create a panel for the buttons with
-                                                                                // better layout
+            lblJumlah.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 13));
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
             buttonPanel.setOpaque(false);
             buttonPanel.add(btnHapus);
@@ -207,13 +205,11 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     return;
                 }
 
-                // Get the correct information from the table to find the actual Barang object
                 String nama = goodsTable.getValueAt(row, 1).toString();
                 String kategori = goodsTable.getValueAt(row, 2).toString();
                 int kesegaran = Integer.parseInt(goodsTable.getValueAt(row, 3).toString());
                 int hargaBeli = Integer.parseInt(goodsTable.getValueAt(row, 4).toString());
 
-                // Find the actual Barang object in inventory
                 Barang targetBarang = null;
                 for (Barang b : inventory.getStokBarang()) {
                     if (b.getNamaBarang().equals(nama) && b.getKategori().equals(kategori) &&
@@ -239,14 +235,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     return;
                 }
 
-                // Get the correct information from the table to find the actual Barang object
                 String nama = goodsTable.getValueAt(row, 1).toString();
                 String kategori = goodsTable.getValueAt(row, 2).toString();
                 int kesegaran = Integer.parseInt(goodsTable.getValueAt(row, 3).toString());
                 int hargaBeli = Integer.parseInt(goodsTable.getValueAt(row, 4).toString());
                 int jumlahTersedia = Integer.parseInt(goodsTable.getValueAt(row, 5).toString());
 
-                // Show quantity input dialog
                 String input = JOptionPane.showInputDialog(
                         this,
                         "Masukkan jumlah yang ingin dipindahkan ke Gerobak:\n(Tersedia: " + jumlahTersedia + " buah)",
@@ -254,7 +248,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                         JOptionPane.QUESTION_MESSAGE);
 
                 if (input == null || input.trim().isEmpty()) {
-                    return; // User cancelled or entered empty input
+                    return;
                 }
 
                 int jumlah;
@@ -277,7 +271,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     return;
                 }
 
-                // Find the actual Barang object in inventory
                 Barang targetBarang = null;
                 System.out.println("Debug: Looking for barang to move:");
                 System.out.println("  - Nama: " + nama + ", Kategori: " + kategori +
@@ -299,7 +292,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     System.out.println("Debug: No matching barang found!");
                 }
                 if (targetBarang != null) {
-                    // Check if item is rotten (kesegaran <= 0)
                     if (targetBarang.getKesegaran() <= 0) {
                         JOptionPane.showMessageDialog(this,
                                 "Tidak bisa memindahkan barang busuk ke gerobak!\nBuang barang busuk terlebih dahulu.",
@@ -308,13 +300,11 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                         return;
                     }
 
-                    // Get the actual gerobak capacity from inventory
-                    int kapasitasGerobak = 20; // Default fallback
+                    int kapasitasGerobak = 20;
                     if (inventory.getGerobak() != null) {
                         kapasitasGerobak = inventory.getGerobak().getKapasitasBarang();
                     }
 
-                    // Check if gerobak has enough capacity
                     int remainingCapacity = inventory.kapasitasBarangTersisa(kapasitasGerobak);
                     if (jumlah > remainingCapacity) {
                         JOptionPane.showMessageDialog(this,
@@ -325,7 +315,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     }
                     inventory.bawaBarang(targetBarang, jumlah, kapasitasGerobak);
 
-                    // Merge items with same properties after moving to gerobak
                     mergeItemsWithSamePropertiesAndPrice();
                     JOptionPane.showMessageDialog(this,
                             "Berhasil memindahkan " + jumlah + " buah " + nama + " ke Gerobak.",
@@ -362,9 +351,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             tabbedPane.addTab("Goods", goodsPanel);
 
             JPanel itemsPanel = new JPanel(new BorderLayout());
-            itemsPanel.setBackground(new Color(255, 248, 220)); // Removed filter panel for cleaner interface
+            itemsPanel.setBackground(new Color(255, 248, 220));
 
-            // Tabel untuk item
             JTable itemsTable = new JTable();
             itemsTable.getTableHeader().setBackground(new Color(212, 175, 55));
             itemsTable.getTableHeader().setForeground(new Color(60, 40, 10));
@@ -375,23 +363,19 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             itemsScroll.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 1));
             itemsPanel.add(itemsScroll, BorderLayout.CENTER);
 
-            // Panel untuk tombol aksi
             JPanel itemButtonsPanel = new JPanel(new BorderLayout());
             itemButtonsPanel.setOpaque(false);
 
-            // Buat panel untuk tombol-tombol di sebelah kiri
             JPanel leftButtonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-            leftButtonsPanel.setOpaque(false); // Tombol Hapus Item
+            leftButtonsPanel.setOpaque(false);
             JButton deleteItemBtn = StyledButton.create("Hapus Item", 14, 150, 38);
             deleteItemBtn.addActionListener(_ -> deleteSelectedItem(itemsTable));
             leftButtonsPanel.add(deleteItemBtn);
 
-            // Tombol Move to Gerobak
             JButton moveItemToGerobakBtn = StyledButton.create("Move to Gerobak", 14, 180, 38);
             moveItemToGerobakBtn.addActionListener(_ -> moveItemToGerobak(itemsTable));
             leftButtonsPanel.add(moveItemToGerobakBtn);
 
-            // Label jumlah item
             JLabel itemCountLabel = new JLabel("Jumlah item: 0");
             itemCountLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
             itemCountLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 13));
@@ -401,7 +385,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             itemsPanel.add(itemButtonsPanel, BorderLayout.SOUTH);
             tabbedPane.addTab("Items", itemsPanel);
 
-            // Initial update - always show all items (filter mode 0)
             updateItemsTable(itemsTable, itemCountLabel, 0);
             inventoryFrame.add(tabbedPane, BorderLayout.CENTER);
 
@@ -436,7 +419,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     "  - Inventory gerobak after set: " + (inventory.getGerobak() != null ? "exists" : "null"));
         }
 
-        // Ensure player's inventory uses the same gerobak if it exists
         if (player != null && player.getInventory() != null) {
             player.getInventory().setGerobak(gerobak);
             System.out.println("  - Set gerobak in player's inventory");
@@ -445,32 +427,25 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
     @Override
     public void onInventoryChanged() {
-        // Refresh semua tabel ketika inventory berubah
         SwingUtilities.invokeLater(() -> {
             System.out.println("Debug: onInventoryChanged triggered - refreshing UI");
             refreshInventoryAndGerobak();
 
-            // Update items table juga jika sedang terbuka
             if (inventoryFrame != null && inventoryFrame.isVisible()) {
                 updateItemsTableInCurrentTab();
             }
 
-            // Update item gerobak table jika gerobak frame terbuka
             if (gerobakFrame != null && gerobakFrame.isVisible()) {
                 updateItemGerobakTable();
             }
         });
     }
 
-    /**
-     * Update items table in current tab when inventory frame is open
-     */
     private void updateItemsTableInCurrentTab() {
         if (inventoryFrame == null || !inventoryFrame.isVisible()) {
             return;
         }
 
-        // Find the tabbed pane
         JTabbedPane tabPane = null;
         for (Component c : inventoryFrame.getContentPane().getComponents()) {
             if (c instanceof JTabbedPane) {
@@ -483,15 +458,13 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             return;
         }
 
-        // Get the Items tab (index 1)
         Component itemsTab = tabPane.getComponentAt(1);
         if (!(itemsTab instanceof JPanel)) {
             return;
-        } // Find the items table and count label
+        }
         JTable itemsTable = null;
         JLabel countLabel = null;
 
-        // Search for components in the items tab
         for (Component c : ((JPanel) itemsTab).getComponents()) {
             if (c instanceof JScrollPane) {
                 Component view = ((JScrollPane) c).getViewport().getView();
@@ -499,20 +472,17 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     itemsTable = (JTable) view;
                 }
             } else if (c instanceof JPanel) {
-                // Search in nested panels
                 searchForItemsComponents((JPanel) c, new ComponentHolder(countLabel, null));
                 if (componentHolder.countLabel != null)
                     countLabel = componentHolder.countLabel;
             }
         }
 
-        // Update the table if we found all necessary components
         if (itemsTable != null && countLabel != null) {
-            // Always use filter mode 0 (show all items)
             updateItemsTable(itemsTable, countLabel, 0);
             System.out.println("Debug: Items table updated automatically via InventoryChangeListener");
         }
-    } // Helper class to hold component references
+    }
 
     private static class ComponentHolder {
         JLabel countLabel;
@@ -522,12 +492,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         }
     }
 
-    // We need to add this field at class level
     private ComponentHolder componentHolder = new ComponentHolder(null, null);
 
-    /**
-     * Recursively search for items table components
-     */
     private void searchForItemsComponents(JPanel panel, ComponentHolder holder) {
         for (Component comp : panel.getComponents()) {
             if (comp instanceof JLabel && ((JLabel) comp).getText().startsWith("Jumlah item")) {
@@ -546,7 +512,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         List<Barang> stokBarang = inventory.getStokBarang();
         System.out.println("Debug updateGoodsTable: Total barang in inventory: " + stokBarang.size());
 
-        // Group similar items and count them
         Map<String, Map<String, Object>> groupedItems = new LinkedHashMap<>();
         for (Barang barang : stokBarang) {
             System.out.println("Debug updateGoodsTable: Processing " + barang.getNamaBarang() +
@@ -565,13 +530,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             }
         }
 
-        // Convert to array for table
         String[] columnNames = { "Icon", "Nama", "Kategori", "Kesegaran", "Harga Beli", "Jumlah" };
         Object[][] data = new Object[groupedItems.size()][columnNames.length];
 
         int row = 0;
         for (Map<String, Object> itemData : groupedItems.values()) {
-            Barang barang = (Barang) itemData.get("barang"); // Get icon directly from file path
+            Barang barang = (Barang) itemData.get("barang");
             ImageIcon icon = GamePanel.getIcon(barang.getIconPath(), 32, 32);
             if (icon == null) {
                 icon = GamePanel.getIcon(barang.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
@@ -601,15 +565,13 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         goodsTable.setModel(model);
         goodsTable.setRowHeight(36);
 
-        // Set column widths
-        goodsTable.getColumnModel().getColumn(0).setPreferredWidth(40); // Icon
-        goodsTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Nama
-        goodsTable.getColumnModel().getColumn(2).setPreferredWidth(80); // Kategori
-        goodsTable.getColumnModel().getColumn(3).setPreferredWidth(60); // Kesegaran
-        goodsTable.getColumnModel().getColumn(4).setPreferredWidth(80); // Harga Beli
-        goodsTable.getColumnModel().getColumn(5).setPreferredWidth(60); // Jumlah
+        goodsTable.getColumnModel().getColumn(0).setPreferredWidth(40);
+        goodsTable.getColumnModel().getColumn(1).setPreferredWidth(120);
+        goodsTable.getColumnModel().getColumn(2).setPreferredWidth(80);
+        goodsTable.getColumnModel().getColumn(3).setPreferredWidth(60);
+        goodsTable.getColumnModel().getColumn(4).setPreferredWidth(80);
+        goodsTable.getColumnModel().getColumn(5).setPreferredWidth(60);
 
-        // Set renderers
         goodsTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -623,11 +585,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             goodsTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
-        // Update the count label
         if (lblJumlah != null) {
             lblJumlah.setText("Jumlah barang: " + inventory.getJumlahBarang());
         }
-    } // Method untuk update gerobak tables
+    }
 
     private void updateGerobakTables() {
         if (inventory == null)
@@ -636,7 +597,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         updateGerobakNoPriceTable();
         updateGerobakWithPriceTable();
 
-        // Update info label
         if (lblGerobakInfo != null) {
             int totalBarang = 0;
             Map<Barang, Integer> barangDibawa = inventory.getBarangDibawaMutable();
@@ -653,7 +613,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
         Map<Barang, Integer> barangDibawa = inventory.getBarangDibawaMutable();
 
-        // Filter items without price (harga jual <= 0)
         List<Map<String, Object>> itemsWithoutPrice = new ArrayList<>();
         for (Map.Entry<Barang, Integer> entry : barangDibawa.entrySet()) {
             Barang barang = entry.getKey();
@@ -675,7 +634,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             Map<String, Object> itemData = itemsWithoutPrice.get(i);
             Barang barang = (Barang) itemData.get("barang");
 
-            // Get icon from cache
             ImageIcon icon = GamePanel.getIcon(barang.getIconPath(), 32, 32);
             if (icon == null) {
                 icon = GamePanel.getIcon(barang.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
@@ -703,14 +661,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         gerobakNoPriceTable.setModel(model);
         gerobakNoPriceTable.setRowHeight(36);
 
-        // Set column widths
-        gerobakNoPriceTable.getColumnModel().getColumn(0).setPreferredWidth(40); // Icon
-        gerobakNoPriceTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Nama
-        gerobakNoPriceTable.getColumnModel().getColumn(2).setPreferredWidth(80); // Kategori
-        gerobakNoPriceTable.getColumnModel().getColumn(3).setPreferredWidth(60); // Kesegaran
-        gerobakNoPriceTable.getColumnModel().getColumn(4).setPreferredWidth(60); // Jumlah
+        gerobakNoPriceTable.getColumnModel().getColumn(0).setPreferredWidth(40);
+        gerobakNoPriceTable.getColumnModel().getColumn(1).setPreferredWidth(120);
+        gerobakNoPriceTable.getColumnModel().getColumn(2).setPreferredWidth(80);
+        gerobakNoPriceTable.getColumnModel().getColumn(3).setPreferredWidth(60);
+        gerobakNoPriceTable.getColumnModel().getColumn(4).setPreferredWidth(60);
 
-        // Set renderers
         gerobakNoPriceTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -731,7 +687,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
         Map<Barang, Integer> barangDibawa = inventory.getBarangDibawaMutable();
 
-        // Filter items with price (harga jual > 0)
         List<Map<String, Object>> itemsWithPrice = new ArrayList<>();
         for (Map.Entry<Barang, Integer> entry : barangDibawa.entrySet()) {
             Barang barang = entry.getKey();
@@ -754,7 +709,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             Map<String, Object> itemData = itemsWithPrice.get(i);
             Barang barang = (Barang) itemData.get("barang");
 
-            // Get icon from cache
             ImageIcon icon = GamePanel.getIcon(barang.getIconPath(), 32, 32);
             if (icon == null) {
                 icon = GamePanel.getIcon(barang.getNamaBarang().toLowerCase().replace(' ', '_'), 32, 32);
@@ -783,15 +737,13 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         gerobakWithPriceTable.setModel(model);
         gerobakWithPriceTable.setRowHeight(36);
 
-        // Set column widths
-        gerobakWithPriceTable.getColumnModel().getColumn(0).setPreferredWidth(40); // Icon
-        gerobakWithPriceTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Nama
-        gerobakWithPriceTable.getColumnModel().getColumn(2).setPreferredWidth(80); // Kategori
-        gerobakWithPriceTable.getColumnModel().getColumn(3).setPreferredWidth(60); // Kesegaran
-        gerobakWithPriceTable.getColumnModel().getColumn(4).setPreferredWidth(60); // Jumlah
-        gerobakWithPriceTable.getColumnModel().getColumn(5).setPreferredWidth(80); // Harga Jual
+        gerobakWithPriceTable.getColumnModel().getColumn(0).setPreferredWidth(40);
+        gerobakWithPriceTable.getColumnModel().getColumn(1).setPreferredWidth(120);
+        gerobakWithPriceTable.getColumnModel().getColumn(2).setPreferredWidth(80);
+        gerobakWithPriceTable.getColumnModel().getColumn(3).setPreferredWidth(60);
+        gerobakWithPriceTable.getColumnModel().getColumn(4).setPreferredWidth(60);
+        gerobakWithPriceTable.getColumnModel().getColumn(5).setPreferredWidth(80);
 
-        // Set renderers
         gerobakWithPriceTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -838,7 +790,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             return;
         }
 
-        // Cari barang di inventory.getBarangDibawa()
         Barang barangTarget = null;
         for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
             if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori)
@@ -864,31 +815,21 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             return;
         }
 
-        // Set harga jual pada barang (buat objek baru jika perlu)
-        // Pertama, kurangi hanya jumlah yang akan diberi harga dari barang target
         inventory.kurangiBarangDibawa(barangTarget, jumlah);
 
-        // Buat objek barang baru yang unik untuk item dengan harga
-        // Menggunakan System.nanoTime() untuk memastikan objek baru memiliki hash yang
-        // berbeda
         Barang barangDenganHarga = new Barang(barangTarget.getNamaBarang(), barangTarget.getKategori(),
                 barangTarget.getHargaBeli(), barangTarget.getIconPath()) {
-            // Anonymous class untuk memastikan objek ini unik
             private final long uniqueId = System.nanoTime();
 
             @Override
             public boolean equals(Object obj) {
-                // Setiap instance dengan harga adalah unik - hanya equal dengan dirinya sendiri
                 if (this == obj)
                     return true;
-                // Tidak pernah equal dengan objek lain, bahkan jika objek tersebut memiliki
-                // properti yang sama
                 return false;
             }
 
             @Override
             public int hashCode() {
-                // Hash berdasarkan identitas objek + uniqueId
                 return System.identityHashCode(this) + (int) (uniqueId % Integer.MAX_VALUE);
             }
         };
@@ -898,24 +839,19 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             f.setAccessible(true);
             f.setInt(barangDenganHarga, barangTarget.getKesegaran());
         } catch (Exception ex) {
-            /* ignore */
         }
 
-        // Tambahkan barang dengan harga sesuai jumlah yang diminta
         inventory.tambahBarangDibawa(barangDenganHarga, jumlah);
         inventory.setHargaJual(barangDenganHarga, hargaJual);
 
-        // Merge items with same properties and same price
         mergeItemsWithSamePropertiesAndPrice();
 
-        // Reset input
         jumlahField.setText("");
         hargaField.setText("");
         updateGerobakTables();
         JOptionPane.showMessageDialog(this, "Harga jual berhasil diset untuk barang!", "Sukses",
                 JOptionPane.INFORMATION_MESSAGE);
 
-        // Debug: print current state
         System.out.println("Debug: Barang di gerobak setelah set harga:");
         for (Map.Entry<Barang, Integer> entry : inventory.getBarangDibawaMutable().entrySet()) {
             Barang b = entry.getKey();
@@ -928,11 +864,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
     private void showGerobakFrame() {
         if (gerobakFrame == null) {
-            // Create header panel with level info and upgrade button
             JPanel headerPanel = createGerobakHeaderPanel();
 
             gerobakFrame = new JInternalFrame("Gerobak", true, true, true, true);
-            gerobakFrame.setSize(1000, 550); // Increased height for header
+            gerobakFrame.setSize(1000, 550);
             gerobakFrame.setLayout(new BorderLayout());
             gerobakFrame.setVisible(true);
             gerobakFrame.setBorder(BorderFactory.createCompoundBorder(
@@ -941,20 +876,16 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             gerobakFrame.setOpaque(true);
             gerobakFrame.getContentPane().setBackground(new Color(255, 248, 220));
 
-            // Add header panel at the top
             gerobakFrame.add(headerPanel, BorderLayout.NORTH);
 
-            // Buat tabbed pane untuk gerobak
             JTabbedPane gerobakTabs = new JTabbedPane();
             gerobakTabs.setBackground(new Color(255, 248, 220));
             gerobakTabs.setForeground(new Color(120, 90, 30));
             gerobakTabs.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
 
-            // Tab pertama untuk barang (existing code)
             JPanel barangPanel = createBarangGerobakTab();
             gerobakTabs.addTab("Barang", barangPanel);
 
-            // Tab kedua untuk item
             JPanel itemPanel = createItemGerobakTab();
             gerobakTabs.addTab("Item", itemPanel);
 
@@ -974,13 +905,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         gerobakFrame.toFront();
     }
 
-    // Method untuk create tab barang (existing logic dipindah ke sini)
     private JPanel createBarangGerobakTab() {
-        // Panel utama dengan 3 bagian
         JPanel mainPanel = new JPanel(new GridLayout(1, 3, 10, 0));
         mainPanel.setBackground(new Color(255, 248, 220));
 
-        // Bagian kiri: List barang tanpa harga jual + tombol Move to Inventory
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.setBackground(new Color(255, 248, 220));
 
@@ -996,14 +924,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
         mainPanel.add(leftPanel);
 
-        // Bagian tengah: Input jumlah, harga jual, tombol set harga
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(new Color(255, 248, 220));
         centerPanel.setBorder(BorderFactory.createTitledBorder("Set Harga Jual Barang"));
         centerPanel.add(Box.createVerticalStrut(30));
 
-        // --- JUMLAH ---
         JLabel jumlahLabel = new JLabel("Jumlah:");
         jumlahLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerPanel.add(jumlahLabel);
@@ -1029,7 +955,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         centerPanel.add(jumlahPanel);
         centerPanel.add(Box.createVerticalStrut(10));
 
-        // --- HARGA JUAL ---
         JLabel hargaLabel = new JLabel("Harga Jual:");
         hargaLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerPanel.add(hargaLabel);
@@ -1060,7 +985,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         centerPanel.add(setHargaBtn);
         centerPanel.add(Box.createVerticalStrut(10));
 
-        // Add the total stock label to center panel
         lblGerobakInfo = new JLabel();
         lblGerobakInfo.setFont(new Font("SansSerif", Font.PLAIN, 14));
         lblGerobakInfo.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1070,7 +994,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         setHargaBtn.addActionListener(_ -> setHargaBarangGerobak());
         mainPanel.add(centerPanel);
 
-        // --- Button Logic ---
         minJumlahBtn.addActionListener(_ -> {
             int min = 1;
             jumlahField.setText(String.valueOf(min));
@@ -1119,7 +1042,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     String namaBarang = gerobakNoPriceTable.getValueAt(selectedRow, 1).toString();
                     String kategori = gerobakNoPriceTable.getValueAt(selectedRow, 2).toString();
                     int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
-                    // Cari barang di inventory
                     for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
                         if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori)
                                 && b.getKesegaran() == kesegaran) {
@@ -1211,7 +1133,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         minusHargaBtn.setFocusable(false);
         plusHargaBtn.setFocusable(false);
 
-        // Bagian kanan: List barang sudah ada harga jual + tombol Undo
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setBackground(new Color(255, 248, 220));
 
@@ -1230,12 +1151,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         return mainPanel;
     }
 
-    // Method baru untuk create tab item
     private JPanel createItemGerobakTab() {
         JPanel itemPanel = new JPanel(new BorderLayout());
         itemPanel.setBackground(new Color(255, 248, 220));
 
-        // Tabel untuk item di gerobak
         itemGerobakTable = new JTable();
         itemGerobakTable.getTableHeader().setBackground(new Color(212, 175, 55));
         itemGerobakTable.getTableHeader().setForeground(new Color(60, 40, 10));
@@ -1247,15 +1166,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         itemScroll.setBorder(BorderFactory.createTitledBorder("Item di Gerobak"));
         itemPanel.add(itemScroll, BorderLayout.CENTER);
 
-        // Panel tombol untuk item
         JPanel itemButtonPanel = new JPanel(new BorderLayout());
         itemButtonPanel.setBackground(new Color(255, 248, 220));
 
-        // Tombol Move back to Inventory
         JButton btnMoveItemBack = StyledButton.create("Move to Inventory", 13, 160, 32);
         btnMoveItemBack.addActionListener(_ -> moveItemFromGerobakToInventory());
 
-        // Label info item
         JLabel lblItemInfo = new JLabel("Total item di Gerobak: 0");
         lblItemInfo.setFont(new Font("SansSerif", Font.PLAIN, 14));
         lblItemInfo.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 13));
@@ -1282,7 +1198,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         return "N/A";
     }
 
-    // Gets full descriptive text for item effects
     private String getItemEffectDescription(Item item) {
         if (item.isHipnotis()) {
             return "Meningkatkan peluang pembeli langsung membeli tanpa menawar (" +
@@ -1323,7 +1238,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         Object[][] data = new Object[itemsDiGerobak.size()][cols.length];
         for (int i = 0; i < itemsDiGerobak.size(); i++) {
             Item item = itemsDiGerobak.get(i);
-            // Get icon from cache
             ImageIcon icon = GamePanel.getIcon(item.getIconPath(), 32, 32);
             if (icon == null) {
                 icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 32, 32);
@@ -1358,7 +1272,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         itemGerobakTable.getColumnModel().getColumn(4).setPreferredWidth(80);
         itemGerobakTable.getColumnModel().getColumn(5).setPreferredWidth(240);
 
-        // Set renderer untuk icon column
         itemGerobakTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -1366,27 +1279,22 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             return label;
         });
 
-        // Set renderer untuk kolom lain (center alignment)
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 1; i < 5; i++) {
             itemGerobakTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
-        // Left align description column
         DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
         leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
         itemGerobakTable.getColumnModel().getColumn(5).setCellRenderer(leftRenderer);
 
-        // Update info label - cari label di panel
         if (gerobakFrame != null && gerobakFrame.isVisible()) {
             updateItemInfoLabel(itemsDiGerobak.size());
         }
     }
 
-    // Helper method untuk update label info item
     private void updateItemInfoLabel(int itemCount) {
-        // Cari label info di tab item
         JTabbedPane gerobakTabs = null;
         for (Component c : gerobakFrame.getContentPane().getComponents()) {
             if (c instanceof JTabbedPane) {
@@ -1396,16 +1304,13 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         }
 
         if (gerobakTabs != null && gerobakTabs.getTabCount() > 1) {
-            // Get the Items tab
             Component itemTab = gerobakTabs.getComponentAt(1);
             if (itemTab instanceof JPanel) {
-                // Cari label info
                 findAndUpdateLabel((JPanel) itemTab, "Total item di Gerobak: " + itemCount);
             }
         }
     }
 
-    // Helper method untuk cari dan update label
     private void findAndUpdateLabel(JPanel panel, String newText) {
         for (Component c : panel.getComponents()) {
             if (c instanceof JPanel) {
@@ -1419,7 +1324,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         }
     }
 
-    // Method untuk move item dari gerobak kembali ke inventory
     private void moveItemFromGerobakToInventory() {
         int selectedRow = itemGerobakTable.getSelectedRow();
         if (selectedRow == -1) {
@@ -1430,7 +1334,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
         String namaItem = itemGerobakTable.getValueAt(selectedRow, 1).toString();
 
-        // Confirm action
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Apakah anda yakin ingin memindahkan item \"" + namaItem + "\" kembali ke Inventory?",
                 "Konfirmasi", JOptionPane.YES_NO_OPTION);
@@ -1441,7 +1344,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                         "Item berhasil dipindahkan kembali ke Inventory.",
                         "Sukses", JOptionPane.INFORMATION_MESSAGE);
 
-                // Refresh displays
                 refreshInventoryAndGerobak();
             } else {
                 JOptionPane.showMessageDialog(this,
@@ -1451,16 +1353,13 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         }
     }
 
-    // Update method refreshInventoryAndGerobak()
     public void refreshInventoryAndGerobak() {
         System.out.println("Debug: refreshInventoryAndGerobak() called");
 
-        // Update all table data models
         updateGoodsTable(currentSortBy, currentSortOrder);
         updateGerobakTables();
         updateItemGerobakTable();
 
-        // Force table model change events and repaint for all tables
         if (goodsTable != null) {
             DefaultTableModel model = (DefaultTableModel) goodsTable.getModel();
             model.fireTableDataChanged();
@@ -1485,7 +1384,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             System.out.println("Debug: gerobakWithPriceTable refreshed and model fired");
         }
 
-        // Also update items table if inventory frame is open
         if (inventoryFrame != null && inventoryFrame.isVisible()) {
             System.out.println("Debug: Inventory frame is open, updating items table");
             JTabbedPane tabPane = null;
@@ -1497,15 +1395,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             }
 
             if (tabPane != null && tabPane.getTabCount() > 1) {
-                // Get the Items tab
                 Component itemsTab = tabPane.getComponentAt(1);
                 if (itemsTab instanceof JPanel) {
-                    // Find the table and count label
                     JTable itemsTable = null;
                     JLabel countLabel = null;
                     JComboBox<?> filterCombo = null;
 
-                    // Search for the table and count label
                     for (Component c : ((JPanel) itemsTab).getComponents()) {
                         if (c instanceof JScrollPane) {
                             Component view = ((JScrollPane) c).getViewport().getView();
@@ -1547,11 +1442,9 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             return;
         }
 
-        // Get the item name from the items table
         String namaItem = itemsTable.getValueAt(selectedRow, 1).toString();
         int kapasitasItem = 0;
 
-        // Find the actual Item object in inventory
         Item targetItem = null;
         for (Item item : inventory.getStokItem()) {
             if (item.getNama().equals(namaItem)) {
@@ -1565,8 +1458,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             return;
         }
 
-        // Use inventory.getGerobak() instead of this.gerobak to ensure we get the
-        // correct gerobak object
         Gerobak inventoryGerobak = inventory.getGerobak();
         if (inventoryGerobak != null) {
             kapasitasItem = inventoryGerobak.getKapasitasItem();
@@ -1574,7 +1465,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
         int totalItemDiGerobak = inventory.getJumlahItemDiGerobak();
 
-        // Tambahkan debug ini:
         System.out.println("Debug moveItemToGerobak:");
         System.out.println(
                 "  - this.gerobak: " + (gerobak != null ? "exists (level=" + gerobak.getLevel() + ")" : "null"));
@@ -1588,7 +1478,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     "Kapasitas gerobak untuk item penuh! Sisa kapasitas: " + (kapasitasItem - totalItemDiGerobak),
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
-        } // Add this before the bawaItem call for debugging
+        }
         System.out.println("Debug: Moving item " + namaItem);
         System.out.println("Debug: Current items in gerobak: " + totalItemDiGerobak);
         System.out.println("Debug: Gerobak capacity: " + kapasitasItem);
@@ -1600,7 +1490,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                 JOptionPane.showMessageDialog(this, "Item berhasil dipindahkan ke Gerobak.", "Sukses",
                         JOptionPane.INFORMATION_MESSAGE);
 
-                // Refresh the display
                 refreshInventoryAndGerobak();
             } else {
                 JOptionPane.showMessageDialog(this, "Gagal memindahkan item ke gerobak.", "Error",
@@ -1626,7 +1515,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
         int jumlahTersedia = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 4).toString());
 
-        // Find the barang in gerobak (without price)
         Barang barangTarget = null;
         for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
             if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) &&
@@ -1636,7 +1524,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             }
         }
         if (barangTarget != null) {
-            // Move the entire quantity back to inventory
             inventory.undoBawaBarang(barangTarget, jumlahTersedia);
             JOptionPane.showMessageDialog(this, "Barang dipindahkan kembali ke Inventory.", "Sukses",
                     JOptionPane.INFORMATION_MESSAGE);
@@ -1659,7 +1546,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         String kategori = gerobakWithPriceTable.getValueAt(selectedRow, 2).toString();
         int kesegaran = Integer.parseInt(gerobakWithPriceTable.getValueAt(selectedRow, 3).toString());
 
-        // Find the barang with price in gerobak
         Barang barangWithPrice = null;
         for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
             if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) &&
@@ -1670,11 +1556,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         }
 
         if (barangWithPrice != null) {
-            // Reset the price to 0 for this barang (this will move it back to the left
-            // table)
             inventory.setHargaJual(barangWithPrice, 0);
 
-            // Merge items with same properties after undoing price
             mergeItemsWithSamePropertiesAndPrice();
 
             System.out.println("Debug: Undo price for " + barangWithPrice.getNamaBarang() +
@@ -1689,16 +1572,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         }
     }
 
-    /**
-     * Merge items in gerobak that have the same properties (nama, kategori,
-     * kesegaran, hargaBeli)
-     * and the same selling price. This consolidates duplicate entries.
-     */
     private void mergeItemsWithSamePropertiesAndPrice() {
         Map<Barang, Integer> barangDibawa = inventory.getBarangDibawaMutable();
         Map<String, List<Barang>> groupedItems = new HashMap<>();
 
-        // Group items by their properties and selling price
         for (Barang b : barangDibawa.keySet()) {
             String key = b.getNamaBarang() + "|" + b.getKategori() + "|" +
                     b.getKesegaran() + "|" + b.getHargaBeli() + "|" +
@@ -1706,25 +1583,20 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             groupedItems.computeIfAbsent(key, _ -> new ArrayList<>()).add(b);
         }
 
-        // Merge items that have the same properties and selling price
         for (List<Barang> similarItems : groupedItems.values()) {
             if (similarItems.size() > 1) {
-                // Find the total quantity across all similar items
                 int totalQuantity = 0;
                 for (Barang item : similarItems) {
                     totalQuantity += barangDibawa.get(item);
                 }
 
-                // Keep the first item and merge all quantities into it
                 Barang keepItem = similarItems.get(0);
 
-                // Remove all other similar items and add their quantities to the first one
                 for (int i = 1; i < similarItems.size(); i++) {
                     Barang removeItem = similarItems.get(i);
                     barangDibawa.remove(removeItem);
-                    // Also remove from price map if it has a price
                     if (inventory.getHargaJual(removeItem) > 0) {
-                        inventory.setHargaJual(removeItem, 0); // This effectively removes it from price tracking
+                        inventory.setHargaJual(removeItem, 0);
                     }
                 }
 
@@ -1786,13 +1658,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         g2d.setColor(new Color(245, 222, 179));
         g2d.fillRect(0, getHeight() - 100, getWidth(), 100);
         g2d.dispose();
-    } // Tambahkan method ini di kelas HomeBasePanel
+    }
 
     private void updateItemsTable(JTable itemsTable, JLabel itemCountLabel, int filterMode) {
         if (inventory == null)
             return;
 
-        // Always show all items - filter mode is ignored
         List<Item> allItems = inventory.getStokItem();
         List<Item> filteredItems = allItems;
 
@@ -1800,7 +1671,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         Object[][] data = new Object[filteredItems.size()][cols.length];
         for (int i = 0; i < filteredItems.size(); i++) {
             Item item = filteredItems.get(i);
-            // Get icon from cache
             ImageIcon icon = GamePanel.getIcon(item.getIconPath(), 32, 32);
             if (icon == null) {
                 icon = GamePanel.getIcon(item.getNama().toLowerCase().replace(' ', '_'), 32, 32);
@@ -1834,7 +1704,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         itemsTable.getColumnModel().getColumn(4).setPreferredWidth(80);
         itemsTable.getColumnModel().getColumn(5).setPreferredWidth(240);
 
-        // Set renderer for icon column
         itemsTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -1842,19 +1711,16 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             return label;
         });
 
-        // Set renderer for other columns (center alignment)
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        for (int i = 1; i < 5; i++) { // Columns 1-4 centered
+        for (int i = 1; i < 5; i++) {
             itemsTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
-        // Left align the description column
         DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
         leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
         itemsTable.getColumnModel().getColumn(5).setCellRenderer(leftRenderer);
 
-        // Update count label
         itemCountLabel.setText("Jumlah item: " + filteredItems.size());
     }
 
@@ -1868,7 +1734,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
         String namaItem = itemsTable.getValueAt(selectedRow, 1).toString();
 
-        // Konfirmasi penghapusan
         int confirm = JOptionPane.showConfirmDialog(this,
                 "Apakah anda yakin ingin menghapus item \"" + namaItem + "\"?",
                 "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
@@ -1879,9 +1744,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                         "Item \"" + namaItem + "\" berhasil dihapus.",
                         "Sukses", JOptionPane.INFORMATION_MESSAGE);
 
-                // Refresh table
                 JComboBox<?> filterCombo = null;
-                // Find the filter combo box
                 for (Component comp : ((JPanel) tabbedPane.getComponentAt(1)).getComponents()) {
                     if (comp instanceof JPanel) {
                         for (Component innerComp : ((JPanel) comp).getComponents()) {
@@ -1895,10 +1758,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                         break;
                 }
 
-                // Update table with current filter
                 int filterIndex = filterCombo != null ? filterCombo.getSelectedIndex() : 0;
 
-                // Find the count label
                 JLabel countLabel = null;
                 for (Component comp : ((JPanel) tabbedPane.getComponentAt(1)).getComponents()) {
                     if (comp instanceof JPanel && ((JPanel) comp).getLayout() instanceof BorderLayout) {
@@ -1924,14 +1785,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     }
 
     public void setInventory(Inventory inventory) {
-        // Remove listener dari inventory lama jika ada
         if (this.inventory != null) {
             this.inventory.removeInventoryChangeListener(this);
         }
 
         this.inventory = inventory;
 
-        // Tambahkan listener ke inventory baru
         if (inventory != null) {
             inventory.addInventoryChangeListener(this);
             System.out.println("Debug: InventoryChangeListener added to inventory");
@@ -1942,7 +1801,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         this.backToGameCallback = callback;
     }
 
-    // Add setter for sleep callback
     public void setOnSleepCallback(Runnable callback) {
         this.onSleepCallback = callback;
     }
@@ -1951,28 +1809,18 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         this.supplier = supplier;
     }
 
-    /**
-     * Called when HomeBase panel becomes visible (starts BGM)
-     */
     public void onPanelShown() {
         System.out.println("HomeBasePanel: onPanelShown() called - starting HomeBase BGM");
-        // Stop Map BGM if playing and start HomeBase BGM
         BGMPlayer.getInstance().stopMapBGM();
         BGMPlayer.getInstance().playHomeBaseBGM();
     }
 
-    /**
-     * Called when HomeBase panel is hidden (stops BGM)
-     */
     public void onPanelHidden() {
         System.out.println("HomeBasePanel: onPanelHidden() called - stopping HomeBase BGM and starting Map BGM");
 
-        // Make sure inventory changes are properly saved before leaving HomeBase
         if (this.inventory != null && this.player != null) {
-            // Ensure that the player has the current inventory
             this.player.setInventory(this.inventory);
 
-            // Debug inventory state
             System.out.println("Debug: Items in gerobak when leaving HomeBase: " +
                     this.inventory.getItemDibawa().size());
             for (Item item : this.inventory.getItemDibawa()) {
@@ -1981,54 +1829,41 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         }
 
         BGMPlayer.getInstance().stopHomeBaseBGM();
-        // Start Map BGM when leaving HomeBase
         BGMPlayer.getInstance().playMapBGM();
     }
 
-    /**
-     * Update player reference for loading saved games
-     */
     public void updatePlayerData(Player newPlayer) {
         this.player = newPlayer;
         System.out.println("HomeBasePanel: Updated player data - Username: " + newPlayer.getUsername() +
                 ", Money: " + newPlayer.getMoney());
 
-        // Update any open frames that display player data
         updatePerksFrameContent();
 
-        // Force refresh all UI tables when player data is updated from save file
         SwingUtilities.invokeLater(() -> {
             System.out.println("HomeBasePanel: Forcing UI refresh after player data update");
             refreshInventoryAndGerobak();
 
-            // If inventory frame is open, update it
             if (inventoryFrame != null && inventoryFrame.isVisible()) {
                 updateGoodsTable(currentSortBy, currentSortOrder);
                 updateItemsTableInCurrentTab();
             }
 
-            // If gerobak frame is open, update it
             if (gerobakFrame != null && gerobakFrame.isVisible()) {
                 updateGerobakTables();
                 updateItemGerobakTable();
             }
 
-            // If perks frame is open, update it
             if (perksFrame != null && perksFrame.isVisible()) {
                 updatePerksFrameContent();
             }
         });
     }
 
-    /**
-     * Creates header panel with gerobak level info and upgrade functionality
-     */
     private JPanel createGerobakHeaderPanel() {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(255, 248, 220));
         headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
-        // Left side - Level info
         JPanel levelInfoPanel = new JPanel();
         levelInfoPanel.setLayout(new BoxLayout(levelInfoPanel, BoxLayout.Y_AXIS));
         levelInfoPanel.setBackground(new Color(255, 248, 220));
@@ -2051,7 +1886,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         levelInfoPanel.add(capacityBarangLabel);
         levelInfoPanel.add(capacityItemLabel);
 
-        // Right side - Upgrade section
         JPanel upgradePanel = new JPanel();
         upgradePanel.setLayout(new BoxLayout(upgradePanel, BoxLayout.Y_AXIS));
         upgradePanel.setBackground(new Color(255, 248, 220));
@@ -2079,7 +1913,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             JButton upgradeButton = StyledButton.create("Upgrade Gerobak", 14, 150, 35);
             upgradeButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-            // Add action listener for upgrade
             upgradeButton.addActionListener(_ -> upgradeGerobak(currentGerobak, currentGerobak.getBiayaUpgrade()));
 
             upgradePanel.add(nextLevelLabel);
@@ -2095,14 +1928,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         return headerPanel;
     }
 
-    /**
-     * Upgrade the gerobak to the next level if possible
-     */
     private void upgradeGerobak(Gerobak gerobak, int biayaUpgrade) {
         if (player == null)
             return;
 
-        // Check if already at max level
         if (gerobak.isMaxLevel()) {
             JOptionPane.showMessageDialog(this,
                     "Gerobak sudah mencapai level maksimal!",
@@ -2110,27 +1939,23 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             return;
         }
 
-        // Recalculate the actual current upgrade cost
         int actualUpgradeCost = gerobak.getBiayaUpgrade();
 
-        // Check if the player has enough money
         if (player.getMoney() < actualUpgradeCost) {
             JOptionPane.showMessageDialog(this,
                     "Uang tidak cukup untuk upgrade!\nBiaya: " + actualUpgradeCost + "G\nUang Anda: "
                             + player.getMoney() + "G",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
-        } // Perform the upgrade
+        }
         boolean upgradeSuccess = gerobak.upgradeLevel();
         if (upgradeSuccess) {
             player.kurangiMoney(actualUpgradeCost);
 
-            // Make sure the inventory's gerobak is also updated
             if (inventory != null) {
                 inventory.setGerobak(gerobak);
             }
 
-            // Completely close and reopen the gerobak frame if it's open
             boolean wasGerobakFrameVisible = false;
             if (gerobakFrame != null && gerobakFrame.isVisible()) {
                 wasGerobakFrameVisible = true;
@@ -2138,10 +1963,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                 gerobakFrame = null;
             }
 
-            // Refresh the displays
             refreshInventoryAndGerobak();
 
-            // Reopen the gerobak frame if it was open before
             if (wasGerobakFrameVisible) {
                 showGerobakFrame();
             }
@@ -2152,11 +1975,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                             "Kapasitas Item: " + gerobak.getKapasitasItem(),
                     "Sukses", JOptionPane.INFORMATION_MESSAGE);
 
-            // Also update UI elements from other panels that might show player money
             if (backToGameCallback != null) {
-                // This will signal the main game to update money displays
-                // Note: If there's a more direct way to update money displays, use that instead
-                System.out.println("Debug: Signaling game to refresh money display");
             }
         } else {
             JOptionPane.showMessageDialog(this,
@@ -2177,7 +1996,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             perksFrame.setOpaque(true);
             perksFrame.getContentPane().setBackground(new Color(255, 248, 220));
 
-            // Header panel
             JPanel headerPanel = new JPanel(new BorderLayout());
             headerPanel.setBackground(new Color(255, 248, 220));
             headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
@@ -2187,7 +2005,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             titleLabel.setForeground(new Color(120, 90, 30));
             headerPanel.add(titleLabel, BorderLayout.CENTER);
 
-            // Money display
             JLabel moneyLabel = new JLabel("Uang: " + player.getMoney() + "G", JLabel.RIGHT);
             moneyLabel.setFont(new Font("Serif", Font.PLAIN, 18));
             moneyLabel.setForeground(new Color(120, 90, 30));
@@ -2195,11 +2012,9 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
             perksFrame.add(headerPanel, BorderLayout.NORTH);
 
-            // Main content panel
             JPanel mainPanel = new JPanel(new BorderLayout());
             mainPanel.setBackground(new Color(255, 248, 220));
 
-            // Perks table
             JTable perksTable = new JTable();
             perksTable.getTableHeader().setBackground(new Color(212, 175, 55));
             perksTable.getTableHeader().setForeground(new Color(60, 40, 10));
@@ -2214,7 +2029,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             perksScroll.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 1));
             mainPanel.add(perksScroll, BorderLayout.CENTER);
 
-            // Action buttons panel
             JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
             actionPanel.setBackground(new Color(255, 248, 220));
 
@@ -2232,7 +2046,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
                 String perkName = perksTable.getValueAt(selectedRow, 1).toString().split(" \\(")[0];
 
-                // Find the perk by name
                 List<Perk> ownedPerks = perksManagement.getPerkYangDimiliki(player);
                 Perk selectedPerk = null;
                 for (Perk perk : ownedPerks) {
@@ -2266,7 +2079,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
                 String perkName = perksTable.getValueAt(selectedRow, 1).toString().split(" \\(")[0];
 
-                // Find the perk by name
                 List<Perk> tradingPerks = player.getPerkDipilihUntukJualan();
                 Perk selectedPerk = null;
                 for (Perk perk : tradingPerks) {
@@ -2302,7 +2114,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             mainPanel.add(actionPanel, BorderLayout.SOUTH);
             perksFrame.add(mainPanel, BorderLayout.CENTER);
 
-            // Add frame listener to clean up when closed
             perksFrame.addInternalFrameListener(new InternalFrameAdapter() {
                 @Override
                 public void internalFrameClosed(InternalFrameEvent e) {
@@ -2313,9 +2124,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             desktopPane.add(perksFrame);
         }
 
-        // Update the table and money display when showing the frame
         if (perksFrame.getContentPane().getComponentCount() > 0) {
-            // Find and update table
             updatePerksFrameContent();
         }
 
@@ -2333,7 +2142,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         for (int i = 0; i < ownedPerks.size(); i++) {
             Perk perk = ownedPerks.get(i);
 
-            // Load icon
             ImageIcon icon = GamePanel.getIcon(perk.getIconPath(), 32, 32);
             if (icon == null) {
                 icon = GamePanel.getIcon("default_perk", 32, 32);
@@ -2361,15 +2169,13 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
         perksTable.setModel(model);
 
-        // Set column widths
-        perksTable.getColumnModel().getColumn(0).setPreferredWidth(50); // Icon
-        perksTable.getColumnModel().getColumn(1).setPreferredWidth(150); // Name & Level
-        perksTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Type
-        perksTable.getColumnModel().getColumn(3).setPreferredWidth(80); // Power
-        perksTable.getColumnModel().getColumn(4).setPreferredWidth(120); // Trading Status
-        perksTable.getColumnModel().getColumn(5).setPreferredWidth(300); // Description
+        perksTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+        perksTable.getColumnModel().getColumn(1).setPreferredWidth(150);
+        perksTable.getColumnModel().getColumn(2).setPreferredWidth(100);
+        perksTable.getColumnModel().getColumn(3).setPreferredWidth(80);
+        perksTable.getColumnModel().getColumn(4).setPreferredWidth(120);
+        perksTable.getColumnModel().getColumn(5).setPreferredWidth(300);
 
-        // Set cell renderers
         perksTable.getColumnModel().getColumn(0).setCellRenderer((_, value, _, _, _, _) -> {
             JLabel label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -2383,7 +2189,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             perksTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
-        // Left align description
         DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
         leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
         perksTable.getColumnModel().getColumn(5).setCellRenderer(leftRenderer);
@@ -2393,10 +2198,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         if (perksFrame == null || !perksFrame.isVisible())
             return;
 
-        // Find the money label and update it
         updateMoneyInPerksFrame(perksFrame.getContentPane());
 
-        // Find the table and update it
         updateTableInPerksFrame(perksFrame.getContentPane());
     }
 
@@ -2427,9 +2230,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         }
     }
 
-    // Tambahkan method baru untuk menampilkan stats
     private void showStatsFrame() {
-        // Cegah duplikasi frame stats
         if (statsFrame != null && statsFrame.isVisible()) {
             statsFrame.toFront();
             return;
@@ -2443,19 +2244,16 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         statsFrame.setOpaque(true);
         statsFrame.getContentPane().setBackground(new Color(255, 248, 220));
 
-        // Judul
         JLabel title = new JLabel("Statistik Pemain", JLabel.CENTER);
         title.setFont(new Font("Serif", Font.BOLD, 32));
         title.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         statsFrame.add(title, BorderLayout.NORTH);
 
-        // Panel utama isi stats
         JPanel statsPanel = new JPanel();
         statsPanel.setOpaque(false);
         statsPanel.setLayout(new BoxLayout(statsPanel, BoxLayout.Y_AXIS));
         statsPanel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
 
-        // Data statistik (dummy/real)
         String username = player != null ? player.getUsername() : "-";
         int uang = player != null ? player.getMoney() : 0;
         int totalBarang = inventory != null ? inventory.getJumlahBarang() : 0;
@@ -2463,26 +2261,16 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         int totalPerk = player != null ? player.getSemuaPerkDimiliki().size() : 0;
         int gerobakLevel = (inventory != null && inventory.getGerobak() != null) ? inventory.getGerobak().getLevel()
                 : 0;
-        // int totalTransaksi = player != null ? player.getTotalTransaksi() : 0; //
-        // Komentari, tidak ada di Player
-        // int totalUntung = player != null ? player.getTotalUntung() : 0; // Komentari,
-        // tidak ada di Player
 
-        // Tambahkan label statistik
         statsPanel.add(makeStatsLabel("Nama Pemain:", username));
         statsPanel.add(makeStatsLabel("Uang:", uang + "G"));
         statsPanel.add(makeStatsLabel("Total Barang di Inventory:", String.valueOf(totalBarang)));
         statsPanel.add(makeStatsLabel("Total Item Dimiliki:", String.valueOf(totalItem)));
         statsPanel.add(makeStatsLabel("Total Perk Dimiliki:", String.valueOf(totalPerk)));
         statsPanel.add(makeStatsLabel("Level Gerobak:", String.valueOf(gerobakLevel)));
-        // statsPanel.add(makeStatsLabel("Total Transaksi:",
-        // String.valueOf(totalTransaksi)));
-        // statsPanel.add(makeStatsLabel("Total Keuntungan:", totalUntung + "G"));
 
-        // Spacer
         statsPanel.add(Box.createVerticalStrut(20));
 
-        // Bisa tambahkan grafik/ikon/quote motivasi di bawah
         JLabel quote = new JLabel("\"Jadilah pedagang terhebat di sekai!\"", JLabel.CENTER);
         quote.setFont(new Font("Serif", Font.ITALIC, 18));
         quote.setForeground(new Color(120, 90, 30));
@@ -2490,7 +2278,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
         statsFrame.add(statsPanel, BorderLayout.CENTER);
 
-        // Tombol tutup
         JButton closeBtn = StyledButton.create("Tutup", 16, 100, 36);
         closeBtn.addActionListener(_ -> statsFrame.dispose());
         JPanel closePanel = new JPanel();
@@ -2509,7 +2296,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         statsFrame.toFront();
     }
 
-    // Helper untuk label statistik
     private JPanel makeStatsLabel(String label, String value) {
         JLabel l = new JLabel(label + "  ", JLabel.LEFT);
         l.setFont(new Font("Serif", Font.BOLD, 20));
@@ -2527,22 +2313,15 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         currentDay++;
         player.setHasSlept(true);
         if (gamePanel != null) {
-            gamePanel.advanceDay(); // Sinkronkan hari dan reset efek harian item
+            gamePanel.advanceDay();
             this.currentDay = gamePanel.getCurrentDay();
         }
         if (onSleepCallback != null)
             onSleepCallback.run();
-        // Pesan hari berganti dihapus sesuai permintaan user
-        // JOptionPane.showMessageDialog(this,
-        // "Hari berganti! Sekarang hari ke-" + currentDay
-        // + ". Arena trigger zone akan direset saat kamu ke kota lain.",
-        // "Sleep", JOptionPane.INFORMATION_MESSAGE);
-        // Create integrated medieval-themed sleep dialog
         JDialog sleepDialog = createMedievalSleepDialog();
         sleepDialog.setVisible(true);
     }
 
-    // Create integrated medieval-themed sleep dialog
     private JDialog createMedievalSleepDialog() {
         JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this), "Sleep", true);
         dialog.setSize(450, 280);
@@ -2550,17 +2329,15 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         dialog.setResizable(false);
         dialog.setLayout(new BorderLayout());
 
-        // Medieval color scheme
         Color parchment = new Color(241, 233, 210);
         Color border = new Color(120, 90, 30);
-        dialog.getContentPane().setBackground(parchment); // Info hari
+        dialog.getContentPane().setBackground(parchment);
         JLabel dialogDayLabel = new JLabel("Day " + currentDay, JLabel.CENTER);
         dialogDayLabel.setFont(new Font("Serif", Font.BOLD, 36));
-        dialogDayLabel.setForeground(new Color(120, 90, 30)); // Medieval brown color to match theme
+        dialogDayLabel.setForeground(new Color(120, 90, 30));
         dialogDayLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         dialog.add(dialogDayLabel, BorderLayout.NORTH);
 
-        // Info text
         JLabel infoLabel = new JLabel("<html><center>Apakah Anda ingin tidur dan melanjutkan ke hari berikutnya?<br>" +
                 "Kota akan diperbarui dan kesegaran barang akan berkurang.</center></html>", JLabel.CENTER);
         infoLabel.setFont(new Font("Serif", Font.PLAIN, 16));
@@ -2568,12 +2345,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         infoLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 10, 20));
         dialog.add(infoLabel, BorderLayout.CENTER);
 
-        // Panel tombol
         JPanel buttonPanel = new JPanel();
         buttonPanel.setBackground(parchment);
         buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 32, 20));
 
-        // Sleep button
         JButton sleepButton = new JButton("💤 Tidur");
         sleepButton.setFont(new Font("Serif", Font.BOLD, 20));
         sleepButton.setBackground(new Color(120, 180, 120));
@@ -2583,39 +2358,32 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         sleepButton.addActionListener(_ -> {
             currentDay++;
             updateDayLabel();
-            player.setHasSlept(true); // IMPORTANT: Reduce freshness FIRST before any UI updates
+            player.setHasSlept(true);
             System.out.println("Player sleeps. Day advanced to: " + currentDay);
             if (inventory != null) {
                 inventory.kurangiKesegaranSemua();
                 System.out.println("Debug: Freshness reduced for all items");
             }
 
-            // Reset daily item effects (Hipnotis, Semproten, Peluit usage)
             if (itemEffectManager != null) {
                 itemEffectManager.resetDailyEffects();
                 System.out.println("Debug: Daily item effects reset for new day");
             }
 
-            // Regenerate supplier stock for the new day
             if (supplier != null) {
                 supplier.generateStokHariIni();
                 System.out.println("Debug: Supplier stock regenerated for day " + currentDay);
             }
 
-            // Call the sleep callback after freshness is reduced and supplier stock is
-            // regenerated
             if (onSleepCallback != null) {
                 onSleepCallback.run();
             }
 
-            // Force immediate UI refresh on EDT
             SwingUtilities.invokeLater(() -> {
                 System.out.println("Debug: Starting UI refresh after sleep");
 
-                // Refresh all tables and UI components
                 refreshInventoryAndGerobak();
 
-                // Force additional table updates to ensure freshness changes are visible
                 if (goodsTable != null) {
                     ((DefaultTableModel) goodsTable.getModel()).fireTableDataChanged();
                     goodsTable.revalidate();
@@ -2637,7 +2405,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     System.out.println("Debug: gerobakWithPriceTable force updated");
                 }
 
-                // Force refresh of inventory frame if it's open
                 if (inventoryFrame != null && inventoryFrame.isVisible()) {
                     updateGoodsTable(currentSortBy, currentSortOrder);
                     updateItemsTableInCurrentTab();
@@ -2646,7 +2413,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
                 System.out.println("Debug: UI refresh completed, showing success message");
 
-                // Show success message AFTER all updates are complete
                 JOptionPane.showMessageDialog(this,
                         "Hari baru telah dimulai!\n" +
                                 "• Kota telah diperbarui dengan pembeli baru\n" +
@@ -2660,7 +2426,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         });
         buttonPanel.add(sleepButton);
 
-        // Stay awake button
         JButton stayAwakeButton = new JButton("✖ Tetap Terjaga");
         stayAwakeButton.setFont(new Font("Serif", Font.BOLD, 20));
         stayAwakeButton.setBackground(new Color(180, 120, 60));

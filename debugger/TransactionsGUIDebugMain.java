@@ -1,23 +1,26 @@
-package gui;
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
+package debugger;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import javax.swing.*;
+
+import gui.TransactionsGUI;
 import model.Barang;
 import model.Inventory;
-import model.Player;
 import model.Pembeli;
+import model.PembeliMiskin;
 import model.PembeliStandar;
 import model.PembeliTajir;
-import model.PembeliMiskin;
+import model.Player;
 
-/**
- * Standalone main class for debugging TransactionsGUI
- * Provides a testing environment for the transaction interface
- */
 public class TransactionsGUIDebugMain extends JFrame implements KeyListener {
     private TransactionsGUI transactionsGUI;
     private Player testPlayer;
@@ -56,24 +59,18 @@ public class TransactionsGUIDebugMain extends JFrame implements KeyListener {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
         
-        // Make frame focusable for key events
         setFocusable(true);
         addKeyListener(this);
     }
 
     private void initializeTestData() {
-        // Create test player with some initial money and items
         testPlayer = new Player("DebugPlayer");
-        // Set test money to 50000
         testPlayer.kurangiMoney(testPlayer.getMoney());
         testPlayer.tambahMoney(50000);
-        // Reset inventory
         testPlayer.setInventory(new Inventory());
         
-        // Add some test items to inventory
         addTestItemsToPlayer();
         
-        // Create initial test buyer
         currentPembeli = new PembeliStandar();
         
         log("Test player created: " + testPlayer.getUsername());
@@ -84,47 +81,38 @@ public class TransactionsGUIDebugMain extends JFrame implements KeyListener {
     private void addTestItemsToPlayer() {
         Inventory inv = testPlayer.getInventory();
         
-        // Add various fruits and vegetables for testing
         inv.tambahBarang(new Barang("Apel", "", 100, ""));
         inv.tambahBarang(new Barang("Jeruk", "", 80, ""));
         inv.tambahBarang(new Barang("Pisang", "", 60, ""));
         inv.tambahBarang(new Barang("Tomat", "", 70, ""));
         inv.tambahBarang(new Barang("Wortel", "", 50, ""));
-        // Setelah menambah barang, langsung bawa semua ke gerobak dan set harga jual
-        moveAllToGerobakAndSetHarga(200); // harga jual default 200
+        moveAllToGerobakAndSetHarga(200);
     }
 
-    // Helper: pindahkan semua barang ke gerobak dan set harga jual
     private void moveAllToGerobakAndSetHarga(int hargaJual) {
         Inventory inv = testPlayer.getInventory();
         int kapasitas = inv.getGerobak().getKapasitasBarang();
-        // Pindahkan semua stok ke gerobak
         for (Barang b : new java.util.ArrayList<>(inv.getStokBarang())) {
-            int jumlah = 1; // asumsikan 1 per entry (karena getStokBarang duplikat per quantity)
+            int jumlah = 1;
             inv.bawaBarang(b, jumlah, kapasitas);
         }
-        // Set harga jual untuk semua barang di gerobak
         for (Barang b : inv.getBarangDibawaMutable().keySet()) {
             inv.setHargaJual(b, hargaJual);
         }
     }
 
     private void createUI() {
-        // Create main game panel (simulates the actual game environment)
         gamePanel = new JPanel();
         gamePanel.setLayout(null);
-        gamePanel.setBackground(new Color(34, 139, 34)); // Forest green background
+        gamePanel.setBackground(new Color(34, 139, 34));
         gamePanel.setPreferredSize(new Dimension(1000, 900));
         
-        // Create and add TransactionsGUI to game panel
         transactionsGUI = new TransactionsGUI(gamePanel);
         transactionsGUI.setPlayer(testPlayer);
         transactionsGUI.setPembeli(currentPembeli);
         
-        // Create debug control panel
         createDebugControlPanel();
         
-        // Add panels to frame
         add(gamePanel, BorderLayout.CENTER);
         add(debugControlPanel, BorderLayout.EAST);
     }
@@ -135,19 +123,16 @@ public class TransactionsGUIDebugMain extends JFrame implements KeyListener {
         debugControlPanel.setPreferredSize(new Dimension(400, 900));
         debugControlPanel.setBorder(BorderFactory.createTitledBorder("Debug Controls"));
         
-        // Create control buttons panel
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setLayout(new GridLayout(0, 1, 5, 5));
         buttonsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // Pembeli type selector
         JPanel pembeliPanel = new JPanel(new FlowLayout());
         pembeliPanel.add(new JLabel("Buyer Type:"));
         pembeliTypeCombo = new JComboBox<>(new String[]{"Standard", "Rich", "Poor"});
         pembeliPanel.add(pembeliTypeCombo);
         buttonsPanel.add(pembeliPanel);
         
-        // Control buttons
         showDialogButton = new JButton("Show Dialog");
         hideDialogButton = new JButton("Hide Dialog");
         startTradingButton = new JButton("Start Trading");
@@ -173,7 +158,6 @@ public class TransactionsGUIDebugMain extends JFrame implements KeyListener {
         buttonsPanel.add(addPricedItemsButton);
         buttonsPanel.add(setHargaJualAllButton);
         
-        // Create log area
         logArea = new JTextArea();
         logArea.setEditable(false);
         logArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
@@ -181,7 +165,6 @@ public class TransactionsGUIDebugMain extends JFrame implements KeyListener {
         logScrollPane.setBorder(BorderFactory.createTitledBorder("Debug Log"));
         logScrollPane.setPreferredSize(new Dimension(380, 400));
         
-        // Setup button actions
         setupButtonActions(changePembeliButton, addMoneyButton, resetPlayerButton, addPricedItemsButton, setHargaJualAllButton);
         
         debugControlPanel.add(buttonsPanel, BorderLayout.NORTH);
@@ -214,7 +197,6 @@ public class TransactionsGUIDebugMain extends JFrame implements KeyListener {
             log("Test items added to player inventory, dibawa ke gerobak, dan harga jual diset");
         });
         clearInventoryButton.addActionListener(e -> {
-            // Reset test player data
             initializeTestData();
             transactionsGUI.setPlayer(testPlayer);
             transactionsGUI.setPembeli(currentPembeli);
@@ -250,7 +232,6 @@ public class TransactionsGUIDebugMain extends JFrame implements KeyListener {
             Inventory inv = testPlayer.getInventory();
             boolean found = false;
             for (Barang b : inv.getStokBarang()) {
-                // Assume harga jual is set if hargaBeli > 0 (or adapt if you have a hargaJual field)
                 if (b.getHargaBeli() > 0) {
                     log("Test item with price: " + b.getNamaBarang() + " (Harga: " + b.getHargaBeli() + ")");
                     found = true;
@@ -268,7 +249,6 @@ public class TransactionsGUIDebugMain extends JFrame implements KeyListener {
     }
 
     private void setupEventHandlers() {
-        // Focus management to ensure key events work
         addWindowFocusListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowGainedFocus(java.awt.event.WindowEvent e) {
@@ -330,7 +310,6 @@ public class TransactionsGUIDebugMain extends JFrame implements KeyListener {
     public void keyTyped(KeyEvent e) {}
 
     public static void main(String[] args) {
-        // Set look and feel
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {

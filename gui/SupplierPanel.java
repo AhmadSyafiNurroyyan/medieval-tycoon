@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package gui;
 
 import java.awt.*;
@@ -59,21 +66,19 @@ public class SupplierPanel extends JPanel {
 
     private void populateItems() {
         itemsPanel.removeAll();
-        List<Barang> stok = supplier.getStokHariIni(); // ini List<Barang>
-        for (Barang barang : stok) { // Ganti JenisBarang jadi Barang
+        List<Barang> stok = supplier.getStokHariIni();
+        for (Barang barang : stok) {
             JPanel itemRow = new JPanel(new GridBagLayout());
             itemRow.setOpaque(false);
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(5, 5, 5, 5);
-            gbc.gridy = 0; // Formatting nama barang supaya kapital di awal kata
+            gbc.gridy = 0;
             String formattedName = Arrays.stream(barang.getNamaBarang().toLowerCase().split("_"))
                     .map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1))
                     .reduce((a, b) -> a + " " + b).orElse(barang.getNamaBarang());
 
-            // Use preloaded icon from GamePanel
             ImageIcon scaledIcon = GamePanel.getIcon(barang.getIconPath(), 40, 40);
             if (scaledIcon == null) {
-                // Fallback to default icon or empty icon
                 scaledIcon = new ImageIcon();
             }
 
@@ -84,7 +89,7 @@ public class SupplierPanel extends JPanel {
             gbc.weightx = 1;
             itemRow.add(nameLabel, gbc);
 
-            JLabel hargaLabel = new JLabel(barang.getHargaBeli() + "G"); // harga beli dari barang
+            JLabel hargaLabel = new JLabel(barang.getHargaBeli() + "G");
             hargaLabel.setFont(new Font("Serif", Font.PLAIN, 22));
             hargaLabel.setPreferredSize(new Dimension(90, 30));
             gbc.gridx = 1;
@@ -166,7 +171,7 @@ public class SupplierPanel extends JPanel {
                 }
                 boolean success = true;
                 for (int i = 0; i < qty; i++) {
-                    if (!supplier.beli(player, barang.getNamaBarang())) { // pakai nama barang (String)
+                    if (!supplier.beli(player, barang.getNamaBarang())) {
                         success = false;
                         break;
                     }
@@ -182,7 +187,6 @@ public class SupplierPanel extends JPanel {
                         success ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
                 moneyLabel.setText("Uang: " + player.getMoney() + "G");
 
-                // Auto-save after successful purchase
                 if (success && autoSaveCallback != null) {
                     System.out.println("Calling auto-save callback...");
                     autoSaveCallback.run();
@@ -211,14 +215,11 @@ public class SupplierPanel extends JPanel {
         populateItems();
     }
 
-    /**
-     * Update player reference for loading saved games
-     */
     public void updatePlayerData(Player newPlayer) {
         System.out.println("DEBUG: SupplierPanel.updatePlayerData() called with player: " + newPlayer.getUsername());
         System.out.println("  - Old player: " + (this.player != null ? this.player.getUsername() : "null"));
         System.out.println("  - New player: " + newPlayer.getUsername());
         this.player = newPlayer;
-        refresh(); // Update UI with new player data
+        refresh();
     }
 }

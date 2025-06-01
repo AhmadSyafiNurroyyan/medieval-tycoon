@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package gui;
 
 import javax.swing.*;
@@ -11,14 +18,5 @@ public class main {
             MainMenu menu = new MainMenu(player);
             menu.setVisible(true);
         });
-        // SwingUtilities.invokeLater(() -> {
-        // JFrame frame = new JFrame("Medieval Tycoon");
-        // frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        // frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        // frame.setSize(800, 600);
-        // frame.add(new DialogSystem(player));
-        // frame.setLocationRelativeTo(null);
-        // frame.setVisible(true);
-        // });
     }
 }

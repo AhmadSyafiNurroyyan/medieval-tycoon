@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package gui;
 
 import camera.*;
@@ -42,40 +49,27 @@ public class GamePanel extends JPanel implements Runnable {
     private Runnable showTokoItemPanelCallback;
     private Runnable showTokoPerksPanelCallback;
 
-    // Map management
     private String currentMap = "map1";
-    // Tambahan: flag untuk random zone map2
     private boolean map2ZonesGenerated = false;
 
-    // Icon preloading system
     private static final Map<String, ImageIcon> iconCache = new HashMap<>();
     private static final Map<String, ImageIcon> scaledIconCache = new HashMap<>();
     private static boolean iconsLoaded = false;
 
-    // Track current day
     private int currentDay = 1;
 
-    // ItemEffectManager moved to global variable
     private ItemEffectManager itemEffectManager;
 
     public GamePanel(Player player) {
         this.player = player;
 
-        // Initialize or reuse gerobak
         if (player.getInventory() != null && player.getInventory().getGerobak() != null) {
-            // Use the player's existing gerobak if it exists
             this.gerobak = player.getInventory().getGerobak();
-            System.out.println("GamePanel constructor: Using player's existing gerobak (Level: " +
-                    this.gerobak.getLevel() + ")");
         } else {
-            // Create a new gerobak if needed
             this.gerobak = new Gerobak();
-            System.out.println("GamePanel constructor: Created new gerobak");
 
-            // Ensure the player's inventory uses the same gerobak instance
             if (player.getInventory() != null) {
                 player.getInventory().setGerobak(this.gerobak);
-                System.out.println("GamePanel constructor: Set player's inventory to use our gerobak");
             }
         }
 
@@ -83,7 +77,6 @@ public class GamePanel extends JPanel implements Runnable {
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
 
-        // Preload icons on first GamePanel creation
         if (!iconsLoaded) {
             preloadIcons();
             iconsLoaded = true;
@@ -94,14 +87,11 @@ public class GamePanel extends JPanel implements Runnable {
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
 
-        // Initialize RandomTriggerZoneManager first
         randomTriggerZoneManager = new RandomTriggerZoneManager();
 
         transactions = new TransactionsGUI(this);
-        transactions.setPlayer(player); // Set player untuk transactions
-        transactions.setTriggerZoneManager(triggerZoneManager); // Set trigger zone manager
-        // Set RandomTriggerZoneManager agar TransactionsGUI bisa remove zone
-        // transactions.setRandomTriggerZoneManager(randomTriggerZoneManager);
+        transactions.setPlayer(player);
+        transactions.setTriggerZoneManager(triggerZoneManager);
 
         randomTriggerZoneManager.setDialogSystem(transactions);
         randomTriggerZoneManager.setPlayer(player);
@@ -110,35 +100,29 @@ public class GamePanel extends JPanel implements Runnable {
         tokoPerks = new TokoPerks();
         perksManagement = new PerksManagement();
 
-        // Initialize map1 content
         setupMap1Content();
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 playerMovement.keyPressed(e.getKeyCode());
                 if (e.getKeyCode() == KeyEvent.VK_E) {
-                    // Check if dialog is open first
                     if (transactions != null && transactions.isDialogVisible()) {
-                        // Always allow closing dialog if in 'no items' state
                         if (transactions.isNoItemsState()) {
                             transactions.hideDialog();
                             return;
                         }
-                        // Close dialog if open (default)
                         transactions.hideDialog();
                         return;
                     }
 
-                    // Otherwise, check for trigger zones
                     List<MapManager.TriggerZoneManager.TriggerZone> zones = triggerZoneManager
                             .getZonesAt(playerMovement.getX(), playerMovement.getY());
                     for (MapManager.TriggerZoneManager.TriggerZone zone : zones) {
                         zone.trigger();
                     }
-                } // Peluit: tekan H di map2
+                }
                 if ("map2".equals(currentMap) && e.getKeyCode() == KeyEvent.VK_H) {
                     if (player != null && player.getInventory() != null) {
-                        // Debug the player instance and inventory state
                         System.out.println("=== DEBUG H KEY PRESS ===");
                         System.out.println("Player instance: " + player);
                         System.out.println("Player username: " + player.getUsername());
@@ -152,10 +136,8 @@ public class GamePanel extends JPanel implements Runnable {
                             itemEffectManager = new ItemEffectManager(player);
                         }
 
-                        // Use the new manual Peluit activation method
                         boolean peluitUsed = itemEffectManager.usePeluitManually();
                         if (peluitUsed) {
-                            // Spawn a single additional buyer
                             boolean spawned = randomTriggerZoneManager.spawnSingleRandomZone(triggerZoneManager);
                             if (spawned) {
                                 JOptionPane.showMessageDialog(GamePanel.this,
@@ -182,7 +164,6 @@ public class GamePanel extends JPanel implements Runnable {
             }
         });
 
-        // no stuck keys
         addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
@@ -199,7 +180,6 @@ public class GamePanel extends JPanel implements Runnable {
             }
         });
 
-        // Initialize player-dependent objects
         updatePlayerData(player);
     }
 
@@ -226,19 +206,10 @@ public class GamePanel extends JPanel implements Runnable {
     public void run() {
         final double drawInterval = 1000000000.0 / FPS;
         double nextDrawTime = System.nanoTime() + drawInterval;
-        // boolean wasInZone = false;
         while (gameThread != null) {
             playerMovement.update(tileManager.getMapWidth(), tileManager.getMapHeight(), tileManager.getTileSize(),
                     mapObjectManager, tileManager);
 
-            // boolean inZone = !triggerZoneManager.getZonesAt(playerMovement.getX(),
-            // playerMovement.getY()).isEmpty();
-            // if (inZone && !wasInZone) {
-            // System.out.println("[DEBUG] Entered trigger zone");
-            // } else if (!inZone && wasInZone) {
-            // System.out.println("[DEBUG] Exited trigger zone");
-            // }
-            // wasInZone = inZone;
             repaint();
             try {
                 double remaining = nextDrawTime - System.nanoTime();
@@ -264,14 +235,11 @@ public class GamePanel extends JPanel implements Runnable {
         int px = playerMovement.getX() - camera.getX() - playerMovement.getSpriteWidth() / 2;
         int py = playerMovement.getY() - camera.getY() - playerMovement.getSpriteHeight() / 2;
         PlayerSkin.render(g, px, py, playerMovement.getCurrentFrame());
-        mapObjectManager.draw(g2d, camera.getX(), camera.getY()); // Render trigger zones selectively: NPCs for random
-                                                                  // zones, debug boxes for others
+        mapObjectManager.draw(g2d, camera.getX(), camera.getY());
         if ("map2".equals(currentMap) && randomTriggerZoneManager != null) {
-            // On map2: Show debug boxes for non-random zones, NPCs for random zones
             DebugTriggerZoneRender.drawNonRandomZones(g2d, triggerZoneManager, camera);
             randomTriggerZoneManager.getNPCVisualManager().renderAllNPCs(g2d, camera, triggerZoneManager);
         } else {
-            // On other maps: Show debug boxes for all zones
             DebugTriggerZoneRender.drawAllZones(g2d, triggerZoneManager, camera);
         }
 
@@ -329,20 +297,12 @@ public class GamePanel extends JPanel implements Runnable {
         this.showTokoPerksPanelCallback = cb;
     }
 
-    /**
-     * Call this method when the GamePanel becomes visible (e.g., after returning
-     * from HomeBase)
-     * to ensure it has the latest player inventory state
-     */
     public void onPanelShown() {
         System.out.println("GamePanel: onPanelShown() called - syncing player inventory state");
 
-        // CRITICAL FIX: Use player's inventory gerobak as the single source of truth
         if (this.player != null && this.player.getInventory() != null) {
-            // Always use the player's inventory gerobak instance, don't override it
             this.gerobak = this.player.getInventory().getGerobak();
 
-            // If player doesn't have a gerobak, create one and assign it
             if (this.gerobak == null) {
                 this.gerobak = new Gerobak();
                 this.player.getInventory().setGerobak(this.gerobak);
@@ -351,7 +311,6 @@ public class GamePanel extends JPanel implements Runnable {
                 System.out.println("GamePanel: Using existing player inventory gerobak");
             }
 
-            // Debug inventory state
             System.out.println("GamePanel: Current items in gerobak: " +
                     this.player.getInventory().getItemDibawa().size());
 
@@ -360,14 +319,12 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
 
-        // Check if player has slept and regenerate zones if needed
         if (this.player != null && this.player.isHasSlept()) {
             System.out.println("GamePanel: Player has slept, checking for zone regeneration...");
             if ("map2".equals(currentMap)) {
                 System.out.println("GamePanel: Regenerating random zones for map2 after sleep");
                 setupMap2Content();
             }
-            // The setupMap2Content() method will reset the hasSlept flag
         }
     }
 
@@ -391,42 +348,31 @@ public class GamePanel extends JPanel implements Runnable {
         return perksManagement;
     }
 
-    /**
-     * Update player reference and recreate all player-dependent objects for loading
-     * saved games
-     */
     public void updatePlayerData(Player newPlayer) {
         this.player = newPlayer;
 
-        // Recreate PlayerMovement and PlayerSkin with the new player
         this.playerMovement = newPlayer.createMovement();
         this.PlayerSkin = newPlayer.createNametag();
         this.itemEffectManager = new ItemEffectManager(newPlayer);
-        // CRITICAL FIX: Update TransactionsGUI with the new player reference
         if (transactions != null) {
             transactions.setPlayer(newPlayer);
             System.out.println("GamePanel: Updated TransactionsGUI player reference");
         }
 
-        // CRITICAL FIX: Update RandomTriggerZoneManager with the new player reference
         if (randomTriggerZoneManager != null) {
             randomTriggerZoneManager.setPlayer(newPlayer);
             System.out.println("GamePanel: Updated RandomTriggerZoneManager player reference");
         }
 
-        // Always synchronize gerobak and inventory references
         if (newPlayer.getInventory() != null) {
-            // Always use the player's inventory gerobak as the single source of truth
             this.gerobak = newPlayer.getInventory().getGerobak();
             if (this.gerobak == null) {
                 this.gerobak = new Gerobak();
                 newPlayer.getInventory().setGerobak(this.gerobak);
                 System.out.println("GamePanel: Created new gerobak for player inventory");
             }
-            // Ensure both references are in sync
             newPlayer.getInventory().setGerobak(this.gerobak);
             System.out.println("GamePanel: Synced gerobak reference. Gerobak instance: " + this.gerobak);
-            // Debug inventory state
             System.out.println("GamePanel: Current items in gerobak: " +
                     newPlayer.getInventory().getItemDibawa().size());
             for (Item item : newPlayer.getInventory().getItemDibawa()) {
@@ -434,16 +380,12 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
 
-        // Update TokoItem with the new player
         this.tokoItem = new TokoItem(newPlayer);
 
         System.out.println("GamePanel: Updated player data - Username: " + newPlayer.getUsername() +
                 ", Money: " + newPlayer.getMoney() + ", ID: " + newPlayer.getID());
     }
 
-    /**
-     * Preload all icons from assets/icons directory
-     */
     private static void preloadIcons() {
         System.out.println("Preloading icons...");
         File iconsDir = new File("assets/icons");
@@ -466,11 +408,9 @@ public class GamePanel extends JPanel implements Runnable {
                 String filename = iconFile.getName();
                 String iconName = filename.substring(0, filename.lastIndexOf('.'));
 
-                // Load original icon
                 ImageIcon originalIcon = new ImageIcon(iconFile.getAbsolutePath());
                 iconCache.put(iconName, originalIcon);
 
-                // Preload common sizes
                 Image img = originalIcon.getImage();
                 scaledIconCache.put(iconName + "_32x32",
                         new ImageIcon(img.getScaledInstance(32, 32, Image.SCALE_SMOOTH)));
@@ -487,29 +427,22 @@ public class GamePanel extends JPanel implements Runnable {
                 "Icons preloaded: " + iconCache.size() + " icons with " + scaledIconCache.size() + " scaled versions");
     }
 
-    /**
-     * Get icon by name with specified size. Returns cached version if available.
-     */
     public static ImageIcon getIcon(String iconName, int width, int height) {
         if (iconName == null)
             return null;
 
-        // Clean the icon name (remove .png extension if present)
         if (iconName.endsWith(".png")) {
             iconName = iconName.substring(0, iconName.lastIndexOf('.'));
         }
 
         String cacheKey = iconName + "_" + width + "x" + height;
 
-        // Return cached scaled version if available
         if (scaledIconCache.containsKey(cacheKey)) {
             return scaledIconCache.get(cacheKey);
         }
 
-        // Get original icon
         ImageIcon originalIcon = iconCache.get(iconName);
         if (originalIcon == null) {
-            // Fallback: try to load from file if not in cache
             File iconFile = new File("assets/icons/" + iconName + ".png");
             if (iconFile.exists()) {
                 originalIcon = new ImageIcon(iconFile.getAbsolutePath());
@@ -519,7 +452,6 @@ public class GamePanel extends JPanel implements Runnable {
             }
         }
 
-        // Create and cache scaled version
         Image scaledImg = originalIcon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
         ImageIcon scaledIcon = new ImageIcon(scaledImg);
         scaledIconCache.put(cacheKey, scaledIcon);
@@ -527,21 +459,16 @@ public class GamePanel extends JPanel implements Runnable {
         return scaledIcon;
     }
 
-    /**
-     * Get icon by name (original size)
-     */
     public static ImageIcon getIcon(String iconName) {
         if (iconName == null)
             return null;
 
-        // Clean the icon name
         if (iconName.endsWith(".png")) {
             iconName = iconName.substring(0, iconName.lastIndexOf('.'));
         }
 
         ImageIcon icon = iconCache.get(iconName);
         if (icon == null) {
-            // Fallback: try to load from file
             File iconFile = new File("assets/icons/" + iconName + ".png");
             if (iconFile.exists()) {
                 icon = new ImageIcon(iconFile.getAbsolutePath());
@@ -551,38 +478,22 @@ public class GamePanel extends JPanel implements Runnable {
         return icon;
     }
 
-    /**
-     * Switch to a different map and move player to specified coordinates
-     */
-    public void switchToMap(String mapName, int newX, int newY) { // Clear existing map objects and trigger zones
+    public void switchToMap(String mapName, int newX, int newY) {
         mapObjectManager.clearObjects();
         triggerZoneManager.clearAllZones();
-        // Jangan clear randomTriggerZoneManager jika map2
-        // FIX: Jangan clear randomTriggerZoneManager dan jangan reset
-        // map2ZonesGenerated saat pindah ke map lain
-        // if (!"map2".equals(mapName)) {
-        // randomTriggerZoneManager.clearZones();
-        // map2ZonesGenerated = false;
-        // }
 
-        // Switch the tile map
         String mapPath = "assets/tiles/" + mapName;
         tileManager.switchMap(mapPath);
         currentMap = mapName;
 
-        // Move player to new coordinates
         playerMovement.setX(newX);
         playerMovement.setY(newY);
 
-        // Setup map-specific objects and trigger zones
         setupMapContent(mapName);
 
         System.out.println("Switched to map: " + mapName + " at coordinates (" + newX + ", " + newY + ")");
     }
 
-    /**
-     * Setup map-specific objects and trigger zones
-     */
     private void setupMapContent(String mapName) {
         if ("map1".equals(mapName)) {
             setupMap1Content();
@@ -591,11 +502,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    /**
-     * Setup content for map1 (original map)
-     */
     private void setupMap1Content() {
-        // Setup trigger zones for map1
         triggerZoneManager.addZone("Supplier", 511, 480, 1054, 575, true, () -> {
             if (showSupplierPanelCallback != null) {
                 SwingUtilities.invokeLater(showSupplierPanelCallback);
@@ -617,13 +524,11 @@ public class GamePanel extends JPanel implements Runnable {
             }
         });
         triggerZoneManager.addZone("Kota Lain", 0, 671, 92, 959, true, () -> {
-            // Stop current BGM and play Kota Lain BGM
             BGMPlayer.getInstance().stopBGM();
             BGMPlayer.getInstance().playKotaLainBGM();
             switchToMap("map2", 1445, playerMovement.getY());
         });
 
-        // Setup map objects for map1
         int xshop = 935, yshop = 545;
         mapObjectManager.addObject("assets/sprites/objects/house.png", 80, 30, true);
         mapObjectManager.addObject("assets/sprites/objects/tent.png", 230, 1280, true);
@@ -634,17 +539,12 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    /**
-     * Setup content for map2 (new map)
-     */
-    private void setupMap2Content() { // Setup trigger zone to return to map1 on the right edge
+    private void setupMap2Content() {
         triggerZoneManager.addZone("Kembali ke Map1", 1500, 671, 1650, 959, true, () -> {
-            // Stop Kota Lain BGM and restore Map BGM
             BGMPlayer.getInstance().stopKotaLainBGM();
             BGMPlayer.getInstance().playMapBGM();
             switchToMap("map1", 92, playerMovement.getY());
-        }); // Generate random trigger zones untuk map2 hanya jika belum pernah atau player
-        // baru sleep
+        });
         boolean zonesGenerated = false;
         if (player.isHasSlept()) {
             randomTriggerZoneManager.clearZones();
@@ -657,12 +557,10 @@ public class GamePanel extends JPanel implements Runnable {
             map2ZonesGenerated = true;
             zonesGenerated = true;
         } else {
-            // Jika sudah pernah, cukup re-register zona ke triggerZoneManager
             randomTriggerZoneManager.registerZonesToTriggerZoneManager(triggerZoneManager);
         }
         System.out.println("Map2 setup complete with " + randomTriggerZoneManager.getZoneCount() + " random zones");
 
-        // Jampi: auto-activate when creating/resetting random trigger zones
         if (zonesGenerated && player != null && player.getInventory() != null) {
             if (itemEffectManager == null) {
                 itemEffectManager = new ItemEffectManager(player);
@@ -675,9 +573,6 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    /**
-     * Advance the day, increment currentDay, and reset daily item effects
-     */
     public void advanceDay() {
         currentDay++;
         System.out.println("GamePanel: Day advanced to " + currentDay);
@@ -689,9 +584,6 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    /**
-     * Optionally, allow setting the current day (e.g., after loading a save)
-     */
     public void setCurrentDay(int day) {
         this.currentDay = day;
     }

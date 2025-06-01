@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 import interfaces.Showable;
@@ -84,8 +91,6 @@ public class Barang implements Showable {
         if (obj == null || getClass() != obj.getClass())
             return false;
         Barang barang = (Barang) obj;
-        // Important: Do NOT compare kesegaran for equality to allow looking up items
-        // with changed freshness
         return Objects.equals(nama, barang.nama) &&
                 Objects.equals(kategori, barang.kategori) &&
                 hargaBeli == barang.hargaBeli &&
@@ -94,8 +99,6 @@ public class Barang implements Showable {
 
     @Override
     public int hashCode() {
-        // Important: Do NOT include kesegaran in hash calculation to maintain HashMap
-        // key integrity
         return Objects.hash(nama, kategori, hargaBeli, iconPath);
     }
 

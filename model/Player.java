@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 import enums.PerkType;
@@ -36,7 +43,7 @@ public class Player {
         this.ID = (int) (Math.random() * 9999999 + 80000000);
         this.money = 100000;
         this.inventory = new Inventory();
-        this.gerobak = new Gerobak(); // Initialize gerobak
+        this.gerobak = new Gerobak();
 
         List<Perk> pilihanPerk = new ArrayList<>();
         pilihanPerk.add(new PerksElegan());
@@ -89,7 +96,6 @@ public class Player {
     }
 
     public void addPerk(Perk perk) {
-        // Jangan replace perk yang sudah ada, hanya tambah yang baru
         if (!hasPerk(perk.getPerkType()) && semuaPerkDimiliki.size() < 2) {
             semuaPerkDimiliki.add(perk);
             System.out.println("Perk " + perk.getName() + " berhasil ditambahkan.");
@@ -120,7 +126,6 @@ public class Player {
             return false;
         }
 
-        // Pastikan gerobak sudah diinisialisasi
         if (gerobak == null) {
             System.out.println("Gerobak belum diinisialisasi.");
             return false;
@@ -165,7 +170,6 @@ public class Player {
         private final int spriteHeight = 32;
 
         public PlayerMovement() {
-            // ../assets/sprites/dir{dir}_{frame}.png
             for (int d = 0; d < sprites.length; d++) {
                 for (int f = 0; f < sprites[d].length; f++) {
                     sprites[d][f] = new ImageIcon(
@@ -174,23 +178,6 @@ public class Player {
             }
         }
 
-        // public void update() {
-        // boolean moving = false;
-        // if (up) { y -= speed; direction = 3; moving = true; }
-        // if (down) { y += speed; direction = 0; moving = true; }
-        // if (left) { x -= speed; direction = 1; moving = true; }
-        // if (right) { x += speed; direction = 2; moving = true; }
-        // if (moving) {
-        // gui.DebugCoordinateLogger.logPlayerCoordinates(this);
-        // animCount++;
-        // if (animCount >= animDelay) {
-        // animCount = 0;
-        // frameIndex = (frameIndex + 1) % sprites[direction].length;
-        // }
-        // } else {
-        // frameIndex = 0;
-        // }
-        // }
         public void update(int mapWidth, int mapHeight, int tileSize, MapManager.MapObjectManager mapObjectManager,
                 MapManager.TileManager tileManager) {
             boolean moving = false;
@@ -213,10 +200,10 @@ public class Player {
             int size = spriteWidth;
             int offset = 32;
             int[][] corners = {
-                    { nextX - halfW, nextY - halfH }, // top-left
-                    { nextX - halfW + size - 1, nextY - halfH }, // top-right
-                    { nextX - halfW, nextY - halfH + size - 1 + (down ? offset : 0) }, // bottom-left
-                    { nextX - halfW + size - 1 + (right ? offset : 0), nextY - halfH + size - 1 + (down ? offset : 0) } // bottom-right
+                    { nextX - halfW, nextY - halfH },
+                    { nextX - halfW + size - 1, nextY - halfH },
+                    { nextX - halfW, nextY - halfH + size - 1 + (down ? offset : 0) },
+                    { nextX - halfW + size - 1 + (right ? offset : 0), nextY - halfH + size - 1 + (down ? offset : 0) }
             };
 
             boolean blockedByMap = false;
@@ -286,7 +273,6 @@ public class Player {
             }
 
             if (moving) {
-                // debugger.DebugCoordinateLogger.logPlayerCoordinates(this);
                 animCount++;
                 if (animCount >= animDelay) {
                     animCount = 0;
@@ -395,7 +381,6 @@ public class Player {
 
         @Override
         public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
-            // TODO Auto-generated method stub
             throw new UnsupportedOperationException("Unimplemented method 'imageUpdate'");
         }
     }

@@ -1,25 +1,27 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package gui;
 
 import java.awt.*;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 
 public class PauseMenuPanel extends JPanel {
     private Runnable autoSaveCallback;
-
     public PauseMenuPanel(CardLayout cardLayout, JPanel cardsPanel) {
         setLayout(new BorderLayout());
         setOpaque(false);
-
         JPanel pauseButtonsPanel = new JPanel();
         pauseButtonsPanel.setLayout(new BoxLayout(pauseButtonsPanel, BoxLayout.Y_AXIS));
         pauseButtonsPanel.setOpaque(false);
-        pauseButtonsPanel.setBorder(new EmptyBorder(0, 0, 100, 0));
-
+        pauseButtonsPanel.setBorder(new javax.swing.border.EmptyBorder(0, 0, 100, 0));
         JButton resumeButton = StyledButton.create("Resume");
         JButton pauseSettingsButton = StyledButton.create("Settings");
         JButton backToMenuButton = StyledButton.create("Back to Menu");
-
         resumeButton.addActionListener(e -> {
             cardLayout.show(cardsPanel, "GAME");
             for (Component comp : cardsPanel.getComponents()) {
@@ -39,16 +41,13 @@ public class PauseMenuPanel extends JPanel {
             }
             cardLayout.show(cardsPanel, "SETTINGS");
         });
-
         backToMenuButton.addActionListener(e -> {
-            // Perform auto-save before going back to menu
             if (autoSaveCallback != null) {
                 try {
                     autoSaveCallback.run();
                     System.out.println("PauseMenuPanel: Auto-save completed before returning to menu");
                 } catch (Exception ex) {
                     System.err.println("PauseMenuPanel: Auto-save failed: " + ex.getMessage());
-                    // Show error dialog but still allow menu navigation
                     JOptionPane.showMessageDialog(this,
                             "Failed to auto-save game progress.\nYour progress may be lost.",
                             "Auto-Save Failed",
@@ -57,7 +56,6 @@ public class PauseMenuPanel extends JPanel {
             }
             cardLayout.show(cardsPanel, "MENU");
         });
-
         pauseButtonsPanel.add(Box.createVerticalGlue());
         pauseButtonsPanel.add(resumeButton);
         pauseButtonsPanel.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -65,17 +63,11 @@ public class PauseMenuPanel extends JPanel {
         pauseButtonsPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         pauseButtonsPanel.add(backToMenuButton);
         pauseButtonsPanel.add(Box.createVerticalGlue());
-
         add(pauseButtonsPanel, BorderLayout.CENTER);
     }
-
-    /**
-     * Set the auto-save callback to be executed when returning to menu
-     */
     public void setAutoSaveCallback(Runnable autoSaveCallback) {
         this.autoSaveCallback = autoSaveCallback;
     }
-
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

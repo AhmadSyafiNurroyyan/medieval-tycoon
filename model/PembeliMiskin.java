@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package model;
 
 public class PembeliMiskin extends Pembeli {
@@ -9,20 +16,17 @@ public class PembeliMiskin extends Pembeli {
 
     public PembeliMiskin() {
         super("Miskin", 0.45);
-        peluangMuncul = 0.25;  // Moderate chance to encounter
+        peluangMuncul = 0.25;
     }
 
     @Override
     public int tawarHarga(int hargaAwal) {
         counterCount++;
-        // Miskin: tawar antara 50%–60% dari hargaAwal
         double minRate = 0.5, maxRate = 0.6;
         int offer = (int)(hargaAwal * (minRate + Math.random() * (maxRate - minRate)));
-        // Jangan turun dari lastOffer jika ini counter
         if (lastOffer > 0 && offer < lastOffer) {
             offer = lastOffer;
         }
-        // Batasi agar tidak pernah lebih dari hargaAwal
         if (offer > hargaAwal) {
             offer = hargaAwal;
             lastRejectionReason = "Pembeli Miskin menolak karena tawaran terlalu tinggi.";
@@ -42,16 +46,15 @@ public class PembeliMiskin extends Pembeli {
         }
         if (firstOffer) {
             firstOffer = false;
-            return false; // Always refuse first offer
+            return false;
         }
-        // After at least one round, rarely completes the purchase (~10% chance)
         return Math.random() < 0.1;
     }
 
     @Override
     public boolean chanceAcceptCounter(int hargaPlayer, int hargaPembeli) {
         if (hargaPlayer > hargaPembeli) {
-            return Math.random() < 0.05; // 5% chance
+            return Math.random() < 0.05;
         }
         return false;
     }

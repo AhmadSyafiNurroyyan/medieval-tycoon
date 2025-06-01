@@ -1,3 +1,10 @@
+/*
+    AHMAD SYAFI NURROYYAN     (245150201111041)
+    HERDY MADANI              (245150207111074)
+    NAFISA RAFA ZARIN         (245150200111050)
+    NABILLA NUR DIANA SAFITRI (245150207111078)
+*/
+
 package gui;
 
 import java.awt.*;
@@ -74,7 +81,7 @@ public class SettingsPanel extends JPanel {
         JPanel outerBoxPanel = new JPanel(new GridBagLayout());
         outerBoxPanel.setBorder(BorderFactory.createLineBorder(new Color(139, 69, 19, 100), 3));
         outerBoxPanel.setOpaque(true);
-        outerBoxPanel.setBackground(new Color(139, 69, 19, 100)); // Brown color
+        outerBoxPanel.setBackground(new Color(139, 69, 19, 100));
 
         JPanel innerContentPanel = new JPanel(new GridBagLayout());
         innerContentPanel.setOpaque(false);
