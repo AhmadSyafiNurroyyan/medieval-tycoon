@@ -36,7 +36,10 @@ public class Barang implements Showable {
     }
 
     public void kurangiKesegaran() {
+        int oldKesegaran = kesegaran;
         kesegaran = kesegaran - 25;
+        System.out.println("Debug: " + nama + " (kategori: " + kategori + ") freshness reduced from " +
+                oldKesegaran + " to " + kesegaran);
     }
 
     public boolean isBusuk() {
@@ -72,23 +75,28 @@ public class Barang implements Showable {
         System.out.println(nama);
         System.out.println(iconPath);
         System.out.println("Rp" + hargaBeli);
-    }    @Override
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
         if (obj == null || getClass() != obj.getClass())
             return false;
         Barang barang = (Barang) obj;
+        // Important: Do NOT compare kesegaran for equality to allow looking up items
+        // with changed freshness
         return Objects.equals(nama, barang.nama) &&
-               Objects.equals(kategori, barang.kategori) &&
-               hargaBeli == barang.hargaBeli &&
-               kesegaran == barang.kesegaran &&
-               Objects.equals(iconPath, barang.iconPath);
+                Objects.equals(kategori, barang.kategori) &&
+                hargaBeli == barang.hargaBeli &&
+                Objects.equals(iconPath, barang.iconPath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(nama, kategori, hargaBeli, kesegaran, iconPath);
+        // Important: Do NOT include kesegaran in hash calculation to maintain HashMap
+        // key integrity
+        return Objects.hash(nama, kategori, hargaBeli, iconPath);
     }
 
 }

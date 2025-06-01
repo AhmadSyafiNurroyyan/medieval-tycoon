@@ -9,6 +9,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import model.Inventory;
 import model.Player;
+import model.Supplier;
 import model.TextFileManager;
 
 public class MainMenu extends JFrame {
@@ -80,7 +81,6 @@ public class MainMenu extends JFrame {
 
         // Set auto-save callback for pause menu
         pauseMenuPanel.setAutoSaveCallback(() -> performAutoSave());
-
         this.homeBasePanel = new HomeBasePanel(player);
         this.gamePanel = new GamePanel(player);
         this.homeBasePanel.setGamePanel(this.gamePanel); // Integrasi hari dan efek harian
@@ -89,6 +89,7 @@ public class MainMenu extends JFrame {
         this.tokoPerksPanel = new TokoPerksPanel(gamePanel.getPerksManagement(), player);
         this.tokoItemPanel.setInventory(player.getInventory());
         this.homeBasePanel.initializeWithGerobak(gamePanel.getGerobak());
+        this.homeBasePanel.setSupplier(gamePanel.getSupplier());
         this.supplierPanel.setBackToGameCallback(() -> {
             this.cardLayout.show(this.cardsPanel, "GAME");
             this.gamePanel.onPanelShown(); // Sync player inventory state
@@ -112,6 +113,15 @@ public class MainMenu extends JFrame {
             this.cardLayout.show(this.cardsPanel, "GAME");
             this.gamePanel.onPanelShown(); // Sync player inventory state
             this.gamePanel.requestFocusInWindow();
+        });
+
+        // Set up sleep callback to trigger random zone regeneration
+        this.homeBasePanel.setOnSleepCallback(() -> {
+            System.out.println("MainMenu: Sleep callback triggered - refreshing random zones");
+            // The GamePanel will check player.isHasSlept() when switching maps or on panel
+            // shown
+            // Force refresh the current map content to regenerate zones
+            this.gamePanel.onPanelShown();
         });
 
         // Set auto-save callbacks for transaction panels
@@ -228,6 +238,7 @@ public class MainMenu extends JFrame {
             if (this.homeBasePanel != null) {
                 this.homeBasePanel.updatePlayerData(newPlayer);
                 this.homeBasePanel.setInventory(newPlayer.getInventory());
+                this.homeBasePanel.setSupplier(this.gamePanel.getSupplier());
             }
             if (this.tokoItemPanel != null) {
                 this.tokoItemPanel.updatePlayerData(newPlayer);
@@ -807,6 +818,7 @@ public class MainMenu extends JFrame {
                                 if (MainMenu.this.homeBasePanel != null) {
                                     MainMenu.this.homeBasePanel.updatePlayerData(loadedPlayer);
                                     MainMenu.this.homeBasePanel.setInventory(loadedPlayer.getInventory());
+                                    MainMenu.this.homeBasePanel.setSupplier(MainMenu.this.gamePanel.getSupplier());
                                 }
                                 if (MainMenu.this.tokoItemPanel != null) {
                                     MainMenu.this.tokoItemPanel.updatePlayerData(loadedPlayer);

@@ -1,11 +1,13 @@
 === PLAYER_DATA ===
 USERNAME:sdsd
-ID:81143626
+ID:85833410
 LEVEL:1
-MONEY:10000000
+MONEY:82500
 CURRENT_DAY:1
 
 === INVENTORY_BARANG ===
+BARANG:Bawang Merah,Sayur,1500,75,5
+BARANG:Cabai,Sayur,1000,100,10
 // Format: nama,kategori,hargaBeli,kesegaran,jumlah
 
 === INVENTORY_ITEM ===
@@ -21,7 +23,7 @@ BIAYA_UPGRADE:100000
 // Format: nama,kategori,hargaBeli,kesegaran,jumlah,hargaJual
 
 === PERKS ===
-OWNED_PERK:Active,0,true
+OWNED_PERK:Charming,0,true
 // Format: nama,level,owned/active
 
 === GAME_PROGRESS ===
