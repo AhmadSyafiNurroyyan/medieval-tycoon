@@ -1,5 +1,6 @@
 package gui;
 
+import MapManager.RandomTriggerZoneManager;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -8,9 +9,9 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import model.Barang;
 import model.Item;
+import model.ItemEffectManager;
 import model.Pembeli;
 import model.Player;
-import model.ItemEffectManager;
 
 public class TransactionsGUI extends JPanel {
     // Base constants for scaling
@@ -67,6 +68,9 @@ public class TransactionsGUI extends JPanel {
     private JTable itemGerobakTable;
 
     private ItemEffectManager itemEffectManager;
+
+    // --- Random trigger zone management ---
+    private MapManager.RandomTriggerZoneManager randomTriggerZoneManager;
 
     public TransactionsGUI(JPanel parentPanel) {
         this.parentPanel = parentPanel;
@@ -778,10 +782,12 @@ public class TransactionsGUI extends JPanel {
     }
 
     private void counterOffer() {
+        int counterUnitPrice = 0;
+        int supplierUnitCost = 0;
         try {
-            int counterUnitPrice = Integer.parseInt(priceField.getText());
+            counterUnitPrice = Integer.parseInt(priceField.getText());
             // Validate counter price is not below supplier cost (per unit)
-            int supplierUnitCost = selectedBarang.getHargaBeli();
+            supplierUnitCost = selectedBarang.getHargaBeli();
             if (counterUnitPrice < supplierUnitCost) {
                 currentMessage = String.format("Harga counter terlalu rendah! Minimal harga satuan: %d (harga beli: %d)",
                     supplierUnitCost, selectedBarang.getHargaBeli());
@@ -821,61 +827,62 @@ public class TransactionsGUI extends JPanel {
             // When transaction is completed, ONLY show close button, never show sell button again
             if (closeButton != null) closeButton.setVisible(true);
             if (sellButton != null) sellButton.setVisible(false);
-        } else {
-            // Buyer rejected, implement multi-round bargaining
-            String reason = null;
-            if (currentPembeli instanceof model.PembeliStandar) {
-                reason = ((model.PembeliStandar)currentPembeli).getLastRejectionReason();
-            } else if (currentPembeli instanceof model.PembeliTajir) {
-                reason = ((model.PembeliTajir)currentPembeli).getLastRejectionReason();
-            } else if (currentPembeli instanceof model.PembeliMiskin) {
-                reason = ((model.PembeliMiskin)currentPembeli).getLastRejectionReason();
-            }
-            if (reason != null && !reason.isEmpty()) {
-                currentMessage = reason;
-                // Negosiasi selesai jika reason diberikan
-                transactionCompleted = true;
-                hideNegotiationButtons();
-                if (closeButton != null) closeButton.setVisible(true);
-                if (sellButton != null) sellButton.setVisible(false);
-            } else {
-                int newOfferUnitPrice = currentPembeli.tawarHarga(counterUnitPrice);
-                if (newOfferUnitPrice != counterUnitPrice) {
-                    offerPrice = Math.max(newOfferUnitPrice, supplierUnitCost); // Ensure not below cost
-                    currentMessage = String.format("Pembeli menolak offer-mu dan memberikan counter: %d per unit (Total: %d)", offerPrice, offerPrice * selectedQuantity);
-                    priceField.setText(String.valueOf(offerPrice));
-                    // Pastikan tombol tetap aktif dan visible
-                    if (acceptButton != null) {
-                        acceptButton.setVisible(true);
-                        acceptButton.setEnabled(true);
-                    }
-                    if (counterOfferButton != null) {
-                        counterOfferButton.setVisible(true);
-                        counterOfferButton.setEnabled(true);
-                    }
-                    if (declineButton != null) {
-                        declineButton.setVisible(true);
-                        declineButton.setEnabled(true);
-                    }
-                    if (pricePanel != null) pricePanel.setVisible(true);
-                    // Jangan hide tombol, negosiasi lanjut
-                    negotiationPhase = true;
-                    repaint();
-                    return;
-                } else {
-                    currentMessage = "Pembeli menolak counter offer mu dan mengakhiri negosiasi.";
-                    transactionCompleted = true;
-                    hideNegotiationButtons();
-                    if (closeButton != null) closeButton.setVisible(true);
-                    if (sellButton != null) sellButton.setVisible(false);
-                }
-            }
         } catch (NumberFormatException e) {
             currentMessage = "Masukkan harga satuan yang valid!";
             // Pastikan tombol tetap aktif
             if (acceptButton != null) acceptButton.setEnabled(true);
             if (counterOfferButton != null) counterOfferButton.setEnabled(true);
             if (declineButton != null) declineButton.setEnabled(true);
+            repaint();
+            return;
+        }
+        // Buyer rejected, implement multi-round bargaining
+        String reason = null;
+        if (currentPembeli instanceof model.PembeliStandar) {
+            reason = ((model.PembeliStandar)currentPembeli).getLastRejectionReason();
+        } else if (currentPembeli instanceof model.PembeliTajir) {
+            reason = ((model.PembeliTajir)currentPembeli).getLastRejectionReason();
+        } else if (currentPembeli instanceof model.PembeliMiskin) {
+            reason = ((model.PembeliMiskin)currentPembeli).getLastRejectionReason();
+        }
+        if (reason != null && !reason.isEmpty()) {
+            currentMessage = reason;
+            // Negosiasi selesai jika reason diberikan
+            transactionCompleted = true;
+            hideNegotiationButtons();
+            if (closeButton != null) closeButton.setVisible(true);
+            if (sellButton != null) sellButton.setVisible(false);
+        } else {
+            int newOfferUnitPrice = currentPembeli.tawarHarga(counterUnitPrice);
+            if (newOfferUnitPrice != counterUnitPrice) {
+                offerPrice = Math.max(newOfferUnitPrice, supplierUnitCost); // Ensure not below cost
+                currentMessage = String.format("Pembeli menolak offer-mu dan memberikan counter: %d per unit (Total: %d)", offerPrice, offerPrice * selectedQuantity);
+                priceField.setText(String.valueOf(offerPrice));
+                // Pastikan tombol tetap aktif dan visible
+                if (acceptButton != null) {
+                    acceptButton.setVisible(true);
+                    acceptButton.setEnabled(true);
+                }
+                if (counterOfferButton != null) {
+                    counterOfferButton.setVisible(true);
+                    counterOfferButton.setEnabled(true);
+                }
+                if (declineButton != null) {
+                    declineButton.setVisible(true);
+                    declineButton.setEnabled(true);
+                }
+                if (pricePanel != null) pricePanel.setVisible(true);
+                // Jangan hide tombol, negosiasi lanjut
+                negotiationPhase = true;
+                repaint();
+                return;
+            } else {
+                currentMessage = "Pembeli menolak counter offer mu dan mengakhiri negosiasi.";
+                transactionCompleted = true;
+                hideNegotiationButtons();
+                if (closeButton != null) closeButton.setVisible(true);
+                if (sellButton != null) sellButton.setVisible(false);
+            }
         }
         repaint();
     }
@@ -900,7 +907,7 @@ public class TransactionsGUI extends JPanel {
         declineButton.setVisible(false);
         negotiationPhase = false;
     }    
-      private void closeTradingSession() {
+        private void closeTradingSession() {
         // Hide all trading interface elements
         removeAllTradingButtons();
 
@@ -908,10 +915,23 @@ public class TransactionsGUI extends JPanel {
         hideDialog();
 
         // Remove the trigger zone if we have reference to it
-        if (triggerZoneManager != null && currentTriggerZoneId != null) {
-            triggerZoneManager.removeZoneById(currentTriggerZoneId);
-            System.out.println("DEBUG: Removed trigger zone: " + currentTriggerZoneId);
+        if (currentTriggerZoneId != null) {
+            System.out.println("DEBUG: Attempting to remove zone: " + currentTriggerZoneId);
+            System.out.println("DEBUG: randomTriggerZoneManager != null: " + (randomTriggerZoneManager != null));
+            System.out.println("DEBUG: triggerZoneManager != null: " + (triggerZoneManager != null));
+            
+            if (randomTriggerZoneManager != null && triggerZoneManager != null) {
+                boolean removed = randomTriggerZoneManager.removeZoneById(currentTriggerZoneId, triggerZoneManager);
+                System.out.println("DEBUG: Zone removal result: " + removed + " for zone: " + currentTriggerZoneId);
+            } else if (triggerZoneManager != null) {
+                triggerZoneManager.removeZoneById(currentTriggerZoneId);
+                System.out.println("DEBUG: Removed trigger zone directly: " + currentTriggerZoneId);
+            } else {
+                System.out.println("DEBUG: No trigger zone manager available for removal");
+            }
             currentTriggerZoneId = null; // Prevent double-removal
+        } else {
+            System.out.println("DEBUG: No currentTriggerZoneId set for removal");
         }
 
         // Tutup gerobakFrame jika masih terbuka
@@ -936,7 +956,7 @@ public class TransactionsGUI extends JPanel {
         offerPrice = 0;
         selectedQuantity = 1;
 
-        System.out.println("DEBUG: Trading session closed and trigger zone removed");
+        System.out.println("DEBUG: Trading session closed and trigger zone removal completed");
     }
     
     private void deactivateConsumableItems() {
@@ -1181,5 +1201,9 @@ public class TransactionsGUI extends JPanel {
         } else {
             JOptionPane.showMessageDialog(this, "Item ini hanya bisa digunakan otomatis atau di waktu tertentu!", "Info", JOptionPane.WARNING_MESSAGE);
         }
+    }
+    
+    public void setRandomTriggerZoneManager(RandomTriggerZoneManager mgr) {
+        this.randomTriggerZoneManager = mgr;
     }
 }

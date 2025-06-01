@@ -52,6 +52,12 @@ public class GamePanel extends JPanel implements Runnable {
     private static final Map<String, ImageIcon> scaledIconCache = new HashMap<>();
     private static boolean iconsLoaded = false;
 
+    // Track current day
+    private int currentDay = 1;
+
+    // ItemEffectManager moved to global variable
+    private ItemEffectManager itemEffectManager;
+
     public GamePanel(Player player) {
         this.player = player;
 
@@ -81,14 +87,20 @@ public class GamePanel extends JPanel implements Runnable {
         if (!iconsLoaded) {
             preloadIcons();
             iconsLoaded = true;
-        }
-        playerMovement = player.createMovement();
+        }        playerMovement = player.createMovement();
         PlayerSkin = player.createNametag();        tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
+        
+        // Initialize RandomTriggerZoneManager first
+        randomTriggerZoneManager = new RandomTriggerZoneManager();
+        
         transactions = new TransactionsGUI(this);
         transactions.setPlayer(player); // Set player untuk transactions
-        randomTriggerZoneManager = new RandomTriggerZoneManager();
+        transactions.setTriggerZoneManager(triggerZoneManager); // Set trigger zone manager
+        // Set RandomTriggerZoneManager agar TransactionsGUI bisa remove zone
+        transactions.setRandomTriggerZoneManager(randomTriggerZoneManager);
+        
         randomTriggerZoneManager.setDialogSystem(transactions);
         randomTriggerZoneManager.setPlayer(player);
         supplier = new Supplier();
@@ -121,12 +133,23 @@ public class GamePanel extends JPanel implements Runnable {
                     for (MapManager.TriggerZoneManager.TriggerZone zone : zones) {
                         zone.trigger();
                     }
-                }
-                // Peluit: tekan H di map2
+                }                // Peluit: tekan H di map2
                 if ("map2".equals(currentMap) && e.getKeyCode() == KeyEvent.VK_H) {
                     if (player != null && player.getInventory() != null) {
-                        ItemEffectManager itemEffectManager = new ItemEffectManager(player);
-                        int extraBuyers = itemEffectManager.applyPeluit();
+                        // Debug the player instance and inventory state
+                        System.out.println("=== DEBUG H KEY PRESS ===");
+                        System.out.println("Player instance: " + player);
+                        System.out.println("Player username: " + player.getUsername());
+                        System.out.println("Player inventory: " + player.getInventory());
+                        System.out.println("Player inventory itemDibawa: " + player.getInventory().getItemDibawa());
+                        System.out.println("ItemDibawa size: " + player.getInventory().getItemDibawa().size());
+                        System.out.println("Gerobak instance: " + player.getInventory().getGerobak());
+                        System.out.println("========================");
+                        
+                        if (itemEffectManager == null) {
+                            itemEffectManager = new ItemEffectManager(player);
+                        }
+                        int extraBuyers = itemEffectManager.applyPeluit(currentDay);
                         if (extraBuyers > 0) {
                             for (int i = 0; i < extraBuyers; i++) {
                                 randomTriggerZoneManager.spawnSingleRandomZone(triggerZoneManager);
@@ -162,6 +185,8 @@ public class GamePanel extends JPanel implements Runnable {
             }
         });
 
+        // Initialize player-dependent objects
+        updatePlayerData(player);
     }
 
     @Override
@@ -338,7 +363,9 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Recreate PlayerMovement and PlayerSkin with the new player
         this.playerMovement = newPlayer.createMovement();
-        this.PlayerSkin = newPlayer.createNametag();        // CRITICAL FIX: Update TransactionsGUI with the new player reference
+        this.PlayerSkin = newPlayer.createNametag();
+        this.itemEffectManager = new ItemEffectManager(newPlayer);
+        // CRITICAL FIX: Update TransactionsGUI with the new player reference
         if (transactions != null) {
             transactions.setPlayer(newPlayer);
             System.out.println("GamePanel: Updated TransactionsGUI player reference");
@@ -350,19 +377,18 @@ public class GamePanel extends JPanel implements Runnable {
             System.out.println("GamePanel: Updated RandomTriggerZoneManager player reference");
         }
 
-        // Preserve the gerobak reference if the player's inventory has items in it
+        // Always synchronize gerobak and inventory references
         if (newPlayer.getInventory() != null) {
-            // If the player's inventory has a different gerobak, use that instead
-            if (newPlayer.getInventory().getGerobak() != null) {
-                this.gerobak = newPlayer.getInventory().getGerobak();
-                System.out.println("GamePanel: Using player's existing gerobak (Level: " +
-                        this.gerobak.getLevel() + ")");
-            } else {
-                // Otherwise, make sure the player's inventory uses our gerobak
+            // Always use the player's inventory gerobak as the single source of truth
+            this.gerobak = newPlayer.getInventory().getGerobak();
+            if (this.gerobak == null) {
+                this.gerobak = new Gerobak();
                 newPlayer.getInventory().setGerobak(this.gerobak);
-                System.out.println("GamePanel: Setting player's inventory to use our gerobak");
+                System.out.println("GamePanel: Created new gerobak for player inventory");
             }
-
+            // Ensure both references are in sync
+            newPlayer.getInventory().setGerobak(this.gerobak);
+            System.out.println("GamePanel: Synced gerobak reference. Gerobak instance: " + this.gerobak);
             // Debug inventory state
             System.out.println("GamePanel: Current items in gerobak: " +
                     newPlayer.getInventory().getItemDibawa().size());
@@ -598,12 +624,37 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Jampi: aktif otomatis jika ada di gerobak
         if (player != null && player.getInventory() != null) {
-            ItemEffectManager itemEffectManager = new ItemEffectManager(player);
+            if (itemEffectManager == null) {
+                itemEffectManager = new ItemEffectManager(player);
+            }
             if (itemEffectManager.isItemActive("Jampi")) {
                 int before = player.getMoney();
                 itemEffectManager.activateItem("Jampi");
                 JOptionPane.showMessageDialog(this, "Jampi aktif! Penghasilan hari ini akan dilipatgandakan.", "Jampi", JOptionPane.INFORMATION_MESSAGE);
             }
         }
+    }
+
+    /**
+     * Advance the day, increment currentDay, and reset daily item effects
+     */
+    public void advanceDay() {
+        currentDay++;
+        if (player != null) {
+            if (itemEffectManager == null) {
+                itemEffectManager = new ItemEffectManager(player);
+            }
+            itemEffectManager.resetDailyEffects();
+        }
+    }
+
+    /**
+     * Optionally, allow setting the current day (e.g., after loading a save)
+     */
+    public void setCurrentDay(int day) {
+        this.currentDay = day;
+    }
+    public int getCurrentDay() {
+        return currentDay;
     }
 }

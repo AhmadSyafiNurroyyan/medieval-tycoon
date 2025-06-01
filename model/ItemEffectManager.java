@@ -61,15 +61,33 @@ public class ItemEffectManager {
     return finalPrice;
   }
 
-  // Peluit - panggil pembeli tambahan
-  public int applyPeluit() {
-    Item peluit = getActiveItemByName("Peluit");
-    if (peluit != null && !peluit.isUsed()) {
-      peluit.markAsUsed();
-      int extraBuyers = peluit.getPeluitExtraBuyers();
-      System.out.println("Peluit digunakan! " + extraBuyers + " pembeli tambahan datang!");
-      return extraBuyers;
+  // Peluit - panggil pembeli tambahan dengan batas harian sesuai level
+  public int applyPeluit(int currentDay) {
+    // Cari item Peluit di gerobak/inventory, tidak perlu status aktif
+    List<Item> items = player.getInventory().getItemDibawa();
+    
+    // Add debugging information
+    System.out.println("=== DEBUG PELUIT DETECTION ===");
+    System.out.println("Items in gerobak count: " + items.size());
+    for (Item item : items) {
+      System.out.println("  - Item: '" + item.getNama() + "' | isPeluit(): " + item.isPeluit());
     }
+    System.out.println("===========================");
+    
+    for (Item item : items) {
+      if (item.isPeluit()) {
+        if (item.canUsePeluit(currentDay)) {
+          item.incrementPeluitUse(currentDay);
+          int sisa = item.getPeluitDailyLimit() - item.getPeluitUsesToday(currentDay);
+          System.out.println("Peluit digunakan! Sisa penggunaan hari ini: " + sisa);
+          return 1; // Only allow 1 extra zone per use
+        } else {
+          System.out.println("Peluit sudah mencapai batas penggunaan harian!");
+          return 0;
+        }
+      }
+    }
+    System.out.println("Tidak ada item Peluit di gerobak!");
     return 0;
   }
 
@@ -124,6 +142,10 @@ public class ItemEffectManager {
     for (Item item : items) {
       if (item.isHipnotis()) {
         item.resetUsage();
+      }
+      if (item.isPeluit()) {
+        // FIX: panggil resetPeluitUsage(currentDay) dengan hari yang benar
+        item.resetPeluitUsage(java.time.LocalDate.now().getDayOfYear()); // Atau ganti dengan currentDay dari GamePanel jika ingin lebih presisi
       }
     }
     System.out.println("Efek item harian telah direset.");

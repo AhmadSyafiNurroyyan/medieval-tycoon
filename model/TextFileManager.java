@@ -298,14 +298,18 @@ public class TextFileManager implements FileManager {
             jumlah);
       }
       writer.println("// Format: nama,kategori,hargaBeli,kesegaran,jumlah");
-      writer.println();
-
-      // === INVENTORY_ITEM ===
+      writer.println();      // === INVENTORY_ITEM ===
       writer.println("=== INVENTORY_ITEM ===");
+      List<Item> allItems = new ArrayList<>();
       List<Item> stokItem = player.getInventory().getStokItem();
       List<Item> itemDibawa = player.getInventory().getItemDibawa();
+      
+      // Add all items from inventory (not in gerobak)
+      allItems.addAll(stokItem);
+      // Add all items from gerobak
+      allItems.addAll(itemDibawa);
 
-      for (Item item : stokItem) {
+      for (Item item : allItems) {
         boolean inGerobak = itemDibawa.contains(item);
         writer.println("ITEM:" + item.getNama() + "," +
             item.getLevel() + "," +

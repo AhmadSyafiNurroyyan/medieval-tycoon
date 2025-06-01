@@ -43,7 +43,17 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     // Tambahkan sistem DayTime sederhana
     private int currentDay = 1;
     private Runnable onSleepCallback;
+    private GamePanel gamePanel; // Tambahkan referensi ke GamePanel
 
+    public void setGamePanel(GamePanel gamePanel) {
+        this.gamePanel = gamePanel;
+        // Sinkronkan hari jika perlu
+        if (gamePanel != null) {
+            this.currentDay = gamePanel.getCurrentDay();
+        }
+    }
+
+    // Tambahkan constructor dan method initializeComponents() yang sudah ada
     public HomeBasePanel(Player player) {
         this.player = player;
         this.perksManagement = new PerksManagement();
@@ -2390,6 +2400,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private void sleepAndAdvanceDay() {
         currentDay++;
         player.setHasSlept(true);
+        if (gamePanel != null) {
+            gamePanel.advanceDay(); // Sinkronkan hari dan reset efek harian item
+            this.currentDay = gamePanel.getCurrentDay();
+        }
         if (onSleepCallback != null) onSleepCallback.run();
         JOptionPane.showMessageDialog(this, "Hari berganti! Sekarang hari ke-" + currentDay + ". Arena trigger zone akan direset saat kamu ke kota lain.", "Sleep", JOptionPane.INFORMATION_MESSAGE);
     }

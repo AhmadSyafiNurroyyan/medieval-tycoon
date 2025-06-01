@@ -17,15 +17,15 @@ public class RandomTriggerZoneManager {
     private static final int ZONE_WIDTH = 128;
     private static final int ZONE_HEIGHT = 128;
     private static final int MIN_SPACING = 20; // Minimum spacing between zones
-    
-    private final List<Rectangle> placedZones;
+      private final List<Rectangle> placedZones;
     private final List<Pembeli> zoneBuyers; // List of Pembeli for each zone
+    private final List<String> zoneIds; // Track zone IDs corresponding to placedZones
     private TransactionsGUI dialogSystem;
     private Player player;
-    
-    public RandomTriggerZoneManager() {
+      public RandomTriggerZoneManager() {
         this.placedZones = new ArrayList<>();
         this.zoneBuyers = new ArrayList<>();
+        this.zoneIds = new ArrayList<>();
         this.dialogSystem = null;
         this.player = null;
     }
@@ -55,6 +55,7 @@ public class RandomTriggerZoneManager {
      */    public void generateRandomZones(int minX, int maxX, int minY, int maxY, TriggerZoneManager triggerZoneManager) {
         placedZones.clear();
         zoneBuyers.clear();
+        zoneIds.clear();
           
         // Calculate base number of zones
         int baseNumZones = (int)(Math.random() * (MAX_ZONES - MIN_ZONES + 1)) + MIN_ZONES;
@@ -109,13 +110,13 @@ public class RandomTriggerZoneManager {
                 int y = (int)(Math.random() * (maxY - minY - height + 1)) + minY;
                 
                 Rectangle newZone = new Rectangle(x, y, width, height);
-                
-                // Check if this zone overlaps with any existing zones
+                  // Check if this zone overlaps with any existing zones
                 if (!overlapsWithExistingZones(newZone)) {
                     placedZones.add(newZone);
                     
                     // Add to TriggerZoneManager with unique ID
-                    String zoneId = "RandomZone_" + (successfullyPlaced + 1);
+                    String zoneId = "ArenaPembeli_" + (successfullyPlaced + 1);
+                    zoneIds.add(zoneId); // Store the zone ID
                     triggerZoneManager.addZone(zoneId, x, y, x + width, y + height, true, () -> {
                         handleRandomZoneTriggered(x, y, width, height);
                     });
@@ -147,14 +148,13 @@ public class RandomTriggerZoneManager {
         }
         System.out.println("[ZONE GENERATION DEBUG] ================================");
     }
-    
-    /**
+      /**
      * Register all existing random zones to a TriggerZoneManager (tanpa generate ulang)
      */
     public void registerZonesToTriggerZoneManager(TriggerZoneManager triggerZoneManager) {
         for (int i = 0; i < placedZones.size(); i++) {
             Rectangle r = placedZones.get(i);
-            String zoneId = "RandomZone_" + (i + 1);
+            String zoneId = (i < zoneIds.size()) ? zoneIds.get(i) : "ArenaPembeli_" + (i + 1);
             int x = r.x;
             int y = r.y;
             int width = r.width;
@@ -187,8 +187,7 @@ public class RandomTriggerZoneManager {
     
     /**
      * Handle when a random zone is triggered
-     */
-    private void handleRandomZoneTriggered(int x, int y, int width, int height) {
+     */    private void handleRandomZoneTriggered(int x, int y, int width, int height) {
         // Find the index of the zone
         int idx = -1;
         for (int i = 0; i < placedZones.size(); i++) {
@@ -200,13 +199,16 @@ public class RandomTriggerZoneManager {
         }
         
         Pembeli pembeli = (idx != -1) ? getPembeliForZone(idx) : null;
-        if (dialogSystem != null && pembeli != null) {
+        if (dialogSystem != null && pembeli != null && idx != -1) {
+            // Get the actual stored zone ID instead of calculating it
+            String zoneId = (idx < zoneIds.size()) ? zoneIds.get(idx) : "ArenaPembeli_" + (idx + 1);
+            System.out.println("[RandomTriggerZoneManager] Zone triggered: " + zoneId + " at index " + idx);
+            dialogSystem.setCurrentTriggerZoneId(zoneId);
             dialogSystem.setPembeli(pembeli);
             dialogSystem.showPembeliDialog();
         } else {
-            System.out.println("Cannot show dialog: dialogSystem=" + (dialogSystem != null) + ", pembeli=" + (pembeli != null));
+            System.out.println("Cannot show dialog: dialogSystem=" + (dialogSystem != null) + ", pembeli=" + (pembeli != null) + ", idx=" + idx);
         }
-        
         // Optional: You can add more effects here like:
         // - Give player random items
         // - Add money
@@ -230,13 +232,13 @@ public class RandomTriggerZoneManager {
     public List<Rectangle> getPlacedZones() {
         return new ArrayList<>(placedZones);
     }
-    
-    /**
+      /**
      * Clear all placed zones
      */
     public void clearZones() {
         placedZones.clear();
         zoneBuyers.clear();
+        zoneIds.clear();
     }
     
     /**
@@ -255,11 +257,11 @@ public class RandomTriggerZoneManager {
         int attempts = 50;
         for (int attempt = 0; attempt < attempts; attempt++) {
             int x = (int)(Math.random() * (maxX - minX - width + 1)) + minX;
-            int y = (int)(Math.random() * (maxY - minY - height + 1)) + minY;
-            Rectangle newZone = new Rectangle(x, y, width, height);
+            int y = (int)(Math.random() * (maxY - minY - height + 1)) + minY;            Rectangle newZone = new Rectangle(x, y, width, height);
             if (!overlapsWithExistingZones(newZone)) {
                 placedZones.add(newZone);
-                String zoneId = "RandomZone_" + (placedZones.size());
+                String zoneId = "ArenaPembeli_" + (placedZones.size());
+                zoneIds.add(zoneId); // Store the zone ID
                 triggerZoneManager.addZone(zoneId, x, y, x + width, y + height, true, () -> {
                     handleRandomZoneTriggered(x, y, width, height);
                 });
@@ -271,5 +273,41 @@ public class RandomTriggerZoneManager {
         }
         System.out.println("[Peluit] Failed to spawn single random zone after " + attempts + " attempts");
         return false;
+    }    /**
+     * Remove a random zone by its zoneId (e.g., "ArenaPembeli_3")
+     */
+    public boolean removeZoneById(String zoneId, TriggerZoneManager triggerZoneManager) {
+        if (!zoneId.startsWith("ArenaPembeli_")) {
+            System.out.println("[RandomTriggerZoneManager] Invalid zone ID format: " + zoneId);
+            return false;
+        }
+        
+        // Find the index of the zone with this ID
+        int index = -1;
+        for (int i = 0; i < zoneIds.size(); i++) {
+            if (zoneIds.get(i).equals(zoneId)) {
+                index = i;
+                break;
+            }
+        }
+        
+        if (index == -1) {
+            System.out.println("[RandomTriggerZoneManager] Zone ID not found in local lists: " + zoneId);
+            return false;
+        }
+        
+        // Remove from TriggerZoneManager first
+        triggerZoneManager.removeZoneById(zoneId);
+        System.out.println("[RandomTriggerZoneManager] Removed zone from TriggerZoneManager: " + zoneId);
+        
+        // Remove from our local lists (maintaining synchronization)
+        placedZones.remove(index);
+        zoneIds.remove(index);
+        if (index < zoneBuyers.size()) {
+            zoneBuyers.remove(index);
+        }
+        
+        System.out.println("[RandomTriggerZoneManager] Removed zone from local lists at index " + index + ": " + zoneId);
+        return true;
     }
 }
