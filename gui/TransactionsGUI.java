@@ -816,16 +816,21 @@ public class TransactionsGUI extends JPanel {
         System.out.println("DEBUG: Valid item found: " + selectedBarang.getNamaBarang());
         int baseUnitPrice = currentPlayer.getInventory().getHargaJual(selectedBarang);
         int adjustedUnitPrice = (int) (baseUnitPrice);
-        int totalPrice = adjustedUnitPrice * selectedQuantity;
-        // Initial refusal chance for miskin
+        int totalPrice = adjustedUnitPrice * selectedQuantity;        // Initial refusal chance for miskin
         if (currentPembeli instanceof model.PembeliMiskin) {
             // 30% chance langsung menolak
             if (Math.random() < 0.3) {
                 currentMessage = "Pembeli miskin menolak membeli barangmu.";
+                transactionCompleted = true;
+                // Hide sell button and show close button
+                if (sellButton != null)
+                    sellButton.setVisible(false);
+                if (closeButton != null)
+                    closeButton.setVisible(true);
                 repaint();
                 return;
             }
-        } // Buyer makes an offer - use unit price for negotiation
+        }// Buyer makes an offer - use unit price for negotiation
           // Apply freshness penalty to the price before buyer consideration
         double freshnessPenalty = calculateFreshnessPriceMultiplier(selectedBarang.getKesegaran());
         int freshnessAdjustedPrice = (int) (adjustedUnitPrice * freshnessPenalty);
@@ -966,30 +971,15 @@ public class TransactionsGUI extends JPanel {
             currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
             // updateGerobakTablesLocal(); // Removed to prevent NPE if
             // gerobakWithPriceTable is null
-        }
-        currentMessage = String.format("Transaksi berhasil! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
+        }        currentMessage = String.format("Transaksi berhasil! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
                 selectedBarang.getNamaBarang(), selectedQuantity, finalUnitPrice, finalTotalPrice);
         // Deaktifkan item consumable setelah digunakan
         deactivateConsumableItems();
-
-        // Check if there are still items with selling prices available for trading
-        boolean hasMoreItemsToSell = hasItemsWithSellingPrice();
-
-        if (hasMoreItemsToSell) {
-            // Reset negotiation state but allow more transactions
-            negotiationPhase = false;
-            hideNegotiationButtons();
-            sellButton.setVisible(true);
-            closeButton.setVisible(true);
-            currentMessage += " Kamu masih memiliki barang lain untuk dijual. Klik 'Jual Barang' untuk melanjutkan atau 'Tutup' untuk mengakhiri.";
-        } else {
-            // No more items to sell, end the trading session
-            transactionCompleted = true;
-            hideNegotiationButtons();
-            closeButton.setVisible(true);
-            sellButton.setVisible(false);
-            currentMessage += " Semua barang sudah terjual.";
-        }
+        transactionCompleted = true;
+        hideNegotiationButtons();
+        // When transaction is completed, ONLY show close button, never show sell button again
+        closeButton.setVisible(true);
+        sellButton.setVisible(false);
 
         // Refresh gerobak table setelah transaksi sukses
         // updateGerobakTablesLocal(); // Removed to prevent NPE if
@@ -1043,15 +1033,13 @@ public class TransactionsGUI extends JPanel {
                     currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
                     // updateGerobakTablesLocal(); // Removed to prevent NPE if
                     // gerobakWithPriceTable is null
-                }
-                currentMessage = String.format(
+                }                currentMessage = String.format(
                         "Counter offer diterima! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
                         selectedBarang.getNamaBarang(), selectedQuantity, counterUnitPrice, counterTotalPrice);
                 deactivateConsumableItems();
                 transactionCompleted = true;
                 hideNegotiationButtons();
-                // When transaction is completed, ONLY show close button, never show sell button
-                // again
+                // When transaction is completed, ONLY show close button, never show sell button again
                 if (closeButton != null)
                     closeButton.setVisible(true);
                 if (sellButton != null)
@@ -1065,8 +1053,7 @@ public class TransactionsGUI extends JPanel {
                     reason = ((model.PembeliTajir) currentPembeli).getLastRejectionReason();
                 } else if (currentPembeli instanceof model.PembeliMiskin) {
                     reason = ((model.PembeliMiskin) currentPembeli).getLastRejectionReason();
-                }
-                if (reason != null && !reason.isEmpty()) {
+                }                if (reason != null && !reason.isEmpty()) {
                     currentMessage = reason;
                     // Negosiasi selesai jika reason diberikan
                     transactionCompleted = true;
@@ -1095,8 +1082,7 @@ public class TransactionsGUI extends JPanel {
                         if (declineButton != null) {
                             declineButton.setVisible(true);
                             declineButton.setEnabled(true);
-                        }
-                        if (pricePanel != null)
+                        }                        if (pricePanel != null)
                             pricePanel.setVisible(true);
                         // Jangan hide tombol, negosiasi lanjut
                         negotiationPhase = true;
@@ -1104,28 +1090,12 @@ public class TransactionsGUI extends JPanel {
                         return;
                     } else {
                         currentMessage = "Pembeli menolak counter offer mu dan mengakhiri negosiasi.";
-
-                        // Check if there are still items with selling prices available for trading
-                        boolean hasMoreItemsToSell = hasItemsWithSellingPrice();
-
-                        if (hasMoreItemsToSell) {
-                            // Reset negotiation state but allow more transactions
-                            negotiationPhase = false;
-                            hideNegotiationButtons();
-                            if (sellButton != null)
-                                sellButton.setVisible(true);
-                            if (closeButton != null)
-                                closeButton.setVisible(true);
-                            currentMessage += " Kamu masih memiliki barang lain untuk dijual. Klik 'Jual Barang' untuk melanjutkan atau 'Tutup' untuk mengakhiri.";
-                        } else {
-                            // No more items to sell, end the trading session
-                            transactionCompleted = true;
-                            hideNegotiationButtons();
-                            if (closeButton != null)
-                                closeButton.setVisible(true);
-                            if (sellButton != null)
-                                sellButton.setVisible(false);
-                        }
+                        transactionCompleted = true;
+                        hideNegotiationButtons();
+                        if (closeButton != null)
+                            closeButton.setVisible(true);
+                        if (sellButton != null)
+                            sellButton.setVisible(false);
                     }
                 }
             }
@@ -1149,26 +1119,13 @@ public class TransactionsGUI extends JPanel {
             currentMessage = "Transaksi sudah selesai. Tidak bisa menolak lagi.";
             repaint();
             return;
-        }
-        currentMessage = "Kamu menolak tawaran pembeli.";
+        }        currentMessage = "Kamu menolak tawaran pembeli.";
+        transactionCompleted = true; // Mark as completed when declining
+        hideNegotiationButtons();
 
-        // Check if there are still items with selling prices available for trading
-        boolean hasMoreItemsToSell = hasItemsWithSellingPrice();
-
-        if (hasMoreItemsToSell) {
-            // Reset negotiation state but allow more transactions
-            negotiationPhase = false;
-            hideNegotiationButtons();
-            sellButton.setVisible(true);
-            closeButton.setVisible(true);
-            currentMessage += " Kamu masih memiliki barang lain untuk dijual. Klik 'Jual Barang' untuk melanjutkan atau 'Tutup' untuk mengakhiri.";
-        } else {
-            // No more items to sell, end the trading session
-            transactionCompleted = true;
-            hideNegotiationButtons();
-            closeButton.setVisible(true);
-            sellButton.setVisible(false);
-        }
+        // Show close button when transaction is completed/declined
+        closeButton.setVisible(true);
+        sellButton.setVisible(false);
 
         repaint();
     }
