@@ -519,11 +519,15 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         if (goodsTable == null || inventory == null)
             return;
 
+        System.out.println("Debug updateGoodsTable: Updating table with current inventory data");
         List<Barang> stokBarang = inventory.getStokBarang();
+        System.out.println("Debug updateGoodsTable: Total barang in inventory: " + stokBarang.size());
 
         // Group similar items and count them
         Map<String, Map<String, Object>> groupedItems = new LinkedHashMap<>();
         for (Barang barang : stokBarang) {
+            System.out.println("Debug updateGoodsTable: Processing " + barang.getNamaBarang() +
+                    " (Kesegaran: " + barang.getKesegaran() + ")");
             String key = barang.getNamaBarang() + "|" + barang.getKategori() + "|" +
                     barang.getKesegaran() + "|" + barang.getHargaBeli();
 

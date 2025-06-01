@@ -1,16 +1,15 @@
 === PLAYER_DATA ===
 USERNAME:sdsd
-ID:83063872
+ID:80081639
 LEVEL:1
-MONEY:21000
+MONEY:18000
 CURRENT_DAY:1
 
 === INVENTORY_BARANG ===
-BARANG:Pisang,Buah,4000,100,1
+BARANG:Kangkung,Sayur,3000,100,10
 // Format: nama,kategori,hargaBeli,kesegaran,jumlah
 
 === INVENTORY_ITEM ===
-ITEM:Jampi,1,false,false
 // Format: nama,level,active,inGerobak
 
 === GEROBAK ===
@@ -20,10 +19,11 @@ KAPASITAS_ITEM:1
 BIAYA_UPGRADE:100000
 
 === GEROBAK_BARANG ===
+GEROBAK_BARANG:Tomat,Sayur,2000,75,1,2000
 // Format: nama,kategori,hargaBeli,kesegaran,jumlah,hargaJual
 
 === PERKS ===
-OWNED_PERK:Elegan,0,true
+OWNED_PERK:Active,0,true
 // Format: nama,level,owned/active
 
 === GAME_PROGRESS ===

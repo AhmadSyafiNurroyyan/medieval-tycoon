@@ -84,16 +84,19 @@ public class Barang implements Showable {
         if (obj == null || getClass() != obj.getClass())
             return false;
         Barang barang = (Barang) obj;
+        // Important: Do NOT compare kesegaran for equality to allow looking up items
+        // with changed freshness
         return Objects.equals(nama, barang.nama) &&
                 Objects.equals(kategori, barang.kategori) &&
                 hargaBeli == barang.hargaBeli &&
-                kesegaran == barang.kesegaran &&
                 Objects.equals(iconPath, barang.iconPath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(nama, kategori, hargaBeli, kesegaran, iconPath);
+        // Important: Do NOT include kesegaran in hash calculation to maintain HashMap
+        // key integrity
+        return Objects.hash(nama, kategori, hargaBeli, iconPath);
     }
 
 }

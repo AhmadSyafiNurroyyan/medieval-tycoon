@@ -150,7 +150,21 @@ public class Inventory {
     }
 
     public void bawaBarang(Barang barang, int jumlah, int kapasitasGerobak) {
-        if (jumlah <= kapasitasBarangTersisa(kapasitasGerobak) && stokBarang.getOrDefault(barang, 0) >= jumlah) {
+        System.out.println("Debug bawaBarang called:");
+        System.out.println("  - Barang: " + barang.getNamaBarang() + " (kesegaran: " + barang.getKesegaran() + ")");
+        System.out.println("  - Jumlah requested: " + jumlah);
+        System.out.println("  - Kapasitas gerobak: " + kapasitasGerobak);
+        System.out.println("  - Kapasitas tersisa: " + kapasitasBarangTersisa(kapasitasGerobak));
+        System.out.println("  - Stok available: " + stokBarang.getOrDefault(barang, 0));
+
+        boolean hasCapacity = jumlah <= kapasitasBarangTersisa(kapasitasGerobak);
+        boolean hasStock = stokBarang.getOrDefault(barang, 0) >= jumlah;
+
+        System.out.println("  - Has capacity: " + hasCapacity);
+        System.out.println("  - Has stock: " + hasStock);
+
+        if (hasCapacity && hasStock) {
+            System.out.println("  - SUCCESS: Moving barang to gerobak");
             barangDibawa.put(barang, barangDibawa.getOrDefault(barang, 0) + jumlah);
             int sisa = stokBarang.get(barang) - jumlah;
             if (sisa > 0) {
@@ -159,6 +173,9 @@ public class Inventory {
                 stokBarang.remove(barang);
             }
             notifyInventoryChanged();
+        } else {
+            System.out.println("  - FAILED: Cannot move barang to gerobak");
+            System.out.println("    - Reason: " + (hasCapacity ? "Stock insufficient" : "Capacity full"));
         }
     }
 
