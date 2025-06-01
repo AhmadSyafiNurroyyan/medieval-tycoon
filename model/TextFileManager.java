@@ -596,7 +596,6 @@ public class TextFileManager implements FileManager {
       }
     }
   }
-
   private void parseGerobakBarang(String line, Inventory inventory) {
     if (!line.startsWith("GEROBAK_BARANG:"))
       return;
@@ -614,7 +613,34 @@ public class TextFileManager implements FileManager {
     int hargaJual = Integer.parseInt(parts[5].trim());
 
     String iconPath = nama.toLowerCase() + ".png";
-    Barang barang = new Barang(nama, kategori, hargaBeli, iconPath);
+    
+    Barang barang;
+    if (hargaJual > 0) {
+      // Create unique anonymous object for items with selling price (same as HomeBasePanel)
+      barang = new Barang(nama, kategori, hargaBeli, iconPath) {
+        // Anonymous class untuk memastikan objek ini unik
+        private final long uniqueId = System.nanoTime();
+
+        @Override
+        public boolean equals(Object obj) {
+          // Setiap instance dengan harga adalah unik - hanya equal dengan dirinya sendiri
+          if (this == obj)
+            return true;
+          // Tidak pernah equal dengan objek lain, bahkan jika objek tersebut memiliki
+          // properti yang sama
+          return false;
+        }
+
+        @Override
+        public int hashCode() {
+          // Hash berdasarkan identitas objek + uniqueId
+          return System.identityHashCode(this) + (int) (uniqueId % Integer.MAX_VALUE);
+        }
+      };
+    } else {
+      // Create standard object for items without selling price
+      barang = new Barang(nama, kategori, hargaBeli, iconPath);
+    }
 
     // Set kesegaran
     int kesegaranToReduce = 100 - kesegaran;
