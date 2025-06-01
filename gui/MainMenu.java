@@ -9,6 +9,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import model.Inventory;
 import model.Player;
+import model.Supplier;
 import model.TextFileManager;
 
 public class MainMenu extends JFrame {
@@ -80,13 +81,13 @@ public class MainMenu extends JFrame {
 
         // Set auto-save callback for pause menu
         pauseMenuPanel.setAutoSaveCallback(() -> performAutoSave());
-
         this.homeBasePanel = new HomeBasePanel(player);
         this.supplierPanel = new SupplierPanel(gamePanel.getSupplier(), player);
         this.tokoItemPanel = new TokoItemPanel(gamePanel.getTokoItem(), player);
         this.tokoPerksPanel = new TokoPerksPanel(gamePanel.getPerksManagement(), player);
         this.tokoItemPanel.setInventory(player.getInventory());
         this.homeBasePanel.initializeWithGerobak(gamePanel.getGerobak());
+        this.homeBasePanel.setSupplier(gamePanel.getSupplier());
         this.supplierPanel.setBackToGameCallback(() -> {
             this.cardLayout.show(this.cardsPanel, "GAME");
             this.gamePanel.onPanelShown(); // Sync player inventory state
@@ -235,6 +236,7 @@ public class MainMenu extends JFrame {
             if (this.homeBasePanel != null) {
                 this.homeBasePanel.updatePlayerData(newPlayer);
                 this.homeBasePanel.setInventory(newPlayer.getInventory());
+                this.homeBasePanel.setSupplier(this.gamePanel.getSupplier());
             }
             if (this.tokoItemPanel != null) {
                 this.tokoItemPanel.updatePlayerData(newPlayer);
@@ -814,6 +816,7 @@ public class MainMenu extends JFrame {
                                 if (MainMenu.this.homeBasePanel != null) {
                                     MainMenu.this.homeBasePanel.updatePlayerData(loadedPlayer);
                                     MainMenu.this.homeBasePanel.setInventory(loadedPlayer.getInventory());
+                                    MainMenu.this.homeBasePanel.setSupplier(MainMenu.this.gamePanel.getSupplier());
                                 }
                                 if (MainMenu.this.tokoItemPanel != null) {
                                     MainMenu.this.tokoItemPanel.updatePlayerData(loadedPlayer);

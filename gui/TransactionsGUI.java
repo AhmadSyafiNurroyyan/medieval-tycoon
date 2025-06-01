@@ -676,31 +676,61 @@ public class TransactionsGUI extends JPanel {
             repaint();
             return;
         } // HANYA pilih barang yang ada di hargaJualBarang (sudah ditetapkan harga
-          // jualnya)
-        // Implement freshness-based buyer interest system
+          // jualnya) // Implement freshness-based buyer interest system
         selectedBarang = null;
         Barang bestBarang = null;
         double bestInterestScore = -1;
 
+        System.out.println("[BUYER SELECTION DEBUG] === Starting buyer item selection process ===");
+        System.out.println("[BUYER SELECTION DEBUG] Items in gerobak: " + barangDiGerobak.size());
+
         for (Map.Entry<Barang, Integer> entry : barangDiGerobak.entrySet()) {
             Barang barang = entry.getKey();
             int hargaJual = currentPlayer.getInventory().getHargaJual(barang);
+            System.out.println("[BUYER SELECTION DEBUG] Checking item: " + barang.getNamaBarang() +
+                    " (freshness: " + barang.getKesegaran() +
+                    ", sell price: " + hargaJual + ")");
+
             if (hargaJual > 0) { // HANYA barang yang sudah ada harga jualnya
                 // Calculate buyer interest based on freshness
                 double freshnessMultiplier = calculateFreshnessMultiplier(barang.getKesegaran());
                 double buyerInterest = Math.random() * freshnessMultiplier;
 
+                System.out.println("[BUYER SELECTION DEBUG]   Freshness multiplier: " +
+                        String.format("%.2f", freshnessMultiplier) +
+                        ", Buyer interest: " + String.format("%.3f", buyerInterest));
+
                 // Check if buyer is interested enough to consider this item
                 if (buyerInterest > 0.3) { // 30% minimum interest threshold
+                    System.out.println("[BUYER SELECTION DEBUG]   Item meets interest threshold (>0.3)");
                     if (bestBarang == null || buyerInterest > bestInterestScore) {
+                        System.out.println("[BUYER SELECTION DEBUG]   New best item! Previous best: " +
+                                String.format("%.3f", bestInterestScore) +
+                                ", new best: " + String.format("%.3f", buyerInterest));
                         bestBarang = barang;
                         bestInterestScore = buyerInterest;
+                    } else {
+                        System.out.println("[BUYER SELECTION DEBUG]   Not better than current best (" +
+                                String.format("%.3f", bestInterestScore) + ")");
                     }
+                } else {
+                    System.out.println("[BUYER SELECTION DEBUG]   Item below interest threshold (0.3)");
                 }
+            } else {
+                System.out.println("[BUYER SELECTION DEBUG]   No sell price set - skipping");
             }
         }
 
         selectedBarang = bestBarang;
+
+        if (selectedBarang != null) {
+            System.out.println("[BUYER SELECTION DEBUG] === FINAL SELECTION ===");
+            System.out.println("[BUYER SELECTION DEBUG] Selected item: " + selectedBarang.getNamaBarang() +
+                    " (freshness: " + selectedBarang.getKesegaran() +
+                    ", final score: " + String.format("%.3f", bestInterestScore) + ")");
+        } else {
+            System.out.println("[BUYER SELECTION DEBUG] No item selected - none met criteria");
+        }
         // Jika tidak ada barang dengan harga jual, beri pesan error
         if (selectedBarang == null) {
             currentMessage = "Tidak ada barang dengan harga jual yang ditetapkan! Pergi ke home base untuk menetapkan harga jual barang. Tekan E untuk keluar.";
@@ -737,7 +767,7 @@ public class TransactionsGUI extends JPanel {
                 return;
             }
         } // Buyer makes an offer - use unit price for negotiation
-        // Apply freshness penalty to the price before buyer consideration
+          // Apply freshness penalty to the price before buyer consideration
         double freshnessPenalty = calculateFreshnessPriceMultiplier(selectedBarang.getKesegaran());
         int freshnessAdjustedPrice = (int) (adjustedUnitPrice * freshnessPenalty);
         int offerUnitPrice = currentPembeli.tawarHarga(freshnessAdjustedPrice);
@@ -864,36 +894,37 @@ public class TransactionsGUI extends JPanel {
                 if (declineButton != null) declineButton.setEnabled(true);
                 repaint();
                 return;
-            }
-            boolean accepted = currentPembeli.putuskanTransaksi(counterUnitPrice);
+            }            boolean accepted = currentPembeli.putuskanTransaksi(counterUnitPrice);
             if (!accepted && currentPembeli.chanceAcceptCounter(counterUnitPrice, offerPrice)) {
                 accepted = true;
             }
-            int counterTotalPrice = counterUnitPrice * selectedQuantity;
-            if (itemEffectManager != null) {
-                counterTotalPrice = itemEffectManager.applyJampi(counterTotalPrice);
-                counterTotalPrice = itemEffectManager.applyTip(counterTotalPrice);
-            }
-            currentPlayer.tambahMoney(counterTotalPrice);
-            // Hapus barang dari gerobak berdasarkan jumlah yang dipilih
-            Map<Barang, Integer> barangDiGerobak = currentPlayer.getInventory().getBarangDibawaMutable();
-            int jumlahSekarang = barangDiGerobak.getOrDefault(selectedBarang, 0);
-            if (jumlahSekarang > selectedQuantity) {
-                barangDiGerobak.put(selectedBarang, jumlahSekarang - selectedQuantity);
-                // updateGerobakTablesLocal(); // Removed to prevent NPE if gerobakWithPriceTable is null
-            } else {
-                barangDiGerobak.remove(selectedBarang);
-                currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
-                // updateGerobakTablesLocal(); // Removed to prevent NPE if gerobakWithPriceTable is null
-            }
-            currentMessage = String.format("Counter offer diterima! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
-                selectedBarang.getNamaBarang(), selectedQuantity, counterUnitPrice, counterTotalPrice);
-            deactivateConsumableItems();
-            transactionCompleted = true;
-            hideNegotiationButtons();
-            // When transaction is completed, ONLY show close button, never show sell button again
-            if (closeButton != null) closeButton.setVisible(true);
-            if (sellButton != null) sellButton.setVisible(false);
+            
+            if (accepted) {
+                int counterTotalPrice = counterUnitPrice * selectedQuantity;
+                if (itemEffectManager != null) {
+                    counterTotalPrice = itemEffectManager.applyJampi(counterTotalPrice);
+                    counterTotalPrice = itemEffectManager.applyTip(counterTotalPrice);
+                }
+                currentPlayer.tambahMoney(counterTotalPrice);
+                // Hapus barang dari gerobak berdasarkan jumlah yang dipilih
+                Map<Barang, Integer> barangDiGerobak = currentPlayer.getInventory().getBarangDibawaMutable();
+                int jumlahSekarang = barangDiGerobak.getOrDefault(selectedBarang, 0);
+                if (jumlahSekarang > selectedQuantity) {
+                    barangDiGerobak.put(selectedBarang, jumlahSekarang - selectedQuantity);
+                    // updateGerobakTablesLocal(); // Removed to prevent NPE if gerobakWithPriceTable is null
+                } else {
+                    barangDiGerobak.remove(selectedBarang);
+                    currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
+                    // updateGerobakTablesLocal(); // Removed to prevent NPE if gerobakWithPriceTable is null
+                }
+                currentMessage = String.format("Counter offer diterima! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
+                    selectedBarang.getNamaBarang(), selectedQuantity, counterUnitPrice, counterTotalPrice);
+                deactivateConsumableItems();
+                transactionCompleted = true;
+                hideNegotiationButtons();
+                // When transaction is completed, ONLY show close button, never show sell button again
+                if (closeButton != null) closeButton.setVisible(true);
+                if (sellButton != null) sellButton.setVisible(false);
         } else {
             // Buyer rejected, implement multi-round bargaining
             String reason = null;
@@ -933,8 +964,7 @@ public class TransactionsGUI extends JPanel {
                     if (pricePanel != null) pricePanel.setVisible(true);
                     // Jangan hide tombol, negosiasi lanjut
                     negotiationPhase = true;
-                    repaint();
-                    return;
+                    repaint();                    return;
                 } else {
                     currentMessage = "Pembeli menolak counter offer mu dan mengakhiri negosiasi.";
                     transactionCompleted = true;

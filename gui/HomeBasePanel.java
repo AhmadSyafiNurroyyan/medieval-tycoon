@@ -1,6 +1,7 @@
 package gui;
 
 import interfaces.InventoryChangeListener;
+import model.Supplier;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -38,12 +39,11 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private final int currentSortBy = 0, currentSortOrder = 0;
     private JTextField jumlahField, hargaField;
     private JTabbedPane tabbedPane;
-    private Gerobak gerobak;
-
-    // Tambahkan sistem DayTime sederhana
+    private Gerobak gerobak; // Tambahkan sistem DayTime sederhana
     private int currentDay = 1;
     private JLabel dayLabel; // Added dayLabel field
     private Runnable onSleepCallback;
+    private Supplier supplier; // Add supplier reference for stock regeneration
 
     public HomeBasePanel(Player player) {
         this.player = player;
@@ -52,7 +52,9 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         initializeComponents();
         loadImages();
         this.itemGerobakTable = new JTable();
-    } // Method to update the day label - shows current day number
+    }
+
+    // Method to update the day label - shows current day number
 
     public void updateDayLabel() {
         if (dayLabel != null) {
@@ -1904,6 +1906,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         this.onSleepCallback = callback;
     }
 
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
+    }
+
     /**
      * Called when HomeBase panel becomes visible (starts BGM)
      */
@@ -2532,7 +2538,14 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                 System.out.println("Debug: Freshness reduced for all items");
             }
 
-            // Call the sleep callback after freshness is reduced
+            // Regenerate supplier stock for the new day
+            if (supplier != null) {
+                supplier.generateStokHariIni();
+                System.out.println("Debug: Supplier stock regenerated for day " + currentDay);
+            }
+
+            // Call the sleep callback after freshness is reduced and supplier stock is
+            // regenerated
             if (onSleepCallback != null) {
                 onSleepCallback.run();
             }
