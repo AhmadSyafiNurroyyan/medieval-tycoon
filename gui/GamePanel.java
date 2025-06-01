@@ -83,7 +83,8 @@ public class GamePanel extends JPanel implements Runnable {
             iconsLoaded = true;
         }
         playerMovement = player.createMovement();
-        PlayerSkin = player.createNametag();        tileManager = new TileManager(this);
+        PlayerSkin = player.createNametag();
+        tileManager = new TileManager(this);
         camera = new Camera(this, tileManager);
         triggerZoneManager = new TriggerZoneManager();
         transactions = new TransactionsGUI(this);
@@ -131,9 +132,13 @@ public class GamePanel extends JPanel implements Runnable {
                             for (int i = 0; i < extraBuyers; i++) {
                                 randomTriggerZoneManager.spawnSingleRandomZone(triggerZoneManager);
                             }
-                            JOptionPane.showMessageDialog(GamePanel.this, "Peluit digunakan! " + extraBuyers + " pembeli tambahan muncul.", "Peluit", JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(GamePanel.this,
+                                    "Peluit digunakan! " + extraBuyers + " pembeli tambahan muncul.", "Peluit",
+                                    JOptionPane.INFORMATION_MESSAGE);
                         } else {
-                            JOptionPane.showMessageDialog(GamePanel.this, "Tidak ada item Peluit aktif atau sudah dipakai hari ini!", "Peluit", JOptionPane.WARNING_MESSAGE);
+                            JOptionPane.showMessageDialog(GamePanel.this,
+                                    "Tidak ada item Peluit aktif atau sudah dipakai hari ini!", "Peluit",
+                                    JOptionPane.WARNING_MESSAGE);
                         }
                     }
                 }
@@ -307,6 +312,16 @@ public class GamePanel extends JPanel implements Runnable {
                 System.out.println("GamePanel: Item in gerobak: " + item.getNama());
             }
         }
+
+        // Check if player has slept and regenerate zones if needed
+        if (this.player != null && this.player.isHasSlept()) {
+            System.out.println("GamePanel: Player has slept, checking for zone regeneration...");
+            if ("map2".equals(currentMap)) {
+                System.out.println("GamePanel: Regenerating random zones for map2 after sleep");
+                setupMap2Content();
+            }
+            // The setupMap2Content() method will reset the hasSlept flag
+        }
     }
 
     public Supplier getSupplier() {
@@ -338,7 +353,8 @@ public class GamePanel extends JPanel implements Runnable {
 
         // Recreate PlayerMovement and PlayerSkin with the new player
         this.playerMovement = newPlayer.createMovement();
-        this.PlayerSkin = newPlayer.createNametag();        // CRITICAL FIX: Update TransactionsGUI with the new player reference
+        this.PlayerSkin = newPlayer.createNametag(); // CRITICAL FIX: Update TransactionsGUI with the new player
+                                                     // reference
         if (transactions != null) {
             transactions.setPlayer(newPlayer);
             System.out.println("GamePanel: Updated TransactionsGUI player reference");
@@ -495,10 +511,11 @@ public class GamePanel extends JPanel implements Runnable {
         mapObjectManager.clearObjects();
         triggerZoneManager.clearAllZones();
         // Jangan clear randomTriggerZoneManager jika map2
-        // FIX: Jangan clear randomTriggerZoneManager dan jangan reset map2ZonesGenerated saat pindah ke map lain
+        // FIX: Jangan clear randomTriggerZoneManager dan jangan reset
+        // map2ZonesGenerated saat pindah ke map lain
         // if (!"map2".equals(mapName)) {
-        //     randomTriggerZoneManager.clearZones();
-        //     map2ZonesGenerated = false;
+        // randomTriggerZoneManager.clearZones();
+        // map2ZonesGenerated = false;
         // }
 
         // Switch the tile map
@@ -581,7 +598,8 @@ public class GamePanel extends JPanel implements Runnable {
             switchToMap("map1", 92, playerMovement.getY());
         });
 
-        // Generate random trigger zones untuk map2 hanya jika belum pernah atau player baru sleep
+        // Generate random trigger zones untuk map2 hanya jika belum pernah atau player
+        // baru sleep
         if (player.isHasSlept()) {
             randomTriggerZoneManager.clearZones();
             randomTriggerZoneManager.generateRandomZones(0, 1150, 0, 1450, triggerZoneManager);
@@ -602,7 +620,8 @@ public class GamePanel extends JPanel implements Runnable {
             if (itemEffectManager.isItemActive("Jampi")) {
                 int before = player.getMoney();
                 itemEffectManager.activateItem("Jampi");
-                JOptionPane.showMessageDialog(this, "Jampi aktif! Penghasilan hari ini akan dilipatgandakan.", "Jampi", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Jampi aktif! Penghasilan hari ini akan dilipatgandakan.", "Jampi",
+                        JOptionPane.INFORMATION_MESSAGE);
             }
         }
     }

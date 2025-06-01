@@ -105,7 +105,12 @@ public class Inventory {
     }
 
     public void kurangiKesegaranSemua() {
+        // Reduce freshness for items in main inventory
         for (Barang barang : stokBarang.keySet()) {
+            barang.kurangiKesegaran();
+        }
+        // Reduce freshness for items in gerobak as well
+        for (Barang barang : barangDibawa.keySet()) {
             barang.kurangiKesegaran();
         }
         notifyInventoryChanged();

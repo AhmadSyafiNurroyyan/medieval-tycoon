@@ -42,6 +42,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
     // Tambahkan sistem DayTime sederhana
     private int currentDay = 1;
+    private JLabel dayLabel; // Added dayLabel field
     private Runnable onSleepCallback;
 
     public HomeBasePanel(Player player) {
@@ -51,14 +52,24 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         initializeComponents();
         loadImages();
         this.itemGerobakTable = new JTable();
+    } // Method to update the day label - shows current day number
+
+    public void updateDayLabel() {
+        if (dayLabel != null) {
+            dayLabel.setText("Day " + currentDay);
+        }
     }
 
-    private void initializeComponents() {
-        // Title
+    private void initializeComponents() { // Title
         JLabel titleLabel = new JLabel("Home Base");
         titleLabel.setFont(loadCustomFont().deriveFont(80f));
         titleLabel.setBounds(20, 15, 100000, 200);
-        add(titleLabel);
+        add(titleLabel); // Day Label - positioned in the black circle, aligned with "Home Base" text
+        dayLabel = new JLabel("Day " + currentDay, JLabel.CENTER);
+        dayLabel.setFont(new Font("Serif", Font.BOLD, 32)); // Reduced font size to avoid text cutoff
+        dayLabel.setForeground(new Color(120, 90, 30)); // Medieval brown color
+        dayLabel.setBounds(670, 70, 140, 40); // Increased width and height to accommodate the text
+        add(dayLabel);
 
         // Buttons
         btn1 = StyledButton.create("Inventory");
@@ -245,7 +256,6 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                             JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-
                 if (jumlah > jumlahTersedia) {
                     JOptionPane.showMessageDialog(this, "Jumlah melebihi stok yang tersedia!", "Error",
                             JOptionPane.ERROR_MESSAGE);
@@ -254,12 +264,24 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
                 // Find the actual Barang object in inventory
                 Barang targetBarang = null;
+                System.out.println("Debug: Looking for barang to move:");
+                System.out.println("  - Nama: " + nama + ", Kategori: " + kategori +
+                        ", Kesegaran: " + kesegaran + ", HargaBeli: " + hargaBeli);
+
+                System.out.println("Debug: Available barang in inventory:");
                 for (Barang b : inventory.getStokBarang()) {
+                    System.out.println("  - " + b.getNamaBarang() + " (Kategori: " + b.getKategori() +
+                            ", Kesegaran: " + b.getKesegaran() + ", HargaBeli: " + b.getHargaBeli() + ")");
                     if (b.getNamaBarang().equals(nama) && b.getKategori().equals(kategori) &&
                             b.getKesegaran() == kesegaran && b.getHargaBeli() == hargaBeli) {
                         targetBarang = b;
+                        System.out.println("    -> FOUND MATCH!");
                         break;
                     }
+                }
+
+                if (targetBarang == null) {
+                    System.out.println("Debug: No matching barang found!");
                 }
                 if (targetBarang != null) {
                     // Get the actual gerobak capacity from inventory
@@ -1032,7 +1054,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             if (selectedRow != -1) {
                 try {
                     max = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 4).toString());
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             jumlahField.setText(String.valueOf(max));
         });
@@ -1040,8 +1063,10 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             try {
                 int val = Integer.parseInt(jumlahField.getText().trim());
                 int min = 1;
-                if (val > min) jumlahField.setText(String.valueOf(val - 1));
-            } catch (Exception ignored) {}
+                if (val > min)
+                    jumlahField.setText(String.valueOf(val - 1));
+            } catch (Exception ignored) {
+            }
         });
         plusJumlahBtn.addActionListener(_ -> {
             int max = 1;
@@ -1049,12 +1074,15 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             if (selectedRow != -1) {
                 try {
                     max = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 4).toString());
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             try {
                 int val = Integer.parseInt(jumlahField.getText().trim());
-                if (val < max) jumlahField.setText(String.valueOf(val + 1));
-            } catch (Exception ignored) {}
+                if (val < max)
+                    jumlahField.setText(String.valueOf(val + 1));
+            } catch (Exception ignored) {
+            }
         });
         minHargaBtn.addActionListener(_ -> {
             int min = 1;
@@ -1066,12 +1094,14 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
                     // Cari barang di inventory
                     for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
-                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) && b.getKesegaran() == kesegaran) {
+                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori)
+                                && b.getKesegaran() == kesegaran) {
                             min = b.getHargaBeli();
                             break;
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             hargaField.setText(String.valueOf(min));
         });
@@ -1084,12 +1114,14 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     String kategori = gerobakNoPriceTable.getValueAt(selectedRow, 2).toString();
                     int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
                     for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
-                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) && b.getKesegaran() == kesegaran) {
+                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori)
+                                && b.getKesegaran() == kesegaran) {
                             max = b.getHargaBeli() * 3;
                             break;
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             hargaField.setText(String.valueOf(max));
         });
@@ -1102,17 +1134,21 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     String kategori = gerobakNoPriceTable.getValueAt(selectedRow, 2).toString();
                     int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
                     for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
-                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) && b.getKesegaran() == kesegaran) {
+                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori)
+                                && b.getKesegaran() == kesegaran) {
                             min = b.getHargaBeli();
                             break;
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             try {
                 int val = Integer.parseInt(hargaField.getText().trim());
-                if (val > min) hargaField.setText(String.valueOf(val - 1));
-            } catch (Exception ignored) {}
+                if (val > min)
+                    hargaField.setText(String.valueOf(val - 1));
+            } catch (Exception ignored) {
+            }
         });
         plusHargaBtn.addActionListener(_ -> {
             int max = 999999;
@@ -1123,17 +1159,21 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     String kategori = gerobakNoPriceTable.getValueAt(selectedRow, 2).toString();
                     int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
                     for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
-                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) && b.getKesegaran() == kesegaran) {
+                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori)
+                                && b.getKesegaran() == kesegaran) {
                             max = b.getHargaBeli() * 3;
                             break;
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
             }
             try {
                 int val = Integer.parseInt(hargaField.getText().trim());
-                if (val < max) hargaField.setText(String.valueOf(val + 1));
-            } catch (Exception ignored) {}
+                if (val < max)
+                    hargaField.setText(String.valueOf(val + 1));
+            } catch (Exception ignored) {
+            }
         });
         minJumlahBtn.setFocusable(false);
         maxJumlahBtn.setFocusable(false);
@@ -1365,12 +1405,41 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
     // Update method refreshInventoryAndGerobak()
     public void refreshInventoryAndGerobak() {
+        System.out.println("Debug: refreshInventoryAndGerobak() called");
+
+        // Update all table data models
         updateGoodsTable(currentSortBy, currentSortOrder);
         updateGerobakTables();
         updateItemGerobakTable();
 
+        // Force table model change events and repaint for all tables
+        if (goodsTable != null) {
+            DefaultTableModel model = (DefaultTableModel) goodsTable.getModel();
+            model.fireTableDataChanged();
+            goodsTable.revalidate();
+            goodsTable.repaint();
+            System.out.println("Debug: goodsTable refreshed and model fired");
+        }
+
+        if (gerobakNoPriceTable != null) {
+            DefaultTableModel model = (DefaultTableModel) gerobakNoPriceTable.getModel();
+            model.fireTableDataChanged();
+            gerobakNoPriceTable.revalidate();
+            gerobakNoPriceTable.repaint();
+            System.out.println("Debug: gerobakNoPriceTable refreshed and model fired");
+        }
+
+        if (gerobakWithPriceTable != null) {
+            DefaultTableModel model = (DefaultTableModel) gerobakWithPriceTable.getModel();
+            model.fireTableDataChanged();
+            gerobakWithPriceTable.revalidate();
+            gerobakWithPriceTable.repaint();
+            System.out.println("Debug: gerobakWithPriceTable refreshed and model fired");
+        }
+
         // Also update items table if inventory frame is open
         if (inventoryFrame != null && inventoryFrame.isVisible()) {
+            System.out.println("Debug: Inventory frame is open, updating items table");
             JTabbedPane tabPane = null;
             for (Component c : inventoryFrame.getContentPane().getComponents()) {
                 if (c instanceof JTabbedPane) {
@@ -1409,10 +1478,17 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     if (itemsTable != null && countLabel != null) {
                         int filterIndex = filterCombo != null ? filterCombo.getSelectedIndex() : 0;
                         updateItemsTable(itemsTable, countLabel, filterIndex);
+                        DefaultTableModel model = (DefaultTableModel) itemsTable.getModel();
+                        model.fireTableDataChanged();
+                        itemsTable.revalidate();
+                        itemsTable.repaint();
+                        System.out.println("Debug: items table in inventory frame refreshed and model fired");
                     }
                 }
             }
         }
+
+        System.out.println("Debug: refreshInventoryAndGerobak() completed");
     }
 
     private void moveItemToGerobak(JTable itemsTable) {
@@ -1817,6 +1893,11 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
     public void setBackToGameCallback(Runnable callback) {
         this.backToGameCallback = callback;
+    }
+
+    // Add setter for sleep callback
+    public void setOnSleepCallback(Runnable callback) {
+        this.onSleepCallback = callback;
     }
 
     /**
@@ -2329,9 +2410,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         int totalBarang = inventory != null ? inventory.getJumlahBarang() : 0;
         int totalItem = inventory != null ? inventory.getStokItem().size() : 0;
         int totalPerk = player != null ? player.getSemuaPerkDimiliki().size() : 0;
-        int gerobakLevel = (inventory != null && inventory.getGerobak() != null) ? inventory.getGerobak().getLevel() : 0;
-        // int totalTransaksi = player != null ? player.getTotalTransaksi() : 0; // Komentari, tidak ada di Player
-        // int totalUntung = player != null ? player.getTotalUntung() : 0; // Komentari, tidak ada di Player
+        int gerobakLevel = (inventory != null && inventory.getGerobak() != null) ? inventory.getGerobak().getLevel()
+                : 0;
+        // int totalTransaksi = player != null ? player.getTotalTransaksi() : 0; //
+        // Komentari, tidak ada di Player
+        // int totalUntung = player != null ? player.getTotalUntung() : 0; // Komentari,
+        // tidak ada di Player
 
         // Tambahkan label statistik
         statsPanel.add(makeStatsLabel("Nama Pemain:", username));
@@ -2340,7 +2424,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         statsPanel.add(makeStatsLabel("Total Item Dimiliki:", String.valueOf(totalItem)));
         statsPanel.add(makeStatsLabel("Total Perk Dimiliki:", String.valueOf(totalPerk)));
         statsPanel.add(makeStatsLabel("Level Gerobak:", String.valueOf(gerobakLevel)));
-        // statsPanel.add(makeStatsLabel("Total Transaksi:", String.valueOf(totalTransaksi)));
+        // statsPanel.add(makeStatsLabel("Total Transaksi:",
+        // String.valueOf(totalTransaksi)));
         // statsPanel.add(makeStatsLabel("Total Keuntungan:", totalUntung + "G"));
 
         // Spacer
@@ -2388,9 +2473,132 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     }
 
     private void sleepAndAdvanceDay() {
-        currentDay++;
-        player.setHasSlept(true);
-        if (onSleepCallback != null) onSleepCallback.run();
-        JOptionPane.showMessageDialog(this, "Hari berganti! Sekarang hari ke-" + currentDay + ". Arena trigger zone akan direset saat kamu ke kota lain.", "Sleep", JOptionPane.INFORMATION_MESSAGE);
+        // Create integrated medieval-themed sleep dialog
+        JDialog sleepDialog = createMedievalSleepDialog();
+        sleepDialog.setVisible(true);
+    }
+
+    // Create integrated medieval-themed sleep dialog
+    private JDialog createMedievalSleepDialog() {
+        JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this), "Sleep", true);
+        dialog.setSize(450, 280);
+        dialog.setLocationRelativeTo(this);
+        dialog.setResizable(false);
+        dialog.setLayout(new BorderLayout());
+
+        // Medieval color scheme
+        Color parchment = new Color(241, 233, 210);
+        Color border = new Color(120, 90, 30);
+        dialog.getContentPane().setBackground(parchment); // Info hari
+        JLabel dialogDayLabel = new JLabel("Day " + currentDay, JLabel.CENTER);
+        dialogDayLabel.setFont(new Font("Serif", Font.BOLD, 36));
+        dialogDayLabel.setForeground(new Color(120, 90, 30)); // Medieval brown color to match theme
+        dialogDayLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
+        dialog.add(dialogDayLabel, BorderLayout.NORTH);
+
+        // Info text
+        JLabel infoLabel = new JLabel("<html><center>Apakah Anda ingin tidur dan melanjutkan ke hari berikutnya?<br>" +
+                "Kota akan diperbarui dan kesegaran barang akan berkurang.</center></html>", JLabel.CENTER);
+        infoLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+        infoLabel.setForeground(border);
+        infoLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 10, 20));
+        dialog.add(infoLabel, BorderLayout.CENTER);
+
+        // Panel tombol
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setBackground(parchment);
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 32, 20));
+
+        // Sleep button
+        JButton sleepButton = new JButton("💤 Tidur");
+        sleepButton.setFont(new Font("Serif", Font.BOLD, 20));
+        sleepButton.setBackground(new Color(120, 180, 120));
+        sleepButton.setForeground(Color.WHITE);
+        sleepButton.setFocusPainted(false);
+        sleepButton.setPreferredSize(new Dimension(140, 48));
+        sleepButton.addActionListener(_ -> {
+            currentDay++;
+            updateDayLabel();
+            player.setHasSlept(true);
+
+            // IMPORTANT: Reduce freshness FIRST before any UI updates
+            System.out.println("Player sleeps. Day advanced to: " + currentDay);
+            if (inventory != null) {
+                inventory.kurangiKesegaranSemua();
+                System.out.println("Debug: Freshness reduced for all items");
+            }
+
+            // Call the sleep callback after freshness is reduced
+            if (onSleepCallback != null) {
+                onSleepCallback.run();
+            }
+
+            // Force immediate UI refresh on EDT
+            SwingUtilities.invokeLater(() -> {
+                System.out.println("Debug: Starting UI refresh after sleep");
+
+                // Refresh all tables and UI components
+                refreshInventoryAndGerobak();
+
+                // Force additional table updates to ensure freshness changes are visible
+                if (goodsTable != null) {
+                    ((DefaultTableModel) goodsTable.getModel()).fireTableDataChanged();
+                    goodsTable.revalidate();
+                    goodsTable.repaint();
+                    System.out.println("Debug: goodsTable force updated");
+                }
+
+                if (gerobakNoPriceTable != null) {
+                    ((DefaultTableModel) gerobakNoPriceTable.getModel()).fireTableDataChanged();
+                    gerobakNoPriceTable.revalidate();
+                    gerobakNoPriceTable.repaint();
+                    System.out.println("Debug: gerobakNoPriceTable force updated");
+                }
+
+                if (gerobakWithPriceTable != null) {
+                    ((DefaultTableModel) gerobakWithPriceTable.getModel()).fireTableDataChanged();
+                    gerobakWithPriceTable.revalidate();
+                    gerobakWithPriceTable.repaint();
+                    System.out.println("Debug: gerobakWithPriceTable force updated");
+                }
+
+                // Force refresh of inventory frame if it's open
+                if (inventoryFrame != null && inventoryFrame.isVisible()) {
+                    updateGoodsTable(currentSortBy, currentSortOrder);
+                    updateItemsTableInCurrentTab();
+                    System.out.println("Debug: inventory frame tables updated");
+                }
+
+                System.out.println("Debug: UI refresh completed, showing success message");
+
+                // Show success message AFTER all updates are complete
+                JOptionPane.showMessageDialog(this,
+                        "Hari baru telah dimulai!\n" +
+                                "• Kota telah diperbarui dengan pembeli baru\n" +
+                                "• Kesegaran semua barang telah berkurang\n" +
+                                "• Hari ke-" + currentDay + " dimulai",
+                        "Tidur Berhasil",
+                        JOptionPane.INFORMATION_MESSAGE);
+            });
+
+            dialog.dispose();
+        });
+        buttonPanel.add(sleepButton);
+
+        // Stay awake button
+        JButton stayAwakeButton = new JButton("✖ Tetap Terjaga");
+        stayAwakeButton.setFont(new Font("Serif", Font.BOLD, 20));
+        stayAwakeButton.setBackground(new Color(180, 120, 60));
+        stayAwakeButton.setForeground(Color.WHITE);
+        stayAwakeButton.setFocusPainted(false);
+        stayAwakeButton.setPreferredSize(new Dimension(180, 48));
+        stayAwakeButton.addActionListener(_ -> {
+            System.out.println("Player stays awake. Day: " + currentDay);
+            dialog.dispose();
+        });
+        buttonPanel.add(stayAwakeButton);
+
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        return dialog;
     }
 }

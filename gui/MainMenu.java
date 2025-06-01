@@ -112,6 +112,15 @@ public class MainMenu extends JFrame {
             this.gamePanel.requestFocusInWindow();
         });
 
+        // Set up sleep callback to trigger random zone regeneration
+        this.homeBasePanel.setOnSleepCallback(() -> {
+            System.out.println("MainMenu: Sleep callback triggered - refreshing random zones");
+            // The GamePanel will check player.isHasSlept() when switching maps or on panel
+            // shown
+            // Force refresh the current map content to regenerate zones
+            this.gamePanel.onPanelShown();
+        });
+
         // Set auto-save callbacks for transaction panels
         this.supplierPanel.setAutoSaveCallback(() -> performAutoSave());
         this.tokoItemPanel.setAutoSaveCallback(() -> performAutoSave());

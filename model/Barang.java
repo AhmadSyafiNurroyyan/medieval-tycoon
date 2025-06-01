@@ -36,7 +36,10 @@ public class Barang implements Showable {
     }
 
     public void kurangiKesegaran() {
+        int oldKesegaran = kesegaran;
         kesegaran = kesegaran - 25;
+        System.out.println("Debug: " + nama + " (kategori: " + kategori + ") freshness reduced from " +
+                oldKesegaran + " to " + kesegaran);
     }
 
     public boolean isBusuk() {
@@ -72,7 +75,9 @@ public class Barang implements Showable {
         System.out.println(nama);
         System.out.println(iconPath);
         System.out.println("Rp" + hargaBeli);
-    }    @Override
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
@@ -80,10 +85,10 @@ public class Barang implements Showable {
             return false;
         Barang barang = (Barang) obj;
         return Objects.equals(nama, barang.nama) &&
-               Objects.equals(kategori, barang.kategori) &&
-               hargaBeli == barang.hargaBeli &&
-               kesegaran == barang.kesegaran &&
-               Objects.equals(iconPath, barang.iconPath);
+                Objects.equals(kategori, barang.kategori) &&
+                hargaBeli == barang.hargaBeli &&
+                kesegaran == barang.kesegaran &&
+                Objects.equals(iconPath, barang.iconPath);
     }
 
     @Override

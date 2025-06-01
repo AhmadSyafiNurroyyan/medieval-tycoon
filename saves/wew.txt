@@ -1,15 +1,16 @@
 === PLAYER_DATA ===
-USERNAME:dsdsd
-ID:82154113
+USERNAME:wew
+ID:85716052
 LEVEL:1
-MONEY:70000
+MONEY:30000
 CURRENT_DAY:1
 
 === INVENTORY_BARANG ===
-BARANG:Semangka,Buah,30000,100,1
+BARANG:Nanas,Buah,10000,100,1
 // Format: nama,kategori,hargaBeli,kesegaran,jumlah
 
 === INVENTORY_ITEM ===
+ITEM:Peluit,1,false,false
 // Format: nama,level,active,inGerobak
 
 === GEROBAK ===
@@ -22,7 +23,7 @@ BIAYA_UPGRADE:100000
 // Format: nama,kategori,hargaBeli,kesegaran,jumlah,hargaJual
 
 === PERKS ===
-OWNED_PERK:Elegan,0,true
+OWNED_PERK:Active,0,true
 // Format: nama,level,owned/active
 
 === GAME_PROGRESS ===
