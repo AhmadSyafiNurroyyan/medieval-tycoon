@@ -256,9 +256,15 @@ public class GamePanel extends JPanel implements Runnable {
         int px = playerMovement.getX() - camera.getX() - playerMovement.getSpriteWidth() / 2;
         int py = playerMovement.getY() - camera.getY() - playerMovement.getSpriteHeight() / 2;
         PlayerSkin.render(g, px, py, playerMovement.getCurrentFrame());
-        mapObjectManager.draw(g2d, camera.getX(), camera.getY());
-
-        DebugTriggerZoneRender.drawAllZones(g2d, triggerZoneManager, camera);
+        mapObjectManager.draw(g2d, camera.getX(), camera.getY());        // Render trigger zones selectively: NPCs for random zones, debug boxes for others
+        if ("map2".equals(currentMap) && randomTriggerZoneManager != null) {
+            // On map2: Show debug boxes for non-random zones, NPCs for random zones
+            DebugTriggerZoneRender.drawNonRandomZones(g2d, triggerZoneManager, camera);
+            randomTriggerZoneManager.getNPCVisualManager().renderAllNPCs(g2d, camera, triggerZoneManager);
+        } else {
+            // On other maps: Show debug boxes for all zones
+            DebugTriggerZoneRender.drawAllZones(g2d, triggerZoneManager, camera);
+        }
 
         drawMoneyInfo(g2d);
         drawUID(g2d);
@@ -652,13 +658,12 @@ public class GamePanel extends JPanel implements Runnable {
                         JOptionPane.INFORMATION_MESSAGE);
             }
         }
-    }
-
-    /**
+    }    /**
      * Advance the day, increment currentDay, and reset daily item effects
      */
     public void advanceDay() {
         currentDay++;
+        System.out.println("GamePanel: Day advanced to " + currentDay);
         if (player != null) {
             if (itemEffectManager == null) {
                 itemEffectManager = new ItemEffectManager(player);

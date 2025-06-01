@@ -9,7 +9,7 @@ import model.PerkEffectManager;
 import model.Player;
 
 /**
- * Manages random trigger zones with non-overlapping placement
+ * Manages random trigger zones with non-overlapping placement and NPC visuals
  */
 public class RandomTriggerZoneManager {    
     private static final int MIN_ZONES = 3;
@@ -17,17 +17,27 @@ public class RandomTriggerZoneManager {
     private static final int ZONE_WIDTH = 128;
     private static final int ZONE_HEIGHT = 128;
     private static final int MIN_SPACING = 20; // Minimum spacing between zones
-      private final List<Rectangle> placedZones;
+    private final List<Rectangle> placedZones;
     private final List<Pembeli> zoneBuyers; // List of Pembeli for each zone
     private final List<String> zoneIds; // Track zone IDs corresponding to placedZones
     private TransactionsGUI dialogSystem;
     private Player player;
-      public RandomTriggerZoneManager() {
+    private final NPCVisualManager npcVisualManager; // Visual management for NPCs
+      
+    public RandomTriggerZoneManager() {
         this.placedZones = new ArrayList<>();
         this.zoneBuyers = new ArrayList<>();
         this.zoneIds = new ArrayList<>();
         this.dialogSystem = null;
         this.player = null;
+        this.npcVisualManager = new NPCVisualManager();
+    }
+    
+    /**
+     * Get the NPC visual manager
+     */
+    public NPCVisualManager getNPCVisualManager() {
+        return npcVisualManager;
     }
     
     /**
@@ -119,11 +129,12 @@ public class RandomTriggerZoneManager {
                     zoneIds.add(zoneId); // Store the zone ID
                     triggerZoneManager.addZone(zoneId, x, y, x + width, y + height, true, () -> {
                         handleRandomZoneTriggered(x, y, width, height);
-                    });
-                    
-                    // Generate Pembeli for this zone
+                    });                    // Generate Pembeli for this zone
                     Pembeli pembeli = (player != null) ? PerkEffectManager.createBuyerWithPerks(player) : Pembeli.buatPembeliAcak();
                     zoneBuyers.add(pembeli);
+                    
+                    // Register NPC visual for this zone
+                    npcVisualManager.registerNPC(zoneId, pembeli, x, y, width, height);
                     
                     placed = true;
                     successfullyPlaced++;
@@ -231,11 +242,13 @@ public class RandomTriggerZoneManager {
      */
     public List<Rectangle> getPlacedZones() {
         return new ArrayList<>(placedZones);
-    }
-      /**
+    }    /**
      * Clear all placed zones
      */
     public void clearZones() {
+        // Remove all NPC visuals first
+        npcVisualManager.clearAllNPCs();
+        
         placedZones.clear();
         zoneBuyers.clear();
         zoneIds.clear();
@@ -264,9 +277,12 @@ public class RandomTriggerZoneManager {
                 zoneIds.add(zoneId); // Store the zone ID
                 triggerZoneManager.addZone(zoneId, x, y, x + width, y + height, true, () -> {
                     handleRandomZoneTriggered(x, y, width, height);
-                });
-                Pembeli pembeli = (player != null) ? PerkEffectManager.createBuyerWithPerks(player) : Pembeli.buatPembeliAcak();
+                });                Pembeli pembeli = (player != null) ? PerkEffectManager.createBuyerWithPerks(player) : Pembeli.buatPembeliAcak();
                 zoneBuyers.add(pembeli);
+                
+                // Register NPC visual for this zone
+                npcVisualManager.registerNPC(zoneId, pembeli, x, y, width, height);
+                
                 System.out.println("[Peluit] Spawned single random zone at (" + x + "," + y + ")");
                 return true;
             }
@@ -295,10 +311,12 @@ public class RandomTriggerZoneManager {
             System.out.println("[RandomTriggerZoneManager] Zone ID not found in local lists: " + zoneId);
             return false;
         }
-        
-        // Remove from TriggerZoneManager first
+          // Remove from TriggerZoneManager first
         triggerZoneManager.removeZoneById(zoneId);
         System.out.println("[RandomTriggerZoneManager] Removed zone from TriggerZoneManager: " + zoneId);
+        
+        // Remove NPC visual for this zone
+        npcVisualManager.removeNPC(zoneId);
         
         // Remove from our local lists (maintaining synchronization)
         placedZones.remove(index);

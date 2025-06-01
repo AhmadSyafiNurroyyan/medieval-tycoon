@@ -556,19 +556,73 @@ public class TransactionsGUI extends JPanel {
         sellButton.addActionListener(e -> startSelling());
         sellButton.setEnabled(true);
         add(sellButton);
-        currentY += buttonHeight + buttonGap;
-
-        // Price input field for counter offers (label removed)
-        pricePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        currentY += buttonHeight + buttonGap;        // Price input field for counter offers with increment/decrement buttons
+        pricePanel = new JPanel();
+        pricePanel.setLayout(null); // Use absolute positioning for precise control
         pricePanel.setOpaque(false);
         pricePanel.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, fieldHeight);
         pricePanel.setVisible(false);
         add(pricePanel);
-        priceField = new JTextField(20);
+        
+        // Calculate button dimensions and positions
+        int smallButtonWidth = 50;
+        int smallButtonHeight = fieldHeight;
+        int priceFieldWidth = 120;
+        int spacing = 5;
+        
+        // Calculate total width needed
+        int totalContentWidth = (smallButtonWidth * 4) + (spacing * 4) + priceFieldWidth + (spacing * 4);
+        int startX = (tradingWidth - totalContentWidth) / 2;
+        
+        // Left side decrement buttons (-10000, -1000, -100, -)
+        JButton minus10000Button = StyledButton.create("-10000", 10, smallButtonWidth, smallButtonHeight);
+        minus10000Button.setBounds(startX, 0, smallButtonWidth, smallButtonHeight);
+        minus10000Button.addActionListener(e -> adjustPrice(-10000));
+        pricePanel.add(minus10000Button);
+        
+        JButton minus1000Button = StyledButton.create("-1000", 10, smallButtonWidth, smallButtonHeight);
+        minus1000Button.setBounds(startX + smallButtonWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
+        minus1000Button.addActionListener(e -> adjustPrice(-1000));
+        pricePanel.add(minus1000Button);
+        
+        JButton minus100Button = StyledButton.create("-100", 10, smallButtonWidth, smallButtonHeight);
+        minus100Button.setBounds(startX + (smallButtonWidth + spacing) * 2, 0, smallButtonWidth, smallButtonHeight);
+        minus100Button.addActionListener(e -> adjustPrice(-100));
+        pricePanel.add(minus100Button);
+        
+        JButton minus1Button = StyledButton.create("-", 12, smallButtonWidth, smallButtonHeight);
+        minus1Button.setBounds(startX + (smallButtonWidth + spacing) * 3, 0, smallButtonWidth, smallButtonHeight);
+        minus1Button.addActionListener(e -> adjustPrice(-1));
+        pricePanel.add(minus1Button);
+        
+        // Price input field in center
+        priceField = new JTextField();
         priceField.setHorizontalAlignment(JTextField.CENTER);
         priceField.setFont(new Font("Serif", Font.PLAIN, 14));
-        priceField.setPreferredSize(new Dimension(100, fieldHeight));
+        priceField.setBounds(startX + (smallButtonWidth + spacing) * 4, 0, priceFieldWidth, fieldHeight);
         pricePanel.add(priceField);
+        
+        // Right side increment buttons (+, +100, +1000, +10000)
+        JButton plus1Button = StyledButton.create("+", 12, smallButtonWidth, smallButtonHeight);
+        plus1Button.setBounds(startX + (smallButtonWidth + spacing) * 4 + priceFieldWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
+        plus1Button.addActionListener(e -> adjustPrice(1));
+        pricePanel.add(plus1Button);
+        
+        JButton plus100Button = StyledButton.create("+100", 10, smallButtonWidth, smallButtonHeight);
+        plus100Button.setBounds(startX + (smallButtonWidth + spacing) * 5 + priceFieldWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
+        plus100Button.addActionListener(e -> adjustPrice(100));
+        pricePanel.add(plus100Button);
+        
+        JButton plus1000Button = StyledButton.create("+1000", 10, smallButtonWidth, smallButtonHeight);
+        plus1000Button.setBounds(startX + (smallButtonWidth + spacing) * 6 + priceFieldWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
+        plus1000Button.addActionListener(e -> adjustPrice(1000));
+        pricePanel.add(plus1000Button);
+        
+        JButton plus10000Button = StyledButton.create("+10000", 10, smallButtonWidth, smallButtonHeight);
+        plus10000Button.setBounds(startX + (smallButtonWidth + spacing) * 7 + priceFieldWidth + spacing, 0, smallButtonWidth, smallButtonHeight);
+        plus10000Button.addActionListener(e -> adjustPrice(10000));
+        pricePanel.add(plus10000Button);
+        
         currentY += fieldHeight + buttonGap;
 
         // Accept Button - left side of center
@@ -838,6 +892,35 @@ public class TransactionsGUI extends JPanel {
         revalidate();
         repaint();
         System.out.println("DEBUG: repaint called");
+    }
+
+    /**
+     * Adjust the price field value by the specified amount
+     */
+    private void adjustPrice(int adjustment) {
+        try {
+            int currentPrice = 0;
+            String currentText = priceField.getText().trim();
+            
+            // Parse current price, default to 0 if empty or invalid
+            if (!currentText.isEmpty()) {
+                currentPrice = Integer.parseInt(currentText);
+            }
+            
+            // Apply adjustment
+            int newPrice = currentPrice + adjustment;
+            
+            // Ensure price doesn't go below 0
+            newPrice = Math.max(0, newPrice);
+            
+            // Update the price field
+            priceField.setText(String.valueOf(newPrice));
+            
+        } catch (NumberFormatException e) {
+            // If parsing fails, reset to 0 and apply adjustment
+            int newPrice = Math.max(0, adjustment);
+            priceField.setText(String.valueOf(newPrice));
+        }
     }
 
     private void acceptOffer() {
