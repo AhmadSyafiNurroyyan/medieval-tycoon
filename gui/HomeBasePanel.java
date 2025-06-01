@@ -37,7 +37,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
     private JTable itemGerobakTable;
     private JLabel lblJumlah, lblGerobakInfo;
     private Image bgImage, tetoImage;
-    private final int currentSortBy = 0, currentSortOrder = 0;    private JTextField jumlahField, hargaField;
+    private final int currentSortBy = 0, currentSortOrder = 0;
+    private JTextField jumlahField, hargaField;
     private JTabbedPane tabbedPane;
     private Gerobak gerobak; // Tambahkan sistem DayTime sederhana
     private int currentDay = 1;
@@ -179,7 +180,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             sortPanel.add(new JLabel("Order: "));
             sortPanel.add(orderCombo);
             goodsPanel.add(sortPanel, BorderLayout.NORTH);
-            goodsPanel.add(goodsScroll, BorderLayout.CENTER);            JButton btnHapus = StyledButton.create("Hapus Barang", 14, 150, 38);
+            goodsPanel.add(goodsScroll, BorderLayout.CENTER);
+            JButton btnHapus = StyledButton.create("Hapus Barang", 14, 150, 38);
             JButton btnMoveToGerobak = StyledButton.create("Move to Gerobak", 14, 180, 38);
             JButton btnBersihkanBusuk = StyledButton.create("Bersihkan Barang Busuk", 14, 180, 38);
 
@@ -295,7 +297,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
 
                 if (targetBarang == null) {
                     System.out.println("Debug: No matching barang found!");
-                }                if (targetBarang != null) {
+                }
+                if (targetBarang != null) {
                     // Check if item is rotten (kesegaran <= 0)
                     if (targetBarang.getKesegaran() <= 0) {
                         JOptionPane.showMessageDialog(this,
@@ -333,7 +336,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                     JOptionPane.showMessageDialog(this, "Barang tidak ditemukan di inventory.", "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
-            });            btnBersihkanBusuk.addActionListener(_ -> {
+            });
+            btnBersihkanBusuk.addActionListener(_ -> {
                 if (inventory == null) {
                     JOptionPane.showMessageDialog(this, "Inventory tidak tersedia!", "Error",
                             JOptionPane.ERROR_MESSAGE);
@@ -352,7 +356,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
                             "Sukses",
                             JOptionPane.INFORMATION_MESSAGE);
                     refreshInventoryAndGerobak();
-                }            });
+                }
+            });
 
             tabbedPane.addTab("Goods", goodsPanel);
 
@@ -2505,8 +2510,12 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             gamePanel.advanceDay(); // Sinkronkan hari dan reset efek harian item
             this.currentDay = gamePanel.getCurrentDay();
         }
-        if (onSleepCallback != null) onSleepCallback.run();
-        JOptionPane.showMessageDialog(this, "Hari berganti! Sekarang hari ke-" + currentDay + ". Arena trigger zone akan direset saat kamu ke kota lain.", "Sleep", JOptionPane.INFORMATION_MESSAGE);
+        if (onSleepCallback != null)
+            onSleepCallback.run();
+        JOptionPane.showMessageDialog(this,
+                "Hari berganti! Sekarang hari ke-" + currentDay
+                        + ". Arena trigger zone akan direset saat kamu ke kota lain.",
+                "Sleep", JOptionPane.INFORMATION_MESSAGE);
         // Create integrated medieval-themed sleep dialog
         JDialog sleepDialog = createMedievalSleepDialog();
         sleepDialog.setVisible(true);
@@ -2553,7 +2562,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         sleepButton.addActionListener(_ -> {
             currentDay++;
             updateDayLabel();
-            player.setHasSlept(true);            // IMPORTANT: Reduce freshness FIRST before any UI updates
+            player.setHasSlept(true); // IMPORTANT: Reduce freshness FIRST before any UI updates
             System.out.println("Player sleeps. Day advanced to: " + currentDay);
             if (inventory != null) {
                 inventory.kurangiKesegaranSemua();

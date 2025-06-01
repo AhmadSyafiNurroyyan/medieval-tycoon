@@ -63,18 +63,13 @@ public class TransactionsGUI extends JPanel {
 
     // References for trigger zone management
     private MapManager.TriggerZoneManager triggerZoneManager;
-    private String currentTriggerZoneId;    // --- Item JInternalFrame integration ---
+    private String currentTriggerZoneId; // --- Item JInternalFrame integration ---
     private JInternalFrame itemFrame;
     private JTable itemGerobakTable;
-
-<<<<<<< HEAD
-=======
-    private ItemEffectManager itemEffectManager;
 
     // --- Random trigger zone management ---
     private MapManager.RandomTriggerZoneManager randomTriggerZoneManager;
 
->>>>>>> 75b4bd2417f8093f02ffc07c9ebe1bd4eba6ee6a
     public TransactionsGUI(JPanel parentPanel) {
         this.parentPanel = parentPanel;
         this.isVisible = false;
@@ -695,7 +690,8 @@ public class TransactionsGUI extends JPanel {
             int hargaJual = currentPlayer.getInventory().getHargaJual(barang);
             System.out.println("[BUYER SELECTION DEBUG] Checking item: " + barang.getNamaBarang() +
                     " (freshness: " + barang.getKesegaran() +
-                    ", sell price: " + hargaJual + ")");            if (hargaJual > 0) { // HANYA barang yang sudah ada harga jualnya
+                    ", sell price: " + hargaJual + ")");
+            if (hargaJual > 0) { // HANYA barang yang sudah ada harga jualnya
                 // Calculate buyer interest based on freshness with Semproten enhancement
                 double freshnessMultiplier = calculateEnhancedFreshnessMultiplier(barang.getKesegaran());
                 double buyerInterest = Math.random() * freshnessMultiplier;
@@ -842,7 +838,9 @@ public class TransactionsGUI extends JPanel {
         revalidate();
         repaint();
         System.out.println("DEBUG: repaint called");
-    }    private void acceptOffer() {
+    }
+
+    private void acceptOffer() {
         // Transaksi SELALU berhasil saat Accept ditekan
         int finalUnitPrice = offerPrice;
         int finalTotalPrice = finalUnitPrice * selectedQuantity;
@@ -881,7 +879,9 @@ public class TransactionsGUI extends JPanel {
         // updateGerobakTablesLocal(); // Removed to prevent NPE if
         // gerobakWithPriceTable is null
         repaint();
-    }    private void counterOffer() {
+    }
+
+    private void counterOffer() {
         int counterUnitPrice = 0;
         int supplierUnitCost = 0;
         try {
@@ -889,21 +889,25 @@ public class TransactionsGUI extends JPanel {
             // Validate counter price is not below supplier cost (per unit)
             supplierUnitCost = selectedBarang.getHargaBeli();
             if (counterUnitPrice < supplierUnitCost) {
-                currentMessage = String.format("Harga counter terlalu rendah! Minimal harga satuan: %d (harga beli: %d)",
-                    supplierUnitCost, selectedBarang.getHargaBeli());
+                currentMessage = String.format(
+                        "Harga counter terlalu rendah! Minimal harga satuan: %d (harga beli: %d)",
+                        supplierUnitCost, selectedBarang.getHargaBeli());
                 // Pastikan tombol tetap aktif
-                if (acceptButton != null) acceptButton.setEnabled(true);
-                if (counterOfferButton != null) counterOfferButton.setEnabled(true);
-                if (declineButton != null) declineButton.setEnabled(true);
+                if (acceptButton != null)
+                    acceptButton.setEnabled(true);
+                if (counterOfferButton != null)
+                    counterOfferButton.setEnabled(true);
+                if (declineButton != null)
+                    declineButton.setEnabled(true);
                 repaint();
                 return;
             }
-            
+
             boolean accepted = currentPembeli.putuskanTransaksi(counterUnitPrice);
             if (!accepted && currentPembeli.chanceAcceptCounter(counterUnitPrice, offerPrice)) {
                 accepted = true;
             }
-              if (accepted) {
+            if (accepted) {
                 int counterTotalPrice = counterUnitPrice * selectedQuantity;
                 if (itemEffectManager != null) {
                     counterTotalPrice = itemEffectManager.applySemproten(counterTotalPrice);
@@ -916,42 +920,52 @@ public class TransactionsGUI extends JPanel {
                 int jumlahSekarang = barangDiGerobak.getOrDefault(selectedBarang, 0);
                 if (jumlahSekarang > selectedQuantity) {
                     barangDiGerobak.put(selectedBarang, jumlahSekarang - selectedQuantity);
-                    // updateGerobakTablesLocal(); // Removed to prevent NPE if gerobakWithPriceTable is null
+                    // updateGerobakTablesLocal(); // Removed to prevent NPE if
+                    // gerobakWithPriceTable is null
                 } else {
                     barangDiGerobak.remove(selectedBarang);
                     currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
-                    // updateGerobakTablesLocal(); // Removed to prevent NPE if gerobakWithPriceTable is null
+                    // updateGerobakTablesLocal(); // Removed to prevent NPE if
+                    // gerobakWithPriceTable is null
                 }
-                currentMessage = String.format("Counter offer diterima! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
-                    selectedBarang.getNamaBarang(), selectedQuantity, counterUnitPrice, counterTotalPrice);
+                currentMessage = String.format(
+                        "Counter offer diterima! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
+                        selectedBarang.getNamaBarang(), selectedQuantity, counterUnitPrice, counterTotalPrice);
                 deactivateConsumableItems();
                 transactionCompleted = true;
                 hideNegotiationButtons();
-                // When transaction is completed, ONLY show close button, never show sell button again
-                if (closeButton != null) closeButton.setVisible(true);
-                if (sellButton != null) sellButton.setVisible(false);
+                // When transaction is completed, ONLY show close button, never show sell button
+                // again
+                if (closeButton != null)
+                    closeButton.setVisible(true);
+                if (sellButton != null)
+                    sellButton.setVisible(false);
             } else {
                 // Buyer rejected, implement multi-round bargaining
                 String reason = null;
                 if (currentPembeli instanceof model.PembeliStandar) {
-                    reason = ((model.PembeliStandar)currentPembeli).getLastRejectionReason();
+                    reason = ((model.PembeliStandar) currentPembeli).getLastRejectionReason();
                 } else if (currentPembeli instanceof model.PembeliTajir) {
-                    reason = ((model.PembeliTajir)currentPembeli).getLastRejectionReason();
+                    reason = ((model.PembeliTajir) currentPembeli).getLastRejectionReason();
                 } else if (currentPembeli instanceof model.PembeliMiskin) {
-                    reason = ((model.PembeliMiskin)currentPembeli).getLastRejectionReason();
+                    reason = ((model.PembeliMiskin) currentPembeli).getLastRejectionReason();
                 }
                 if (reason != null && !reason.isEmpty()) {
                     currentMessage = reason;
                     // Negosiasi selesai jika reason diberikan
                     transactionCompleted = true;
                     hideNegotiationButtons();
-                    if (closeButton != null) closeButton.setVisible(true);
-                    if (sellButton != null) sellButton.setVisible(false);
+                    if (closeButton != null)
+                        closeButton.setVisible(true);
+                    if (sellButton != null)
+                        sellButton.setVisible(false);
                 } else {
                     int newOfferUnitPrice = currentPembeli.tawarHarga(counterUnitPrice);
                     if (newOfferUnitPrice != counterUnitPrice) {
                         offerPrice = Math.max(newOfferUnitPrice, supplierUnitCost); // Ensure not below cost
-                        currentMessage = String.format("Pembeli menolak offer-mu dan memberikan counter: %d per unit (Total: %d)", offerPrice, offerPrice * selectedQuantity);
+                        currentMessage = String.format(
+                                "Pembeli menolak offer-mu dan memberikan counter: %d per unit (Total: %d)", offerPrice,
+                                offerPrice * selectedQuantity);
                         priceField.setText(String.valueOf(offerPrice));
                         // Pastikan tombol tetap aktif dan visible
                         if (acceptButton != null) {
@@ -966,7 +980,8 @@ public class TransactionsGUI extends JPanel {
                             declineButton.setVisible(true);
                             declineButton.setEnabled(true);
                         }
-                        if (pricePanel != null) pricePanel.setVisible(true);
+                        if (pricePanel != null)
+                            pricePanel.setVisible(true);
                         // Jangan hide tombol, negosiasi lanjut
                         negotiationPhase = true;
                         repaint();
@@ -975,17 +990,22 @@ public class TransactionsGUI extends JPanel {
                         currentMessage = "Pembeli menolak counter offer mu dan mengakhiri negosiasi.";
                         transactionCompleted = true;
                         hideNegotiationButtons();
-                        if (closeButton != null) closeButton.setVisible(true);
-                        if (sellButton != null) sellButton.setVisible(false);
+                        if (closeButton != null)
+                            closeButton.setVisible(true);
+                        if (sellButton != null)
+                            sellButton.setVisible(false);
                     }
                 }
             }
         } catch (NumberFormatException e) {
             currentMessage = "Masukkan harga satuan yang valid!";
             // Pastikan tombol tetap aktif
-            if (acceptButton != null) acceptButton.setEnabled(true);
-            if (counterOfferButton != null) counterOfferButton.setEnabled(true);
-            if (declineButton != null) declineButton.setEnabled(true);
+            if (acceptButton != null)
+                acceptButton.setEnabled(true);
+            if (counterOfferButton != null)
+                counterOfferButton.setEnabled(true);
+            if (declineButton != null)
+                declineButton.setEnabled(true);
             repaint();
             return;
         }
@@ -1027,7 +1047,7 @@ public class TransactionsGUI extends JPanel {
             System.out.println("DEBUG: Attempting to remove zone: " + currentTriggerZoneId);
             System.out.println("DEBUG: randomTriggerZoneManager != null: " + (randomTriggerZoneManager != null));
             System.out.println("DEBUG: triggerZoneManager != null: " + (triggerZoneManager != null));
-            
+
             if (randomTriggerZoneManager != null && triggerZoneManager != null) {
                 boolean removed = randomTriggerZoneManager.removeZoneById(currentTriggerZoneId, triggerZoneManager);
                 System.out.println("DEBUG: Zone removal result: " + removed + " for zone: " + currentTriggerZoneId);
@@ -1322,18 +1342,25 @@ public class TransactionsGUI extends JPanel {
             JOptionPane.showMessageDialog(this, "Item ini hanya bisa digunakan otomatis atau di waktu tertentu!",
                     "Info", JOptionPane.WARNING_MESSAGE);
         }
-    }    /**
+    }
+
+    /**
      * Calculate buyer interest multiplier based on item freshness.
      * Fresh items (kesegaran > 75) get full interest.
      * Moderately fresh items (50-75) get reduced interest.
      * Low freshness items (25-50) get significantly reduced interest.
      * Very low freshness items (0-25) get minimal interest.
      * Rotten items (kesegaran <= 0) get almost no interest.
-     */    private double calculateFreshnessMultiplier(int kesegaran) {
-        if (kesegaran >= 76) return 1.0;
-        if (kesegaran >= 51) return 0.8;
-        if (kesegaran >= 26) return 0.6;
-        if (kesegaran >= 1) return 0.3;
+     */
+    private double calculateFreshnessMultiplier(int kesegaran) {
+        if (kesegaran >= 76)
+            return 1.0;
+        if (kesegaran >= 51)
+            return 0.8;
+        if (kesegaran >= 26)
+            return 0.6;
+        if (kesegaran >= 1)
+            return 0.3;
         return 0.1; // For kesegaran <= 0 (rotten items)
     }
 
@@ -1344,29 +1371,30 @@ public class TransactionsGUI extends JPanel {
      */
     private double calculateEnhancedFreshnessMultiplier(int kesegaran) {
         double baseFreshnessMultiplier = calculateFreshnessMultiplier(kesegaran);
-        
+
         // Check if player has active Semproten item
         if (itemEffectManager != null) {
             Item semproten = getActiveSemprotenItem();
             if (semproten != null) {
                 // Semproten adds bonus interest based on item level
-                // Level 1: +20% interest, Level 2: +25%, Level 3: +30%, Level 4: +35%, Level 5: +40%
+                // Level 1: +20% interest, Level 2: +25%, Level 3: +30%, Level 4: +35%, Level 5:
+                // +40%
                 double semprotenBonus = 0.15 + (semproten.getLevel() * 0.05);
                 double enhancedMultiplier = baseFreshnessMultiplier * (1.0 + semprotenBonus);
-                
-                System.out.println("[SEMPROTEN INTEREST EFFECT] Base interest: " + 
-                    String.format("%.2f", baseFreshnessMultiplier) + 
-                    ", Semproten Level " + semproten.getLevel() + " bonus: +" + 
-                    String.format("%.0f", semprotenBonus * 100) + "%" + 
-                    ", Enhanced interest: " + String.format("%.2f", enhancedMultiplier));
-                
+
+                System.out.println("[SEMPROTEN INTEREST EFFECT] Base interest: " +
+                        String.format("%.2f", baseFreshnessMultiplier) +
+                        ", Semproten Level " + semproten.getLevel() + " bonus: +" +
+                        String.format("%.0f", semprotenBonus * 100) + "%" +
+                        ", Enhanced interest: " + String.format("%.2f", enhancedMultiplier));
+
                 return Math.min(enhancedMultiplier, 1.5); // Cap at 150% to prevent overpowered effect
             }
         }
-        
+
         return baseFreshnessMultiplier;
     }
-    
+
     /**
      * Helper method to get active Semproten item from player's inventory
      */
@@ -1374,7 +1402,7 @@ public class TransactionsGUI extends JPanel {
         if (currentPlayer == null || currentPlayer.getInventory() == null) {
             return null;
         }
-        
+
         for (Item item : currentPlayer.getInventory().getStokItem()) {
             if (item.isSemproten() && item.isActive()) {
                 return item;
@@ -1387,16 +1415,20 @@ public class TransactionsGUI extends JPanel {
      * Calculate price multiplier based on item freshness for buyer offers.
      * Fresh items maintain full offer value.
      * Less fresh items receive progressively lower offers from buyers.
-     */    private double calculateFreshnessPriceMultiplier(int kesegaran) {
-        if (kesegaran >= 76) return 1.0;
-        if (kesegaran >= 51) return 0.8;
-        if (kesegaran >= 26) return 0.6;
-        if (kesegaran >= 1) return 0.3;
+     */
+    private double calculateFreshnessPriceMultiplier(int kesegaran) {
+        if (kesegaran >= 76)
+            return 1.0;
+        if (kesegaran >= 51)
+            return 0.8;
+        if (kesegaran >= 26)
+            return 0.6;
+        if (kesegaran >= 1)
+            return 0.3;
         return 0.1; // For kesegaran <= 0 (rotten items)
     }
-    
+
     public void setRandomTriggerZoneManager(RandomTriggerZoneManager mgr) {
         this.randomTriggerZoneManager = mgr;
     }
 }
-
