@@ -2490,18 +2490,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         p.add(v, BorderLayout.EAST);
         p.setMaximumSize(new Dimension(400, 32));
         return p;
-    }
-
+    }    
     private void sleepAndAdvanceDay() {
-        currentDay++;
-        player.setHasSlept(true);
-        if (gamePanel != null) {
-            gamePanel.advanceDay(); // Sinkronkan hari dan reset efek harian item
-            this.currentDay = gamePanel.getCurrentDay();
-        }
-        if (onSleepCallback != null) onSleepCallback.run();
-        JOptionPane.showMessageDialog(this, "Hari berganti! Sekarang hari ke-" + currentDay + ". Arena trigger zone akan direset saat kamu ke kota lain.", "Sleep", JOptionPane.INFORMATION_MESSAGE);
-        // Create integrated medieval-themed sleep dialog
         JDialog sleepDialog = createMedievalSleepDialog();
         sleepDialog.setVisible(true);
     }
@@ -2543,14 +2533,18 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         sleepButton.setBackground(new Color(120, 180, 120));
         sleepButton.setForeground(Color.WHITE);
         sleepButton.setFocusPainted(false);
-        sleepButton.setPreferredSize(new Dimension(140, 48));
+        sleepButton.setPreferredSize(new Dimension(140, 48));        
         sleepButton.addActionListener(_ -> {
-            currentDay++;
+            if (gamePanel != null) {
+                gamePanel.advanceDay(); // This will increment currentDay and reset daily item effects
+                this.currentDay = gamePanel.getCurrentDay(); // Sync with GamePanel's day counter
+                System.out.println("HomeBasePanel: Day synchronized with GamePanel: " + this.currentDay);
+            }
             updateDayLabel();
             player.setHasSlept(true);
 
             // IMPORTANT: Reduce freshness FIRST before any UI updates
-            System.out.println("Player sleeps. Day advanced to: " + currentDay);
+            System.out.println("Player sleeps. Day is now: " + currentDay);
             if (inventory != null) {
                 inventory.kurangiKesegaranSemua();
                 System.out.println("Debug: Freshness reduced for all items");
