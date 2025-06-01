@@ -117,15 +117,17 @@ public abstract class Perk implements Upgrade, Showable {
     }
 
     @Override
-    public abstract boolean upgradeLevel();    public boolean canConvertTo(PerkType targetType) {
+    public abstract boolean upgradeLevel();
+
+    public boolean canConvertTo(PerkType targetType) {
         // Validasi sama type tidak boleh convert ke dirinya sendiri
         if (this.type == targetType) {
             return false;
         }
-        
+
         // Aturan konversi berdasarkan spesifikasi:
         // • Elegan dapat diubah menjadi charming, tetapi tidak bisa menjadi active
-        // • Charming dapat diubah menjadi active, tapi tidak bisa menjadi elegan  
+        // • Charming dapat diubah menjadi active, tapi tidak bisa menjadi elegan
         // • Active dapat diubah menjadi elegan, tetapi tidak bisa menjadi charming
         if (this.type == PerkType.ELEGAN && targetType == PerkType.CHARMING) {
             return true;
@@ -139,6 +141,7 @@ public abstract class Perk implements Upgrade, Showable {
 
     /**
      * Mendapatkan perk type yang dapat dikonversi dari perk ini
+     * 
      * @return PerkType yang dapat dikonversi, atau null jika tidak ada
      */
     public PerkType getAllowedConversionTarget() {
@@ -159,28 +162,31 @@ public abstract class Perk implements Upgrade, Showable {
         if (targetType == null) {
             throw new PerkConversionException("Target perk type tidak boleh null.");
         }
-        
+
         // Validasi same type
         if (this.type == targetType) {
-            throw new PerkConversionException("Tidak dapat mengkonversi perk " + this.type.getNama() + " ke tipe yang sama.");
+            throw new PerkConversionException(
+                    "Tidak dapat mengkonversi perk " + this.type.getNama() + " ke tipe yang sama.");
         }
-        
+
         // Validasi level requirement - hanya boleh convert jika level > 0
         if (this.level <= 0) {
-            throw new PerkConversionException("Perk " + this.nama + " harus di-upgrade minimal ke level 1 sebelum dapat dikonversi.");
+            throw new PerkConversionException(
+                    "Perk " + this.nama + " harus di-upgrade minimal ke level 1 sebelum dapat dikonversi.");
         }
-        
+
         // Validasi conversion rules
         if (!canConvertTo(targetType)) {
             String allowedConversions = getAllowedConversionsString();
             throw new PerkConversionException(
-                "Konversi dari " + this.type.getNama() + " ke " + targetType.getNama() + " tidak diperbolehkan.\n" +
-                "Konversi yang diizinkan: " + allowedConversions
-            );
+                    "Konversi dari " + this.type.getNama() + " ke " + targetType.getNama() + " tidak diperbolehkan.\n" +
+                            "Konversi yang diizinkan: " + allowedConversions);
         }
-        
+
         this.type = targetType;
-    }      private String getAllowedConversionsString() {
+    }
+
+    private String getAllowedConversionsString() {
         switch (this.type) {
             case ELEGAN:
                 return "Elegan hanya dapat dikonversi ke Charming";

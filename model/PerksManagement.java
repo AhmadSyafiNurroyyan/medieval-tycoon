@@ -57,11 +57,12 @@ public class PerksManagement {
   public boolean hasAvailablePerkSlot(Player player) {
     return player.getSemuaPerkDimiliki().size() < 2;
   }
+
   public boolean hasConvertiblePerk(Player player, PerkType targetType) {
     if (player.hasPerk(targetType)) {
       return false; // Already has target perk
     }
-    
+
     // Check if player has any perk that can convert to the target type
     for (Perk perk : player.getSemuaPerkDimiliki()) {
       if (perk.canConvertTo(targetType)) {
@@ -70,6 +71,7 @@ public class PerksManagement {
     }
     return false;
   }
+
   public Perk getPlayerPerkByType(Player player, PerkType perkType) {
     for (Perk perk : player.getSemuaPerkDimiliki()) {
       if (perk.getPerkType() == perkType) {
@@ -78,6 +80,7 @@ public class PerksManagement {
     }
     return null;
   }
+
   public List<Perk> getConvertiblePerks(Player player, PerkType targetType) {
     List<Perk> convertiblePerks = new ArrayList<>();
     for (Perk perk : player.getSemuaPerkDimiliki()) {
@@ -90,8 +93,10 @@ public class PerksManagement {
 
   /**
    * Mendapatkan semua pilihan konversi yang tersedia untuk player
+   * 
    * @param player player yang akan dicek
-   * @return Map dengan key = perk yang dimiliki, value = target konversi yang diizinkan
+   * @return Map dengan key = perk yang dimiliki, value = target konversi yang
+   *         diizinkan
    */
   public Map<Perk, PerkType> getAvailableConversions(Player player) {
     Map<Perk, PerkType> conversions = new HashMap<>();
