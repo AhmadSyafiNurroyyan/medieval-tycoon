@@ -1,6 +1,7 @@
 package model;
 
 import enums.PerkType;
+import exceptions.PerkConversionException;
 
 public class PerksActive extends Perk {
     public PerksActive() {
@@ -119,17 +120,20 @@ public class PerksActive extends Perk {
                 " (random: " + String.format("%.3f", random) + ")");
 
         return result;
-    }
-
-    @Override
+    }    @Override
     public boolean upgradeLevel() {
-        if (!isMaxLevel()) {
-            level++;
-            System.out.println("Level sekarang: " + level); // Tambahkan ini
-            kesaktianSekarang += 0.5;
-            return true;
+        if (isMaxLevel()) {
+            throw new PerkConversionException("Perk " + getName() + " sudah mencapai level maksimum (" + MAX_LEVEL + ").");
         }
-        return false;
+        
+        if (!isActive) {
+            throw new PerkConversionException("Perk " + getName() + " harus diaktifkan terlebih dahulu sebelum dapat di-upgrade.");
+        }
+        
+        level++;
+        System.out.println("Level sekarang: " + level); // Tambahkan ini
+        kesaktianSekarang += 0.5;
+        return true;
     }
 
     @Override

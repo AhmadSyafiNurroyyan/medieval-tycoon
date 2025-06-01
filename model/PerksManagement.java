@@ -2,7 +2,9 @@ package model;
 
 import enums.PerkType;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PerksManagement {
 
@@ -76,7 +78,6 @@ public class PerksManagement {
     }
     return null;
   }
-
   public List<Perk> getConvertiblePerks(Player player, PerkType targetType) {
     List<Perk> convertiblePerks = new ArrayList<>();
     for (Perk perk : player.getSemuaPerkDimiliki()) {
@@ -85,5 +86,21 @@ public class PerksManagement {
       }
     }
     return convertiblePerks;
+  }
+
+  /**
+   * Mendapatkan semua pilihan konversi yang tersedia untuk player
+   * @param player player yang akan dicek
+   * @return Map dengan key = perk yang dimiliki, value = target konversi yang diizinkan
+   */
+  public Map<Perk, PerkType> getAvailableConversions(Player player) {
+    Map<Perk, PerkType> conversions = new HashMap<>();
+    for (Perk perk : player.getSemuaPerkDimiliki()) {
+      PerkType target = perk.getAllowedConversionTarget();
+      if (target != null && !player.hasPerk(target) && perk.getLevel() > 0) {
+        conversions.put(perk, target);
+      }
+    }
+    return conversions;
   }
 }
