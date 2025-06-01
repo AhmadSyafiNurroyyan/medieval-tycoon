@@ -29,7 +29,8 @@ public class PerksElegan extends Perk {
             return 0.0;
         }
         return level * 0.10;
-    }    public Pembeli buatPembeliDenganPerkElegan() {
+    }    
+    public Pembeli buatPembeliDenganPerkElegan() {
         if (!isActive || level == 0) {
             return Pembeli.buatPembeliAcak();
         }
@@ -42,5 +43,58 @@ public class PerksElegan extends Perk {
         System.out.println("[PERKS ELEGAN DEBUG] Level: " + level);
         System.out.println("[PERKS ELEGAN DEBUG] Random base: " + String.format("%.3f", randomBase) + " (" + String.format("%.1f", randomBase * 100) + "%)");
         System.out.println("[PERKS ELEGAN DEBUG] Perk multiplier: " + String.format("%.1f", perkMultiplier));
+        System.out.println("[PERKS ELEGAN DEBUG] Multiplication: " + String.format("%.3f", randomBase) + " × " + String.format("%.1f", perkMultiplier) + " = " + String.format("%.3f", multipliedValue));
+        System.out.println("[PERKS ELEGAN DEBUG] Final addition: " + String.format("%.3f", randomBase) + " + " + String.format("%.3f", multipliedValue) + " = " + String.format("%.3f", finalTajirChance));
+        System.out.println("[PERKS ELEGAN DEBUG] Final tajir chance: " + String.format("%.1f", finalTajirChance * 100) + "%");
+        double improvementPercent = (multipliedValue / randomBase) * 100;
+        System.out.println("[PERKS ELEGAN DEBUG] Perk impact: +" + String.format("%.1f", improvementPercent) + "% improvement from base");
+        double sisaPersentase = 1.0 - finalTajirChance;
+        double peluangStandar = sisaPersentase * 0.67;
+        double peluangMiskin = sisaPersentase - peluangStandar;
+        double random = Math.random();
+        String buyerType;
+        Pembeli result;
+        if (random < finalTajirChance) {
+            buyerType = "PembeliTajir";
+            result = new PembeliTajir();
+        } else if (random < finalTajirChance + peluangStandar) {
+            buyerType = "PembeliStandar";
+            result = new PembeliStandar();
+        } else {
+            buyerType = "PembeliMiskin";
+            result = new PembeliMiskin();
+        }
+        System.out.println("[PERKS ELEGAN DEBUG] Probabilities - Tajir: " + String.format("%.1f", finalTajirChance * 100) + 
+                          "%, Standar: " + String.format("%.1f", peluangStandar * 100) + 
+                          "%, Miskin: " + String.format("%.1f", peluangMiskin * 100) + "%");
+        System.out.println("[PERKS ELEGAN DEBUG] Generated: " + buyerType + 
+                          " (random: " + String.format("%.3f", random) + ")");
+        return result;
+    }
+
+    public double applyEleganBonus(Pembeli pembeli) {
+        if (!isActive || level == 0 || pembeli == null || !(pembeli instanceof PembeliTajir)) {
+            return pembeli != null ? pembeli.getMultiplier() : 1.0;
+        }
+        double bonus = 1.0 + (level * 0.02);
+        return pembeli.getMultiplier() * bonus;
+    }
+
+    @Override
+    public boolean upgradeLevel() {
+        if (!isMaxLevel()) {
+            level++;
+            System.out.println("Level sekarang: " + level);
+            kesaktianSekarang += 0.5;
+            return true;
+        }
+        return false;
+    }    @Override
+    public void tampilkanDetail() {
+        String detailLevel = "";
+        if (level > 0) {
+            detailLevel = " (Formula: randomBase(2-10%) + randomBase × " + String.format("%.1f", 0.5 * level) + " = enhanced tajir chance)";
+        }
+        System.out.println("[ELEGAN] " + nama + " Lv." + level + ": " + deskripsi + detailLevel);
     }
 }

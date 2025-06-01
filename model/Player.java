@@ -167,13 +167,12 @@ public class Player {
         private Image[][] sprites = new Image[4][4];
         private int direction = 0, frameIndex = 0, animDelay = 5, animCount = 0;
         private final int spriteWidth = 32;
-        private final int spriteHeight = 32;
-
+        private final int spriteHeight = 32;        
         public PlayerMovement() {
             for (int d = 0; d < sprites.length; d++) {
                 for (int f = 0; f < sprites[d].length; f++) {
                     sprites[d][f] = new ImageIcon(
-                            getClass().getResource("../assets/sprites/dir" + d + "_" + f + ".png")).getImage();
+                            getClass().getResource("/assets/sprites/dir" + d + "_" + f + ".png")).getImage();
                 }
             }
         }

@@ -476,7 +476,7 @@ public class TransactionsGUI extends JPanel {
         int startY = centerY - (totalElementsHeight / 2);
         int currentY = startY;
 
-        int fontSize = Math.max(16, Math.min(24, panelHeight / 10));
+        int fontSize = Math.max(2, Math.min(8, panelHeight / 10));
 
         sellButton = StyledButton.create("Start Selling", 20, tradingWidth, buttonHeight);
         sellButton.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, buttonHeight);

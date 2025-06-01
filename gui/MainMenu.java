@@ -58,14 +58,12 @@ public class MainMenu extends JFrame {
         } catch (Exception e) {
             System.err.println("Error loading font: " + e.getMessage());
             titleFont = new Font("Serif", Font.BOLD, 72);
-        }
-
-        JPanel background = new JPanel(new BorderLayout()) {
+        }        JPanel background = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 try {
-                    Image bgImg = new ImageIcon(getClass().getResource("../assets/backgrounds/MainMenu.png"))
+                    Image bgImg = new ImageIcon(getClass().getResource("/assets/backgrounds/MainMenu.png"))
                             .getImage();
                     g.drawImage(bgImg, 0, 0, getWidth(), getHeight(), this);
                 } catch (Exception e) {
@@ -150,14 +148,13 @@ public class MainMenu extends JFrame {
         JButton loadGameButton = StyledButton.create("Load Game");
         JButton settingsButton = StyledButton.create("Settings");
         JButton exitButton = StyledButton.create("Exit Game");
-        JButton createGameButton = StyledButton.create("Create New Game");
-
+        JButton createGameButton = StyledButton.create("Create New Game");        
         JPanel newGamePanel = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 try {
-                    Image bgImg = new ImageIcon(getClass().getResource("../assets/backgrounds/MainMenu.png"))
+                    Image bgImg = new ImageIcon(getClass().getResource("/assets/backgrounds/MainMenu.png"))
                             .getImage();
                     g.drawImage(bgImg, 0, 0, getWidth(), getHeight(), this);
                 } catch (Exception e) {
