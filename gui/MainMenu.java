@@ -9,7 +9,6 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import model.Inventory;
 import model.Player;
-import model.Supplier;
 import model.TextFileManager;
 
 public class MainMenu extends JFrame {

@@ -882,9 +882,7 @@ public class TransactionsGUI extends JPanel {
         // updateGerobakTablesLocal(); // Removed to prevent NPE if
         // gerobakWithPriceTable is null
         repaint();
-    }
-
-    private void counterOffer() {
+    }    private void counterOffer() {
         int counterUnitPrice = 0;
         int supplierUnitCost = 0;
         try {
@@ -900,10 +898,13 @@ public class TransactionsGUI extends JPanel {
                 if (declineButton != null) declineButton.setEnabled(true);
                 repaint();
                 return;
-            }            boolean accepted = currentPembeli.putuskanTransaksi(counterUnitPrice);
+            }
+            
+            boolean accepted = currentPembeli.putuskanTransaksi(counterUnitPrice);
             if (!accepted && currentPembeli.chanceAcceptCounter(counterUnitPrice, offerPrice)) {
                 accepted = true;
             }
+            
             if (accepted) {
                 int counterTotalPrice = counterUnitPrice * selectedQuantity;
                 if (itemEffectManager != null) {
@@ -930,52 +931,54 @@ public class TransactionsGUI extends JPanel {
                 // When transaction is completed, ONLY show close button, never show sell button again
                 if (closeButton != null) closeButton.setVisible(true);
                 if (sellButton != null) sellButton.setVisible(false);
-        } else {
-            // Buyer rejected, implement multi-round bargaining
-            String reason = null;
-            if (currentPembeli instanceof model.PembeliStandar) {
-                reason = ((model.PembeliStandar)currentPembeli).getLastRejectionReason();
-            } else if (currentPembeli instanceof model.PembeliTajir) {
-                reason = ((model.PembeliTajir)currentPembeli).getLastRejectionReason();
-            } else if (currentPembeli instanceof model.PembeliMiskin) {
-                reason = ((model.PembeliMiskin)currentPembeli).getLastRejectionReason();
-            }
-            if (reason != null && !reason.isEmpty()) {
-                currentMessage = reason;
-                // Negosiasi selesai jika reason diberikan
-                transactionCompleted = true;
-                hideNegotiationButtons();
-                if (closeButton != null) closeButton.setVisible(true);
-                if (sellButton != null) sellButton.setVisible(false);
             } else {
-                int newOfferUnitPrice = currentPembeli.tawarHarga(counterUnitPrice);
-                if (newOfferUnitPrice != counterUnitPrice) {
-                    offerPrice = Math.max(newOfferUnitPrice, supplierUnitCost); // Ensure not below cost
-                    currentMessage = String.format("Pembeli menolak offer-mu dan memberikan counter: %d per unit (Total: %d)", offerPrice, offerPrice * selectedQuantity);
-                    priceField.setText(String.valueOf(offerPrice));
-                    // Pastikan tombol tetap aktif dan visible
-                    if (acceptButton != null) {
-                        acceptButton.setVisible(true);
-                        acceptButton.setEnabled(true);
-                    }
-                    if (counterOfferButton != null) {
-                        counterOfferButton.setVisible(true);
-                        counterOfferButton.setEnabled(true);
-                    }
-                    if (declineButton != null) {
-                        declineButton.setVisible(true);
-                        declineButton.setEnabled(true);
-                    }
-                    if (pricePanel != null) pricePanel.setVisible(true);
-                    // Jangan hide tombol, negosiasi lanjut
-                    negotiationPhase = true;
-                    repaint();                    return;
-                } else {
-                    currentMessage = "Pembeli menolak counter offer mu dan mengakhiri negosiasi.";
+                // Buyer rejected, implement multi-round bargaining
+                String reason = null;
+                if (currentPembeli instanceof model.PembeliStandar) {
+                    reason = ((model.PembeliStandar)currentPembeli).getLastRejectionReason();
+                } else if (currentPembeli instanceof model.PembeliTajir) {
+                    reason = ((model.PembeliTajir)currentPembeli).getLastRejectionReason();
+                } else if (currentPembeli instanceof model.PembeliMiskin) {
+                    reason = ((model.PembeliMiskin)currentPembeli).getLastRejectionReason();
+                }
+                if (reason != null && !reason.isEmpty()) {
+                    currentMessage = reason;
+                    // Negosiasi selesai jika reason diberikan
                     transactionCompleted = true;
                     hideNegotiationButtons();
                     if (closeButton != null) closeButton.setVisible(true);
                     if (sellButton != null) sellButton.setVisible(false);
+                } else {
+                    int newOfferUnitPrice = currentPembeli.tawarHarga(counterUnitPrice);
+                    if (newOfferUnitPrice != counterUnitPrice) {
+                        offerPrice = Math.max(newOfferUnitPrice, supplierUnitCost); // Ensure not below cost
+                        currentMessage = String.format("Pembeli menolak offer-mu dan memberikan counter: %d per unit (Total: %d)", offerPrice, offerPrice * selectedQuantity);
+                        priceField.setText(String.valueOf(offerPrice));
+                        // Pastikan tombol tetap aktif dan visible
+                        if (acceptButton != null) {
+                            acceptButton.setVisible(true);
+                            acceptButton.setEnabled(true);
+                        }
+                        if (counterOfferButton != null) {
+                            counterOfferButton.setVisible(true);
+                            counterOfferButton.setEnabled(true);
+                        }
+                        if (declineButton != null) {
+                            declineButton.setVisible(true);
+                            declineButton.setEnabled(true);
+                        }
+                        if (pricePanel != null) pricePanel.setVisible(true);
+                        // Jangan hide tombol, negosiasi lanjut
+                        negotiationPhase = true;
+                        repaint();
+                        return;
+                    } else {
+                        currentMessage = "Pembeli menolak counter offer mu dan mengakhiri negosiasi.";
+                        transactionCompleted = true;
+                        hideNegotiationButtons();
+                        if (closeButton != null) closeButton.setVisible(true);
+                        if (sellButton != null) sellButton.setVisible(false);
+                    }
                 }
             }
         } catch (NumberFormatException e) {
@@ -986,54 +989,6 @@ public class TransactionsGUI extends JPanel {
             if (declineButton != null) declineButton.setEnabled(true);
             repaint();
             return;
-        }
-        // Buyer rejected, implement multi-round bargaining
-        String reason = null;
-        if (currentPembeli instanceof model.PembeliStandar) {
-            reason = ((model.PembeliStandar)currentPembeli).getLastRejectionReason();
-        } else if (currentPembeli instanceof model.PembeliTajir) {
-            reason = ((model.PembeliTajir)currentPembeli).getLastRejectionReason();
-        } else if (currentPembeli instanceof model.PembeliMiskin) {
-            reason = ((model.PembeliMiskin)currentPembeli).getLastRejectionReason();
-        }
-        if (reason != null && !reason.isEmpty()) {
-            currentMessage = reason;
-            // Negosiasi selesai jika reason diberikan
-            transactionCompleted = true;
-            hideNegotiationButtons();
-            if (closeButton != null) closeButton.setVisible(true);
-            if (sellButton != null) sellButton.setVisible(false);
-        } else {
-            int newOfferUnitPrice = currentPembeli.tawarHarga(counterUnitPrice);
-            if (newOfferUnitPrice != counterUnitPrice) {
-                offerPrice = Math.max(newOfferUnitPrice, supplierUnitCost); // Ensure not below cost
-                currentMessage = String.format("Pembeli menolak offer-mu dan memberikan counter: %d per unit (Total: %d)", offerPrice, offerPrice * selectedQuantity);
-                priceField.setText(String.valueOf(offerPrice));
-                // Pastikan tombol tetap aktif dan visible
-                if (acceptButton != null) {
-                    acceptButton.setVisible(true);
-                    acceptButton.setEnabled(true);
-                }
-                if (counterOfferButton != null) {
-                    counterOfferButton.setVisible(true);
-                    counterOfferButton.setEnabled(true);
-                }
-                if (declineButton != null) {
-                    declineButton.setVisible(true);
-                    declineButton.setEnabled(true);
-                }
-                if (pricePanel != null) pricePanel.setVisible(true);
-                // Jangan hide tombol, negosiasi lanjut
-                negotiationPhase = true;
-                repaint();
-                return;
-            } else {
-                currentMessage = "Pembeli menolak counter offer mu dan mengakhiri negosiasi.";
-                transactionCompleted = true;
-                hideNegotiationButtons();
-                if (closeButton != null) closeButton.setVisible(true);
-                if (sellButton != null) sellButton.setVisible(false);
-            }
         }
         repaint();
     }
@@ -1415,3 +1370,4 @@ public class TransactionsGUI extends JPanel {
         this.randomTriggerZoneManager = mgr;
     }
 }
+
