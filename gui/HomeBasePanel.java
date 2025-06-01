@@ -802,8 +802,13 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
             return;
         }
 
-        if (hargaJual > (2 * barangTarget.getHargaBeli())) {
-            JOptionPane.showMessageDialog(this, "Harga jual tidak boleh lebih dari 2 kali harga beli!", "Error",
+        if (hargaJual > (3 * barangTarget.getHargaBeli())) {
+            JOptionPane.showMessageDialog(this, "Harga jual tidak boleh lebih dari 3 kali harga beli!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (hargaJual < barangTarget.getHargaBeli()) {
+            JOptionPane.showMessageDialog(this, "Harga jual tidak boleh kurang dari harga beli!", "Error",
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -947,22 +952,56 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         centerPanel.setBorder(BorderFactory.createTitledBorder("Set Harga Jual Barang"));
         centerPanel.add(Box.createVerticalStrut(30));
 
+        // --- JUMLAH ---
         JLabel jumlahLabel = new JLabel("Jumlah:");
         jumlahLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerPanel.add(jumlahLabel);
+        JPanel jumlahPanel = new JPanel();
+        jumlahPanel.setLayout(new BoxLayout(jumlahPanel, BoxLayout.X_AXIS));
+        jumlahPanel.setOpaque(false);
+        JButton minJumlahBtn = StyledButton.create("Min", 12, 50, 28);
+        JButton minusJumlahBtn = StyledButton.create("-", 12, 40, 28);
+        JButton plusJumlahBtn = StyledButton.create("+", 12, 40, 28);
+        JButton maxJumlahBtn = StyledButton.create("Max", 12, 50, 28);
         jumlahField = new JTextField();
-        jumlahField.setMaximumSize(new Dimension(200, 30));
-        jumlahField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        centerPanel.add(jumlahField);
+        jumlahField.setMaximumSize(new Dimension(80, 30));
+        jumlahField.setHorizontalAlignment(JTextField.CENTER);
+        jumlahPanel.add(minJumlahBtn);
+        jumlahPanel.add(Box.createHorizontalStrut(4));
+        jumlahPanel.add(minusJumlahBtn);
+        jumlahPanel.add(Box.createHorizontalStrut(4));
+        jumlahPanel.add(jumlahField);
+        jumlahPanel.add(Box.createHorizontalStrut(4));
+        jumlahPanel.add(plusJumlahBtn);
+        jumlahPanel.add(Box.createHorizontalStrut(4));
+        jumlahPanel.add(maxJumlahBtn);
+        centerPanel.add(jumlahPanel);
         centerPanel.add(Box.createVerticalStrut(10));
 
+        // --- HARGA JUAL ---
         JLabel hargaLabel = new JLabel("Harga Jual:");
         hargaLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         centerPanel.add(hargaLabel);
+        JPanel hargaPanel = new JPanel();
+        hargaPanel.setLayout(new BoxLayout(hargaPanel, BoxLayout.X_AXIS));
+        hargaPanel.setOpaque(false);
+        JButton minHargaBtn = StyledButton.create("Min", 12, 50, 28);
+        JButton minusHargaBtn = StyledButton.create("-", 12, 40, 28);
+        JButton plusHargaBtn = StyledButton.create("+", 12, 40, 28);
+        JButton maxHargaBtn = StyledButton.create("Max", 12, 50, 28);
         hargaField = new JTextField();
-        hargaField.setMaximumSize(new Dimension(200, 30));
-        hargaField.setAlignmentX(Component.CENTER_ALIGNMENT);
-        centerPanel.add(hargaField);
+        hargaField.setMaximumSize(new Dimension(80, 30));
+        hargaField.setHorizontalAlignment(JTextField.CENTER);
+        hargaPanel.add(minHargaBtn);
+        hargaPanel.add(Box.createHorizontalStrut(4));
+        hargaPanel.add(minusHargaBtn);
+        hargaPanel.add(Box.createHorizontalStrut(4));
+        hargaPanel.add(hargaField);
+        hargaPanel.add(Box.createHorizontalStrut(4));
+        hargaPanel.add(plusHargaBtn);
+        hargaPanel.add(Box.createHorizontalStrut(4));
+        hargaPanel.add(maxHargaBtn);
+        centerPanel.add(hargaPanel);
         centerPanel.add(Box.createVerticalStrut(20));
 
         JButton setHargaBtn = StyledButton.create("Set Harga Jual", 13, 140, 32);
@@ -979,6 +1018,129 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         centerPanel.add(Box.createVerticalGlue());
         setHargaBtn.addActionListener(_ -> setHargaBarangGerobak());
         mainPanel.add(centerPanel);
+
+        // --- Button Logic ---
+        minJumlahBtn.addActionListener(_ -> {
+            int min = 1;
+            jumlahField.setText(String.valueOf(min));
+        });
+        maxJumlahBtn.addActionListener(_ -> {
+            int max = 1;
+            int selectedRow = gerobakNoPriceTable.getSelectedRow();
+            if (selectedRow != -1) {
+                try {
+                    max = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 4).toString());
+                } catch (Exception ignored) {}
+            }
+            jumlahField.setText(String.valueOf(max));
+        });
+        minusJumlahBtn.addActionListener(_ -> {
+            try {
+                int val = Integer.parseInt(jumlahField.getText().trim());
+                int min = 1;
+                if (val > min) jumlahField.setText(String.valueOf(val - 1));
+            } catch (Exception ignored) {}
+        });
+        plusJumlahBtn.addActionListener(_ -> {
+            int max = 1;
+            int selectedRow = gerobakNoPriceTable.getSelectedRow();
+            if (selectedRow != -1) {
+                try {
+                    max = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 4).toString());
+                } catch (Exception ignored) {}
+            }
+            try {
+                int val = Integer.parseInt(jumlahField.getText().trim());
+                if (val < max) jumlahField.setText(String.valueOf(val + 1));
+            } catch (Exception ignored) {}
+        });
+        minHargaBtn.addActionListener(_ -> {
+            int min = 1;
+            int selectedRow = gerobakNoPriceTable.getSelectedRow();
+            if (selectedRow != -1) {
+                try {
+                    String namaBarang = gerobakNoPriceTable.getValueAt(selectedRow, 1).toString();
+                    String kategori = gerobakNoPriceTable.getValueAt(selectedRow, 2).toString();
+                    int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
+                    // Cari barang di inventory
+                    for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
+                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) && b.getKesegaran() == kesegaran) {
+                            min = b.getHargaBeli();
+                            break;
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+            hargaField.setText(String.valueOf(min));
+        });
+        maxHargaBtn.addActionListener(_ -> {
+            int max = 999999;
+            int selectedRow = gerobakNoPriceTable.getSelectedRow();
+            if (selectedRow != -1) {
+                try {
+                    String namaBarang = gerobakNoPriceTable.getValueAt(selectedRow, 1).toString();
+                    String kategori = gerobakNoPriceTable.getValueAt(selectedRow, 2).toString();
+                    int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
+                    for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
+                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) && b.getKesegaran() == kesegaran) {
+                            max = b.getHargaBeli() * 3;
+                            break;
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+            hargaField.setText(String.valueOf(max));
+        });
+        minusHargaBtn.addActionListener(_ -> {
+            int min = 1;
+            int selectedRow = gerobakNoPriceTable.getSelectedRow();
+            if (selectedRow != -1) {
+                try {
+                    String namaBarang = gerobakNoPriceTable.getValueAt(selectedRow, 1).toString();
+                    String kategori = gerobakNoPriceTable.getValueAt(selectedRow, 2).toString();
+                    int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
+                    for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
+                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) && b.getKesegaran() == kesegaran) {
+                            min = b.getHargaBeli();
+                            break;
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+            try {
+                int val = Integer.parseInt(hargaField.getText().trim());
+                if (val > min) hargaField.setText(String.valueOf(val - 1));
+            } catch (Exception ignored) {}
+        });
+        plusHargaBtn.addActionListener(_ -> {
+            int max = 999999;
+            int selectedRow = gerobakNoPriceTable.getSelectedRow();
+            if (selectedRow != -1) {
+                try {
+                    String namaBarang = gerobakNoPriceTable.getValueAt(selectedRow, 1).toString();
+                    String kategori = gerobakNoPriceTable.getValueAt(selectedRow, 2).toString();
+                    int kesegaran = Integer.parseInt(gerobakNoPriceTable.getValueAt(selectedRow, 3).toString());
+                    for (Barang b : inventory.getBarangDibawaMutable().keySet()) {
+                        if (b.getNamaBarang().equals(namaBarang) && b.getKategori().equals(kategori) && b.getKesegaran() == kesegaran) {
+                            max = b.getHargaBeli() * 3;
+                            break;
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+            try {
+                int val = Integer.parseInt(hargaField.getText().trim());
+                if (val < max) hargaField.setText(String.valueOf(val + 1));
+            } catch (Exception ignored) {}
+        });
+        minJumlahBtn.setFocusable(false);
+        maxJumlahBtn.setFocusable(false);
+        minusJumlahBtn.setFocusable(false);
+        plusJumlahBtn.setFocusable(false);
+        minHargaBtn.setFocusable(false);
+        maxHargaBtn.setFocusable(false);
+        minusHargaBtn.setFocusable(false);
+        plusHargaBtn.setFocusable(false);
 
         // Bagian kanan: List barang sudah ada harga jual + tombol Undo
         JPanel rightPanel = new JPanel(new BorderLayout());

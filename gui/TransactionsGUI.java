@@ -9,7 +9,6 @@ import javax.swing.*;
 import model.Barang;
 import model.Item;
 import model.Pembeli;
-import model.Perk;
 import model.Player;
 
 public class TransactionsGUI extends JPanel {
@@ -33,12 +32,12 @@ public class TransactionsGUI extends JPanel {
     private boolean showTradingInterface = false;
     private Barang selectedBarang;
     private int offerPrice = 0;
-    private boolean negotiationPhase = false;
-      // Trading buttons
+    private boolean negotiationPhase = false;    // Trading buttons
     private JButton sellButton;
     private JButton acceptButton;
     private JButton counterOfferButton;
     private JButton declineButton;
+    private JButton closeButton;
       // Trading input fields
     private JTextField priceField;
     private JPanel pricePanel; // Tambahkan field untuk pricePanel
@@ -52,10 +51,12 @@ public class TransactionsGUI extends JPanel {
     private JInternalFrame gerobakFrame;
     private JTable gerobakWithPriceTable;
     
-    private JDesktopPane desktopPane;
-
-    private boolean transactionCompleted = false;
+    private JDesktopPane desktopPane;    private boolean transactionCompleted = false;
     private JLabel pembeliTitleLabel; // Label judul pembeli kiri atas
+
+    // References for trigger zone management
+    private MapManager.TriggerZoneManager triggerZoneManager;
+    private String currentTriggerZoneId;
 
     public TransactionsGUI(JPanel parentPanel) {
         this.parentPanel = parentPanel;
@@ -71,7 +72,8 @@ public class TransactionsGUI extends JPanel {
         desktopPane = new JDesktopPane();
         desktopPane.setOpaque(false);
         add(desktopPane);
-        setComponentZOrder(desktopPane, 0);
+        // Pastikan desktopPane selalu di paling bawah hanya sekali
+        setComponentZOrder(desktopPane, getComponentCount() - 1);
 
         // Initialize top buttons
         useItemButton = StyledButton.create("Use Item", 16, 100, 40);
@@ -440,10 +442,10 @@ public class TransactionsGUI extends JPanel {
             layoutTopButtons();
             useItemButton.setVisible(true);
             cartButton.setVisible(true);
-            // Recreate trading buttons to keep them centered if trading interface is active (only outside negotiation)
-            if (showTradingInterface && !negotiationPhase) {
-                createTradingButtons();
-            }
+            // HAPUS: createTradingButtons() di sini agar tidak add tombol berulang
+            // if (showTradingInterface && !negotiationPhase) {
+            //     createTradingButtons();
+            // }
         }
     }
       /**
@@ -455,21 +457,34 @@ public class TransactionsGUI extends JPanel {
             setBounds(0, 0, parentPanel.getWidth(), parentPanel.getHeight());
         }
     }
-    
-    /**
+      /**
      * Set Player untuk trading system
      */
     public void setPlayer(Player player) {
         this.currentPlayer = player;
     }
-      /**
+
+    /**
+     * Set trigger zone manager and current zone ID for cleanup after transaction
+     */
+    public void setTriggerZoneManager(MapManager.TriggerZoneManager triggerZoneManager) {
+        this.triggerZoneManager = triggerZoneManager;
+    }
+
+    public void setCurrentTriggerZoneId(String zoneId) {
+        this.currentTriggerZoneId = zoneId;
+    }    /**
      * Mulai trading interface
      */
     public void startTrading() {
         System.out.println("DEBUG: startTrading() called");
         System.out.println("DEBUG: currentPembeli != null: " + (currentPembeli != null));
         System.out.println("DEBUG: currentPlayer != null: " + (currentPlayer != null));
+        
+        // Reset transaction state when starting new trading session
         transactionCompleted = false;
+        negotiationPhase = false;
+        
         if (currentPembeli != null && currentPlayer != null) {
             showTradingInterface = true;
             createTradingButtons();
@@ -478,7 +493,7 @@ public class TransactionsGUI extends JPanel {
         } else {
             System.out.println("DEBUG: Cannot start trading - missing pembeli or player");
         }
-    }    /**
+    }/**
      * Buat button-button untuk trading
      */
     private void createTradingButtons() {
@@ -509,35 +524,35 @@ public class TransactionsGUI extends JPanel {
         sellButton = StyledButton.create("Start Selling", 20, tradingWidth, buttonHeight);
         sellButton.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, buttonHeight);
         sellButton.addActionListener(e -> startSelling());
+        sellButton.setEnabled(true);
         add(sellButton);
         currentY += buttonHeight + buttonGap;
 
         // Price input field for counter offers (label removed)
-        pricePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)); // Simpan ke field
+        pricePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
         pricePanel.setOpaque(false);
         pricePanel.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, fieldHeight);
         pricePanel.setVisible(false);
-
+        add(pricePanel);
         priceField = new JTextField(20);
         priceField.setHorizontalAlignment(JTextField.CENTER);
         priceField.setFont(new Font("Serif", Font.PLAIN, 14));
         priceField.setPreferredSize(new Dimension(100, fieldHeight));
         pricePanel.add(priceField);
-
-        add(pricePanel);
         currentY += fieldHeight + buttonGap;
 
         // Accept Button - left side of center
         acceptButton = StyledButton.create("Accept", 16, buttonWidth, buttonHeight);
         acceptButton.setBounds(centerX - tradingWidth / 2, currentY, buttonWidth, buttonHeight);
         acceptButton.setVisible(false);
+        acceptButton.setEnabled(true);
         acceptButton.addActionListener(e -> acceptOffer());
         add(acceptButton);
-
         // Counter Offer Button - right side of center
         counterOfferButton = StyledButton.create("Counter", 16, buttonWidth, buttonHeight);
         counterOfferButton.setBounds(centerX + (buttonGap / 2), currentY, buttonWidth, buttonHeight);
         counterOfferButton.setVisible(false);
+        counterOfferButton.setEnabled(true);
         counterOfferButton.addActionListener(e -> counterOffer());
         add(counterOfferButton);
         currentY += buttonHeight + buttonGap;
@@ -547,15 +562,54 @@ public class TransactionsGUI extends JPanel {
         declineButton.setBackground(Color.RED.darker());
         declineButton.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, buttonHeight);
         declineButton.setVisible(false);
+        declineButton.setEnabled(true);
         declineButton.addActionListener(e -> declineOffer());
         add(declineButton);
-        
+        currentY += buttonHeight + buttonGap;
+
+        // Close Button - appears when transaction is completed
+        closeButton = StyledButton.create("Close", 20, tradingWidth, buttonHeight);
+        closeButton.setBackground(Color.GRAY.darker());
+        closeButton.setBounds(centerX - tradingWidth / 2, currentY, tradingWidth, buttonHeight);
+        closeButton.setVisible(false);  // Initially hidden
+        closeButton.setEnabled(true); // ensure enabled
+        closeButton.addActionListener(e -> closeTradingSession());
+        add(closeButton);
+
+        // Ensure desktopPane is always at the bottom
+        setComponentZOrder(desktopPane, getComponentCount() - 1);
+        // Ensure initial button state is correct based on transaction status
+        if (transactionCompleted) {
+            sellButton.setVisible(false);
+            closeButton.setVisible(true);
+        } else {
+            sellButton.setVisible(true);
+            closeButton.setVisible(false);
+        }
+        // --- Tambahan: pastikan tombol negosiasi di-add dan visible jika negotiationPhase aktif ---
+        if (negotiationPhase) {
+            if (acceptButton != null) acceptButton.setVisible(true);
+            if (counterOfferButton != null) counterOfferButton.setVisible(true);
+            if (declineButton != null) declineButton.setVisible(true);
+            if (pricePanel != null) pricePanel.setVisible(true);
+        } else {
+            if (acceptButton != null) acceptButton.setVisible(false);
+            if (counterOfferButton != null) counterOfferButton.setVisible(false);
+            if (declineButton != null) declineButton.setVisible(false);
+            if (pricePanel != null) pricePanel.setVisible(false);
+        }
+        // --- Pastikan tombol di panel dan update layout ---
+        revalidate();
+        repaint();
         System.out.println("DEBUG: All trading buttons and fields created");
-    }      private void removeAllTradingButtons() {
+    }
+
+    private void removeAllTradingButtons() {
         if (sellButton != null) remove(sellButton);
         if (acceptButton != null) remove(acceptButton);
         if (counterOfferButton != null) remove(counterOfferButton);
         if (declineButton != null) remove(declineButton);
+        if (closeButton != null) remove(closeButton);
         if (pricePanel != null) remove(pricePanel); // Ganti dari priceField.getParent() ke pricePanel
     }
       private void startSelling() {
@@ -577,7 +631,6 @@ public class TransactionsGUI extends JPanel {
             repaint();
             return;
         }
-        
         // HANYA pilih barang yang ada di hargaJualBarang (sudah ditetapkan harga jualnya)
         selectedBarang = null;
         for (Map.Entry<Barang, Integer> entry : barangDiGerobak.entrySet()) {
@@ -608,15 +661,12 @@ public class TransactionsGUI extends JPanel {
         }
         // Show price panel for counter offers
         if (pricePanel != null) pricePanel.setVisible(true); // Ganti akses ke field
-        
         // Hitung harga dengan multiplier dari perk dan item
         System.out.println("DEBUG: Valid item found: " + selectedBarang.getNamaBarang());
         double multiplier = calculatePriceMultiplier();
-        int basePrice = currentPlayer.getInventory().getHargaJual(selectedBarang);
-        // Karena sudah dicek di atas, basePrice pasti > 0, tidak perlu fallback
-        int adjustedUnitPrice = (int) (basePrice * multiplier);
+        int baseUnitPrice = currentPlayer.getInventory().getHargaJual(selectedBarang);
+        int adjustedUnitPrice = (int) (baseUnitPrice * multiplier);
         int totalPrice = adjustedUnitPrice * selectedQuantity;
-        
         // Initial refusal chance for miskin
         if (currentPembeli instanceof model.PembeliMiskin) {
             // 30% chance langsung menolak
@@ -626,153 +676,141 @@ public class TransactionsGUI extends JPanel {
                 return;
             }
         }
-          // Buyer makes an offer - consider quantity
-        offerPrice = currentPembeli.tawarHarga(totalPrice);
-        
-        // Ensure not below supplier purchase price (for total quantity)
-        int supplierCost = selectedBarang.getHargaBeli() * selectedQuantity;
-        offerPrice = Math.max(offerPrice, supplierCost);
-
-        currentMessage = String.format("Pembeli tertarik dengan %s x%d (Total Harga: %d).\nMereka menawar: %d", 
-                selectedBarang.getNamaBarang(), selectedQuantity, totalPrice, offerPrice);
-        
-        // Set suggested counter offer price
-        priceField.setText(String.valueOf(totalPrice));
-          
+        // Buyer makes an offer - use unit price for negotiation
+        int offerUnitPrice = currentPembeli.tawarHarga(adjustedUnitPrice);
+        // Ensure not below supplier purchase price (per unit)
+        int supplierUnitCost = selectedBarang.getHargaBeli();
+        offerUnitPrice = Math.max(offerUnitPrice, supplierUnitCost);
+        offerPrice = offerUnitPrice; // offerPrice now always unit price
+        currentMessage = String.format("Pembeli tertarik dengan %s x%d (Harga Satuan: %d, Total: %d).\nMereka menawar: %d per unit (Total: %d)",
+                selectedBarang.getNamaBarang(), selectedQuantity, adjustedUnitPrice, totalPrice, offerUnitPrice, offerUnitPrice * selectedQuantity);
+        // Set suggested counter offer price (unit price)
+        priceField.setText(String.valueOf(adjustedUnitPrice));
         // Show negotiation buttons
         System.out.println("DEBUG: About to hide sellButton and show negotiation buttons");
-        
         if (sellButton != null) {
             sellButton.setVisible(false);
             System.out.println("DEBUG: sellButton hidden successfully");
         } else {
             System.out.println("DEBUG: sellButton is null!");
         }
-        
         if (acceptButton != null) {
             acceptButton.setVisible(true);
             System.out.println("DEBUG: acceptButton shown");
         } else {
             System.out.println("DEBUG: acceptButton is null!");
         }
-        
         if (counterOfferButton != null) {
             counterOfferButton.setVisible(true);
             System.out.println("DEBUG: counterOfferButton shown");
         } else {
             System.out.println("DEBUG: counterOfferButton is null!");
         }
-        
         if (declineButton != null) {
             declineButton.setVisible(true);
             System.out.println("DEBUG: declineButton shown");
         } else {
             System.out.println("DEBUG: declineButton is null!");
         }
-        
         negotiationPhase = true;
-        
+        // --- Tambahan: pastikan tombol negosiasi di-add dan visible ---
+        if (acceptButton != null && !isAncestorOf(acceptButton)) add(acceptButton);
+        if (counterOfferButton != null && !isAncestorOf(counterOfferButton)) add(counterOfferButton);
+        if (declineButton != null && !isAncestorOf(declineButton)) add(declineButton);
+        if (pricePanel != null && !isAncestorOf(pricePanel)) add(pricePanel);
+        if (acceptButton != null) acceptButton.setVisible(true);
+        if (counterOfferButton != null) counterOfferButton.setVisible(true);
+        if (declineButton != null) declineButton.setVisible(true);
+        if (pricePanel != null) pricePanel.setVisible(true);
+        // Pastikan tombol di z-order paling atas
+        if (acceptButton != null) setComponentZOrder(acceptButton, 0);
+        if (counterOfferButton != null) setComponentZOrder(counterOfferButton, 0);
+        if (declineButton != null) setComponentZOrder(declineButton, 0);
+        if (pricePanel != null) setComponentZOrder(pricePanel, 0);
         // Force a repaint and revalidate
         revalidate();
         repaint();
         System.out.println("DEBUG: repaint called");
-    }private double calculatePriceMultiplier() {
-        double multiplier = 1.0;
-        
-        // Multiplier dari Perk yang aktif dibawa untuk jualan
-        for (Perk perk : currentPlayer.getPerkDipilihUntukJualan()) {
-            if (perk.isActive()) {
-                multiplier += perk.getKesaktianSekarang();
-            }
+    }
+      private void acceptOffer() {
+        // Transaksi SELALU berhasil saat Accept ditekan
+        int finalUnitPrice = offerPrice;
+        int finalTotalPrice = finalUnitPrice * selectedQuantity;
+        // Terapkan efek charming jika ada, tapi tidak mempengaruhi keberhasilan transaksi
+        if (model.PerkEffectManager.applyCharmingEffect(currentPlayer, finalTotalPrice, currentPembeli)) {
+            // Jika charming effect memberikan bonus, bisa tambahkan bonus di sini jika perlu
+            // Contoh: finalPrice += bonus;
+            // Tapi default: tidak mengubah harga
         }
-        
-        // Multiplier dari Item/Potion yang aktif dan dibawa di gerobak
-        for (Item item : currentPlayer.getInventory().getItemDibawa()) {
-            if (item.isActive()) {
-                // Item memberikan bonus berdasarkan tipe item
-                if (item.isSemproten()) {
-                    multiplier += item.getSemprotenPriceBoost();
-                } else if (item.isHipnotis()) {
-                    multiplier += item.getHipnotisChance() * 0.1; // Convert chance to small multiplier
-                } else if (item.isTip()) {
-                    multiplier += item.getTipBonusRate() * 0.5; // Convert tip rate to small multiplier
-                }
-                // Jampi dan Peluit tidak mempengaruhi multiplier harga
-            }
-        }
-        
-        return multiplier;
-    }    private void acceptOffer() {
-        // Use PerkEffectManager to apply charming effects during negotiation
-        if (model.PerkEffectManager.applyCharmingEffect(currentPlayer, offerPrice, currentPembeli)) {
-            // Transaksi berhasil
-            currentPlayer.tambahMoney(offerPrice);
-            
-            // Hapus barang dari gerobak (barangDibawa) berdasarkan jumlah yang dipilih
-            Map<Barang, Integer> barangDiGerobak = currentPlayer.getInventory().getBarangDibawaMutable();
-            int jumlahSekarang = barangDiGerobak.getOrDefault(selectedBarang, 0);
-            
-            if (jumlahSekarang > selectedQuantity) {
-                // Masih ada sisa barang
-                barangDiGerobak.put(selectedBarang, jumlahSekarang - selectedQuantity);
-                updateGerobakTablesLocal();
-            } else {
-                // Tidak ada sisa barang, hapus dari gerobak dan reset harga jual
-                barangDiGerobak.remove(selectedBarang);
-                currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
-                updateGerobakTablesLocal();
-            }
-              currentMessage = String.format("Transaksi berhasil! Kamu menjual %s x%d seharga %d koin.", 
-                selectedBarang.getNamaBarang(), selectedQuantity, offerPrice);
-            
-            // Deaktifkan item consumable setelah digunakan
-            deactivateConsumableItems();
-            transactionCompleted = true;
+        currentPlayer.tambahMoney(finalTotalPrice);
+        // Hapus barang dari gerobak (barangDibawa) berdasarkan jumlah yang dipilih
+        Map<Barang, Integer> barangDiGerobak = currentPlayer.getInventory().getBarangDibawaMutable();
+        int jumlahSekarang = barangDiGerobak.getOrDefault(selectedBarang, 0);
+        if (jumlahSekarang > selectedQuantity) {
+            // Masih ada sisa barang
+            barangDiGerobak.put(selectedBarang, jumlahSekarang - selectedQuantity);
+            // updateGerobakTablesLocal(); // Removed to prevent NPE if gerobakWithPriceTable is null
         } else {
-            currentMessage = "Pembeli membatalkan transaksi.";
+            // Tidak ada sisa barang, hapus dari gerobak dan reset harga jual
+            barangDiGerobak.remove(selectedBarang);
+            currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
+            // updateGerobakTablesLocal(); // Removed to prevent NPE if gerobakWithPriceTable is null
         }
+        currentMessage = String.format("Transaksi berhasil! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
+            selectedBarang.getNamaBarang(), selectedQuantity, finalUnitPrice, finalTotalPrice);
+        // Deaktifkan item consumable setelah digunakan
+        deactivateConsumableItems();
+        transactionCompleted = true;
         hideNegotiationButtons();
-        sellButton.setVisible(true);
-        sellButton.setText("Sell More");
-        // Setelah transaksi selesai, disable sellButton jika transaksi sukses
-        if (transactionCompleted && sellButton != null) {
-            sellButton.setEnabled(false);
-        }
+        // When transaction is completed, ONLY show close button, never show sell button again
+        closeButton.setVisible(true);
+        sellButton.setVisible(false);
         // Refresh gerobak table setelah transaksi sukses
-        updateGerobakTablesLocal();
+        // updateGerobakTablesLocal(); // Removed to prevent NPE if gerobakWithPriceTable is null
         repaint();
-    }    private void counterOffer() {
+    }
+
+    private void counterOffer() {
         try {
-            int counterPrice = Integer.parseInt(priceField.getText());
-            // Validate counter price is not below supplier cost
-            int supplierCost = selectedBarang.getHargaBeli() * selectedQuantity;
-            if (counterPrice < supplierCost) {
-                currentMessage = String.format("Harga counter terlalu rendah! Minimal harga: %d (harga beli: %d x %d)", 
-                    supplierCost, selectedBarang.getHargaBeli(), selectedQuantity);
+            int counterUnitPrice = Integer.parseInt(priceField.getText());
+            // Validate counter price is not below supplier cost (per unit)
+            int supplierUnitCost = selectedBarang.getHargaBeli();
+            if (counterUnitPrice < supplierUnitCost) {
+                currentMessage = String.format("Harga counter terlalu rendah! Minimal harga satuan: %d (harga beli: %d)",
+                    supplierUnitCost, selectedBarang.getHargaBeli());
+                // Pastikan tombol tetap aktif
+                if (acceptButton != null) acceptButton.setEnabled(true);
+                if (counterOfferButton != null) counterOfferButton.setEnabled(true);
+                if (declineButton != null) declineButton.setEnabled(true);
                 repaint();
                 return;
             }
-            boolean accepted = currentPembeli.putuskanTransaksi(counterPrice);
-            if (!accepted && currentPembeli.chanceAcceptCounter(counterPrice, offerPrice)) {
+            boolean accepted = currentPembeli.putuskanTransaksi(counterUnitPrice);
+            if (!accepted && currentPembeli.chanceAcceptCounter(counterUnitPrice, offerPrice)) {
                 accepted = true;
             }
+            int counterTotalPrice = counterUnitPrice * selectedQuantity;
             if (accepted) {
-                currentPlayer.tambahMoney(counterPrice);
+                currentPlayer.tambahMoney(counterTotalPrice);
                 // Hapus barang dari gerobak berdasarkan jumlah yang dipilih
                 Map<Barang, Integer> barangDiGerobak = currentPlayer.getInventory().getBarangDibawaMutable();
                 int jumlahSekarang = barangDiGerobak.getOrDefault(selectedBarang, 0);
                 if (jumlahSekarang > selectedQuantity) {
                     barangDiGerobak.put(selectedBarang, jumlahSekarang - selectedQuantity);
-                    updateGerobakTablesLocal();
+                    // updateGerobakTablesLocal(); // Removed to prevent NPE if gerobakWithPriceTable is null
                 } else {
                     barangDiGerobak.remove(selectedBarang);
                     currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
-                    updateGerobakTablesLocal();
+                    // updateGerobakTablesLocal(); // Removed to prevent NPE if gerobakWithPriceTable is null
                 }
-                currentMessage = String.format("Counter offer diterima! Kamu menjual %s x%d seharga %d koin.", 
-                    selectedBarang.getNamaBarang(), selectedQuantity, counterPrice);
+                currentMessage = String.format("Counter offer diterima! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
+                    selectedBarang.getNamaBarang(), selectedQuantity, counterUnitPrice, counterTotalPrice);
                 deactivateConsumableItems();
                 transactionCompleted = true;
+                hideNegotiationButtons();
+                // When transaction is completed, ONLY show close button, never show sell button again
+                if (closeButton != null) closeButton.setVisible(true);
+                if (sellButton != null) sellButton.setVisible(false);
             } else {
                 // Buyer rejected, implement multi-round bargaining
                 String reason = null;
@@ -785,49 +823,113 @@ public class TransactionsGUI extends JPanel {
                 }
                 if (reason != null && !reason.isEmpty()) {
                     currentMessage = reason;
+                    // Negosiasi selesai jika reason diberikan
+                    transactionCompleted = true;
+                    hideNegotiationButtons();
+                    if (closeButton != null) closeButton.setVisible(true);
+                    if (sellButton != null) sellButton.setVisible(false);
                 } else {
-                    int newOffer = currentPembeli.tawarHarga(counterPrice);
-                    if (newOffer != counterPrice) {
-                        offerPrice = Math.max(newOffer, supplierCost); // Ensure not below cost
-                        currentMessage = String.format("Pembeli menolak offer-mu dan memberikan counter: %d", offerPrice);
-                        priceField.setText(String.valueOf(offerPrice)); // Tampilkan harga counter pembeli (bisa lebih tinggi dari counter player)
+                    int newOfferUnitPrice = currentPembeli.tawarHarga(counterUnitPrice);
+                    if (newOfferUnitPrice != counterUnitPrice) {
+                        offerPrice = Math.max(newOfferUnitPrice, supplierUnitCost); // Ensure not below cost
+                        currentMessage = String.format("Pembeli menolak offer-mu dan memberikan counter: %d per unit (Total: %d)", offerPrice, offerPrice * selectedQuantity);
+                        priceField.setText(String.valueOf(offerPrice));
+                        // Pastikan tombol tetap aktif dan visible
+                        if (acceptButton != null) {
+                            acceptButton.setVisible(true);
+                            acceptButton.setEnabled(true);
+                        }
+                        if (counterOfferButton != null) {
+                            counterOfferButton.setVisible(true);
+                            counterOfferButton.setEnabled(true);
+                        }
+                        if (declineButton != null) {
+                            declineButton.setVisible(true);
+                            declineButton.setEnabled(true);
+                        }
+                        if (pricePanel != null) pricePanel.setVisible(true);
+                        // Jangan hide tombol, negosiasi lanjut
+                        negotiationPhase = true;
                         repaint();
                         return;
                     } else {
                         currentMessage = "Pembeli menolak counter offer mu dan mengakhiri negosiasi.";
+                        transactionCompleted = true;
+                        hideNegotiationButtons();
+                        if (closeButton != null) closeButton.setVisible(true);
+                        if (sellButton != null) sellButton.setVisible(false);
                     }
                 }
             }
-            hideNegotiationButtons();
-            sellButton.setVisible(true);
-            sellButton.setText("Sell More");
-            if (transactionCompleted && sellButton != null) {
-                sellButton.setEnabled(false);
-            }
         } catch (NumberFormatException e) {
-            currentMessage = "Masukkan harga yang valid!";
+            currentMessage = "Masukkan harga satuan yang valid!";
+            // Pastikan tombol tetap aktif
+            if (acceptButton != null) acceptButton.setEnabled(true);
+            if (counterOfferButton != null) counterOfferButton.setEnabled(true);
+            if (declineButton != null) declineButton.setEnabled(true);
         }
         repaint();
     }
-    
-    private void declineOffer() {
+      private void declineOffer() {
         if (transactionCompleted) {
             currentMessage = "Transaksi sudah selesai. Tidak bisa menolak lagi.";
             repaint();
             return;
         }
         currentMessage = "Kamu menolak tawaran pembeli.";
+        transactionCompleted = true; // Mark as completed when declining
         hideNegotiationButtons();
-        sellButton.setVisible(true);
+        
+        // Show close button when transaction is completed/declined
+        closeButton.setVisible(true);
+        sellButton.setVisible(false);
         repaint();
-    }
-    
-    private void hideNegotiationButtons() {
+    }    
+      private void hideNegotiationButtons() {
         acceptButton.setVisible(false);
         counterOfferButton.setVisible(false);
         declineButton.setVisible(false);
         negotiationPhase = false;
     }    
+      private void closeTradingSession() {
+        // Hide all trading interface elements
+        showTradingInterface = false;
+        removeAllTradingButtons();
+
+        // Close the dialog
+        hideDialog();
+
+        // Remove the trigger zone if we have reference to it
+        if (triggerZoneManager != null && currentTriggerZoneId != null) {
+            triggerZoneManager.removeZoneById(currentTriggerZoneId);
+            System.out.println("DEBUG: Removed trigger zone: " + currentTriggerZoneId);
+            currentTriggerZoneId = null; // Prevent double-removal
+        }
+
+        // Tutup gerobakFrame jika masih terbuka
+        if (gerobakFrame != null && gerobakFrame.isVisible()) {
+            gerobakFrame.dispose();
+        }
+
+        // Remove this panel from parentPanel agar event tidak tertahan
+        if (parentPanel != null && this.getParent() == parentPanel) {
+            parentPanel.remove(this);
+            parentPanel.revalidate();
+            parentPanel.repaint();
+            // Kembalikan focus ke parentPanel (atau GamePanel)
+            parentPanel.requestFocusInWindow();
+        }
+
+        // Reset transaction state completely
+        transactionCompleted = false;
+        negotiationPhase = false;
+        currentPembeli = null;
+        selectedBarang = null;
+        offerPrice = 0;
+        selectedQuantity = 1;
+
+        System.out.println("DEBUG: Trading session closed and trigger zone removed");
+    }
     
     private void deactivateConsumableItems() {
         // Deaktifkan item consumable yang dibawa di gerobak setelah transaksi
@@ -937,5 +1039,15 @@ public class TransactionsGUI extends JPanel {
         for (int i = 1; i < 6; i++) {
             gerobakWithPriceTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
+    }
+    
+    /**
+     * Calculates the price multiplier for the current player and selected item.
+     * You can expand this logic to include perks, items, or other effects.
+     * @return the price multiplier (default 1.0)
+     */
+    private double calculatePriceMultiplier() {
+        // TODO: Implement perk/item-based multiplier logic if needed
+        return 1.0;
     }
 }
