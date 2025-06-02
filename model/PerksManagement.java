@@ -107,4 +107,62 @@ public class PerksManagement {
     }
     return conversions;
   }
+
+  public boolean tryGiveRandomPerk(Player player) {
+
+    if (player.isDailyPerkChanceUsed()) {
+      System.out.println("[RANDOM PERK] Daily perk chance already used today");
+      return false;
+    }
+
+    if (!hasAvailablePerkSlot(player)) {
+      System.out.println("[RANDOM PERK] No available perk slots (player has " + player.getSemuaPerkDimiliki().size() + "/2 perks)");
+      player.setDailyPerkChanceUsed(true); // Mark as used even if no slot available
+      return false;
+    }
+
+    double random = Math.random();
+    System.out.println("[RANDOM PERK] Rolling for perk chance: " + String.format("%.3f", random) + " (need < 0.10)");
+    
+    if (random >= 0.10) {
+      System.out.println("[RANDOM PERK] No luck this time! Better chance tomorrow.");
+      player.setDailyPerkChanceUsed(true);
+      return false;
+    }
+
+    // Get available perk types that player doesn't have
+    List<PerkType> availableTypes = new ArrayList<>();
+    for (PerkType type : PerkType.values()) {
+      if (!player.hasPerk(type)) {
+        availableTypes.add(type);
+      }
+    }
+
+    if (availableTypes.isEmpty()) {
+      System.out.println("[RANDOM PERK] Player already has all available perks!");
+      player.setDailyPerkChanceUsed(true);
+      return false;
+    }
+
+    PerkType selectedType = availableTypes.get((int) (Math.random() * availableTypes.size()));
+
+    Perk newPerk = createPerkByType(selectedType);
+    if (newPerk != null) {
+      player.addPerk(newPerk);
+      player.setDailyPerkChanceUsed(true);
+      System.out.println("[RANDOM PERK] Lucky day! Player received: " + newPerk.getName() + " (" + selectedType.getNama() + ")");
+      return true;
+    }
+
+    player.setDailyPerkChanceUsed(true);
+    return false;
+  }
+
+  private Perk createPerkByType(PerkType type) {
+    return switch (type) {
+      case ACTIVE -> new PerksActive();
+      case CHARMING -> new PerksCharming();
+      case ELEGAN -> new PerksElegan();
+    };
+  }
 }

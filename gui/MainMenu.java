@@ -58,7 +58,8 @@ public class MainMenu extends JFrame {
         } catch (Exception e) {
             System.err.println("Error loading font: " + e.getMessage());
             titleFont = new Font("Serif", Font.BOLD, 72);
-        }        JPanel background = new JPanel(new BorderLayout()) {
+        }        
+        JPanel background = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);

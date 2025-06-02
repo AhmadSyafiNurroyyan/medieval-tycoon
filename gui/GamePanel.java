@@ -99,14 +99,20 @@ public class GamePanel extends JPanel implements Runnable {
         tokoItem = new TokoItem(player);
         tokoPerks = new TokoPerks();
         perksManagement = new PerksManagement();
+        transactions.setPerksManagement(perksManagement);
 
         setupMap1Content();
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                playerMovement.keyPressed(e.getKeyCode());
+                playerMovement.keyPressed(e.getKeyCode());                
                 if (e.getKeyCode() == KeyEvent.VK_E) {
                     if (transactions != null && transactions.isDialogVisible()) {
+                        // Prevent closing with E key if transaction is completed (close button is visible)
+                        if (transactions.isTransactionCompleted()) {
+                            return; // Do nothing, force user to click Close button
+                        }
+                        
                         if (transactions.isNoItemsState()) {
                             transactions.hideDialog();
                             return;
@@ -478,6 +484,7 @@ public class GamePanel extends JPanel implements Runnable {
         return icon;
     }
 
+    
     public void switchToMap(String mapName, int newX, int newY) {
         mapObjectManager.clearObjects();
         triggerZoneManager.clearAllZones();
@@ -488,9 +495,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         playerMovement.setX(newX);
         playerMovement.setY(newY);
-
         setupMapContent(mapName);
-
         System.out.println("Switched to map: " + mapName + " at coordinates (" + newX + ", " + newY + ")");
     }
 

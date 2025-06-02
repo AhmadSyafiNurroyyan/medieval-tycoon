@@ -18,6 +18,7 @@ import model.Barang;
 import model.Item;
 import model.ItemEffectManager;
 import model.Pembeli;
+import model.PerksManagement;
 import model.Player;
 
 public class TransactionsGUI extends JPanel {
@@ -55,10 +56,11 @@ public class TransactionsGUI extends JPanel {
     private boolean transactionCompleted = false;
     private JLabel pembeliTitleLabel;
     private MapManager.TriggerZoneManager triggerZoneManager;
-    private String currentTriggerZoneId;
+    private String currentTriggerZoneId;    
     private JInternalFrame itemFrame;
     private JTable itemGerobakTable;
     private MapManager.RandomTriggerZoneManager randomTriggerZoneManager;
+    private PerksManagement perksManagement;
 
     public TransactionsGUI(JPanel parentPanel) {
         this.parentPanel = parentPanel;
@@ -152,6 +154,10 @@ public class TransactionsGUI extends JPanel {
 
         return currentMessage.contains("tidak membawa barang untuk dijual") ||
                 currentMessage.contains("Tidak ada barang dengan harga jual yang ditetapkan");
+    }
+
+    public boolean isTransactionCompleted() {
+        return transactionCompleted && closeButton != null && closeButton.isVisible();
     }
 
     public void setPembeli(Pembeli pembeli) {
@@ -654,14 +660,19 @@ public class TransactionsGUI extends JPanel {
                     ", sell price: " + hargaJual + ")");
             if (hargaJual > 0) {
                 double freshnessMultiplier = calculateEnhancedFreshnessMultiplier(barang.getKesegaran());
-                double buyerInterest = Math.random() * freshnessMultiplier;
+                // Improved buyer interest calculation: ensures minimum baseline interest
+                double randomComponent = 0.3 + (Math.random() * 0.7); // Range: 0.3 to 1.0
+                double buyerInterest = randomComponent * freshnessMultiplier;
 
                 System.out.println("[BUYER SELECTION DEBUG]   Enhanced freshness multiplier: " +
                         String.format("%.2f", freshnessMultiplier) +
-                        ", Buyer interest: " + String.format("%.3f", buyerInterest));
-
-                if (buyerInterest > 0.3) {
-                    System.out.println("[BUYER SELECTION DEBUG]   Item meets interest threshold (>0.3)");
+                        ", Random component: " + String.format("%.3f", randomComponent) +
+                        ", Buyer interest: " + String.format("%.3f", buyerInterest));                // Dynamic interest threshold based on freshness
+                double interestThreshold = Math.max(0.2, 0.5 - (freshnessMultiplier * 0.3));
+                
+                if (buyerInterest > interestThreshold) {
+                    System.out.println("[BUYER SELECTION DEBUG]   Item meets interest threshold (>" + 
+                            String.format("%.2f", interestThreshold) + ")");
                     if (bestBarang == null || buyerInterest > bestInterestScore) {
                         System.out.println("[BUYER SELECTION DEBUG]   New best item! Previous best: " +
                                 String.format("%.3f", bestInterestScore) +
@@ -671,9 +682,9 @@ public class TransactionsGUI extends JPanel {
                     } else {
                         System.out.println("[BUYER SELECTION DEBUG]   Not better than current best (" +
                                 String.format("%.3f", bestInterestScore) + ")");
-                    }
-                } else {
-                    System.out.println("[BUYER SELECTION DEBUG]   Item below interest threshold (0.3)");
+                    }                } else {
+                    System.out.println("[BUYER SELECTION DEBUG]   Item below interest threshold (" + 
+                            String.format("%.2f", interestThreshold) + ")");
                 }
             } else {
                 System.out.println("[BUYER SELECTION DEBUG]   No sell price set - skipping");
@@ -725,6 +736,53 @@ public class TransactionsGUI extends JPanel {
         }
         double freshnessPenalty = calculateFreshnessPriceMultiplier(selectedBarang.getKesegaran());
         int freshnessAdjustedPrice = (int) (adjustedUnitPrice * freshnessPenalty);
+        
+        // Check if PembeliTajir will accept the price directly
+        if (currentPembeli instanceof model.PembeliTajir) {
+            model.PembeliTajir pembeliTajir = (model.PembeliTajir) currentPembeli;
+            if (pembeliTajir.willAcceptDirectly(freshnessAdjustedPrice)) {
+                // Direct acceptance - complete transaction immediately
+                int finalUnitPrice = freshnessAdjustedPrice;
+                int finalTotalPrice = finalUnitPrice * selectedQuantity;
+                
+                if (itemEffectManager != null) {
+                    finalTotalPrice = itemEffectManager.applySemproten(finalTotalPrice);
+                    finalTotalPrice = itemEffectManager.applyJampi(finalTotalPrice);
+                    finalTotalPrice = itemEffectManager.applyTip(finalTotalPrice);
+                }
+                
+                currentPlayer.tambahMoney(finalTotalPrice);
+                Map<Barang, Integer> playerGerobak = currentPlayer.getInventory().getBarangDibawaMutable();
+                int currentStock = playerGerobak.getOrDefault(selectedBarang, 0);
+                if (currentStock > selectedQuantity) {
+                    playerGerobak.put(selectedBarang, currentStock - selectedQuantity);
+                } else {
+                    playerGerobak.remove(selectedBarang);
+                    currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
+                }
+                
+                currentMessage = String.format("Pembeli Tajir langsung menerima tawaranmu! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
+                        selectedBarang.getNamaBarang(), selectedQuantity, finalUnitPrice, finalTotalPrice);
+                        
+                deactivateConsumableItems();
+
+                if (perksManagement != null) {
+                    boolean perkReceived = perksManagement.tryGiveRandomPerk(currentPlayer);
+                    if (perkReceived) {
+                        currentMessage += "\n\n🎉 Keberuntungan! Kamu mendapat perk spesial!";
+                    }
+                }
+                
+                transactionCompleted = true;
+                if (sellButton != null)
+                    sellButton.setVisible(false);
+                if (closeButton != null)
+                    closeButton.setVisible(true);
+                repaint();
+                return;
+            }
+        }
+        
         int offerUnitPrice = currentPembeli.tawarHarga(freshnessAdjustedPrice);
         int supplierUnitCost = selectedBarang.getHargaBeli();
         offerUnitPrice = Math.max(offerUnitPrice, supplierUnitCost);
@@ -844,6 +902,14 @@ public class TransactionsGUI extends JPanel {
         currentMessage = String.format("Transaksi berhasil! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
                 selectedBarang.getNamaBarang(), selectedQuantity, finalUnitPrice, finalTotalPrice);
         deactivateConsumableItems();
+
+        if (perksManagement != null) {
+            boolean perkReceived = perksManagement.tryGiveRandomPerk(currentPlayer);
+            if (perkReceived) {
+                currentMessage += "\n\n🎉 Keberuntungan! Kamu mendapat perk spesial!";
+            }
+        }
+        
         transactionCompleted = true;
         hideNegotiationButtons();
         closeButton.setVisible(true);
@@ -891,10 +957,18 @@ public class TransactionsGUI extends JPanel {
                 } else {
                     barangDiGerobak.remove(selectedBarang);
                     currentPlayer.getInventory().setHargaJual(selectedBarang, 0);
-                }
+                }                
                 currentMessage = String.format(
                         "Counter offer diterima! Kamu menjual %s x%d seharga %d per unit (Total: %d koin).",
                         selectedBarang.getNamaBarang(), selectedQuantity, counterUnitPrice, counterTotalPrice);
+                
+                if (perksManagement != null) {
+                    boolean perkReceived = perksManagement.tryGiveRandomPerk(currentPlayer);
+                    if (perkReceived) {
+                        currentMessage += "\n\n🎉 Keberuntungan! Kamu mendapat perk spesial!";
+                    }
+                }
+                
                 deactivateConsumableItems();
                 transactionCompleted = true;
                 hideNegotiationButtons();
@@ -1379,9 +1453,12 @@ public class TransactionsGUI extends JPanel {
         if (kesegaran >= 1)
             return 0.3;
         return 0.1;
-    }
-
+    }    
     public void setRandomTriggerZoneManager(RandomTriggerZoneManager mgr) {
         this.randomTriggerZoneManager = mgr;
+    }
+
+    public void setPerksManagement(PerksManagement perksManagement) {
+        this.perksManagement = perksManagement;
     }
 }

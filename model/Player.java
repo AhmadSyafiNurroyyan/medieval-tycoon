@@ -23,16 +23,26 @@ public class Player {
     private int money;
     private Inventory inventory;
     private Gerobak gerobak;
+    
     private List<Perk> semuaPerkDimiliki = new ArrayList<>();
     private List<Perk> perkDipilihUntukJualan = new ArrayList<>();
     private boolean hasSlept = true;
-
+    private boolean dailyPerkChanceUsed = false;    
+    
     public boolean isHasSlept() {
         return hasSlept;
     }
 
     public void setHasSlept(boolean hasSlept) {
         this.hasSlept = hasSlept;
+    }
+
+    public boolean isDailyPerkChanceUsed() {
+        return dailyPerkChanceUsed;
+    }
+
+    public void setDailyPerkChanceUsed(boolean dailyPerkChanceUsed) {
+        this.dailyPerkChanceUsed = dailyPerkChanceUsed;
     }
 
     public Player() {

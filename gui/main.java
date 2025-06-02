@@ -12,7 +12,7 @@ import model.Player;
 
 public class main {
     public static void main(String[] args) {
-        Player player = new Player("Tauwus");
+        Player player = new Player("");
 
         SwingUtilities.invokeLater(() -> {
             MainMenu menu = new MainMenu(player);
