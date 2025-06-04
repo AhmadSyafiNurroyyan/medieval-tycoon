@@ -100,8 +100,7 @@ public class PerksActive extends Perk {
                 " (random: " + String.format("%.3f", random) + ")");
 
         return result;
-    }
-
+    }    
     @Override
     public boolean upgradeLevel() {
         if (isMaxLevel()) {
@@ -109,13 +108,8 @@ public class PerksActive extends Perk {
                     "Perk " + getName() + " sudah mencapai level maksimum (" + MAX_LEVEL + ").");
         }
 
-        if (!isActive) {
-            throw new PerkConversionException(
-                    "Perk " + getName() + " harus diaktifkan terlebih dahulu sebelum dapat di-upgrade.");
-        }
-
         level++;
-        System.out.println("Level sekarang: " + level); // Tambahkan ini
+        System.out.println("Level sekarang: " + level);
         kesaktianSekarang += 0.5;
         return true;
     }

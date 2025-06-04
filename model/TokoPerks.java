@@ -132,10 +132,6 @@ public class TokoPerks {
         if (!player.getSemuaPerkDimiliki().contains(perkSaatIni)) {
             throw new PerkConversionException("Perk " + perkSaatIni.getName() + " tidak dimiliki oleh player.");
         }
-        if (perkSaatIni.getLevel() <= 0) {
-            throw new PerkConversionException(
-                    "Perk " + perkSaatIni.getName() + " harus di-upgrade minimal ke level 1 sebelum dapat dikonversi.");
-        }
         if (player.hasPerk(targetType)) {
             throw new PerkConversionException(
                     "Player sudah memiliki perk " + targetType.getNama()

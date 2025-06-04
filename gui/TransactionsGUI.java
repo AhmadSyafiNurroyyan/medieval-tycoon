@@ -646,60 +646,34 @@ public class TransactionsGUI extends JPanel {
             return;
         }
         selectedBarang = null;
-        Barang bestBarang = null;
-        double bestInterestScore = -1;
 
-        System.out.println("[BUYER SELECTION DEBUG] === Starting buyer item selection process ===");
-        System.out.println("[BUYER SELECTION DEBUG] Items in gerobak: " + barangDiGerobak.size());
+        System.out.println("[ITEM SELECTION DEBUG] === Simple item selection process ===");
+        System.out.println("[ITEM SELECTION DEBUG] Items in gerobak: " + barangDiGerobak.size());
 
         for (Map.Entry<Barang, Integer> entry : barangDiGerobak.entrySet()) {
             Barang barang = entry.getKey();
             int hargaJual = currentPlayer.getInventory().getHargaJual(barang);
-            System.out.println("[BUYER SELECTION DEBUG] Checking item: " + barang.getNamaBarang() +
+            System.out.println("[ITEM SELECTION DEBUG] Checking item: " + barang.getNamaBarang() +
                     " (freshness: " + barang.getKesegaran() +
                     ", sell price: " + hargaJual + ")");
+            
             if (hargaJual > 0) {
-                double freshnessMultiplier = calculateEnhancedFreshnessMultiplier(barang.getKesegaran());
-                // Improved buyer interest calculation: ensures minimum baseline interest
-                double randomComponent = 0.3 + (Math.random() * 0.7); // Range: 0.3 to 1.0
-                double buyerInterest = randomComponent * freshnessMultiplier;
-
-                System.out.println("[BUYER SELECTION DEBUG]   Enhanced freshness multiplier: " +
-                        String.format("%.2f", freshnessMultiplier) +
-                        ", Random component: " + String.format("%.3f", randomComponent) +
-                        ", Buyer interest: " + String.format("%.3f", buyerInterest));                // Dynamic interest threshold based on freshness
-                double interestThreshold = Math.max(0.2, 0.5 - (freshnessMultiplier * 0.3));
-                
-                if (buyerInterest > interestThreshold) {
-                    System.out.println("[BUYER SELECTION DEBUG]   Item meets interest threshold (>" + 
-                            String.format("%.2f", interestThreshold) + ")");
-                    if (bestBarang == null || buyerInterest > bestInterestScore) {
-                        System.out.println("[BUYER SELECTION DEBUG]   New best item! Previous best: " +
-                                String.format("%.3f", bestInterestScore) +
-                                ", new best: " + String.format("%.3f", buyerInterest));
-                        bestBarang = barang;
-                        bestInterestScore = buyerInterest;
-                    } else {
-                        System.out.println("[BUYER SELECTION DEBUG]   Not better than current best (" +
-                                String.format("%.3f", bestInterestScore) + ")");
-                    }                } else {
-                    System.out.println("[BUYER SELECTION DEBUG]   Item below interest threshold (" + 
-                            String.format("%.2f", interestThreshold) + ")");
-                }
+                selectedBarang = barang;
+                System.out.println("[ITEM SELECTION DEBUG] ✅ Selected: " + barang.getNamaBarang() + 
+                        " (first item with sell price)");
+                break; 
             } else {
-                System.out.println("[BUYER SELECTION DEBUG]   No sell price set - skipping");
+                System.out.println("[ITEM SELECTION DEBUG] ❌ No sell price set - skipping");
             }
         }
 
-        selectedBarang = bestBarang;
-
         if (selectedBarang != null) {
-            System.out.println("[BUYER SELECTION DEBUG] === FINAL SELECTION ===");
-            System.out.println("[BUYER SELECTION DEBUG] Selected item: " + selectedBarang.getNamaBarang() +
-                    " (freshness: " + selectedBarang.getKesegaran() +
-                    ", final score: " + String.format("%.3f", bestInterestScore) + ")");
+            System.out.println("[ITEM SELECTION DEBUG] === SELECTION SUCCESSFUL ===");
+            System.out.println("[ITEM SELECTION DEBUG] Selected item: " + selectedBarang.getNamaBarang() +
+                    " (freshness: " + selectedBarang.getKesegaran() + ")");
         } else {
-            System.out.println("[BUYER SELECTION DEBUG] No item selected - none met criteria");
+            System.out.println("[ITEM SELECTION DEBUG] === NO ITEM SELECTED ===");
+            System.out.println("[ITEM SELECTION DEBUG] No items have sell prices set");
         }
         if (selectedBarang == null) {
             currentMessage = "Tidak ada barang dengan harga jual yang ditetapkan! Pergi ke home base untuk menetapkan harga jual barang. Tekan E untuk keluar.";
@@ -737,11 +711,11 @@ public class TransactionsGUI extends JPanel {
         double freshnessPenalty = calculateFreshnessPriceMultiplier(selectedBarang.getKesegaran());
         int freshnessAdjustedPrice = (int) (adjustedUnitPrice * freshnessPenalty);
         
-        // Check if PembeliTajir will accept the price directly
+
         if (currentPembeli instanceof model.PembeliTajir) {
             model.PembeliTajir pembeliTajir = (model.PembeliTajir) currentPembeli;
             if (pembeliTajir.willAcceptDirectly(freshnessAdjustedPrice)) {
-                // Direct acceptance - complete transaction immediately
+
                 int finalUnitPrice = freshnessAdjustedPrice;
                 int finalTotalPrice = finalUnitPrice * selectedQuantity;
                 
@@ -1403,9 +1377,11 @@ public class TransactionsGUI extends JPanel {
             return 0.8;
         if (kesegaran >= 26)
             return 0.6;
+        if (kesegaran >= 11)
+            return 0.45; 
         if (kesegaran >= 1)
-            return 0.3;
-        return 0.1;
+            return 0.35;  
+        return 0.15;      
     }
 
     private double calculateEnhancedFreshnessMultiplier(int kesegaran) {
