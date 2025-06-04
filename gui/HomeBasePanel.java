@@ -2307,9 +2307,7 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         p.add(v, BorderLayout.EAST);
         p.setMaximumSize(new Dimension(400, 32));
         return p;
-    }    
-    private void sleepAndAdvanceDay() {
-        currentDay++;
+    }      private void sleepAndAdvanceDay() {
         if (gamePanel != null) {
             gamePanel.advanceDay();
             this.currentDay = gamePanel.getCurrentDay();
@@ -2352,9 +2350,8 @@ public class HomeBasePanel extends JPanel implements InventoryChangeListener {
         sleepButton.setBackground(new Color(120, 180, 120));
         sleepButton.setForeground(Color.WHITE);
         sleepButton.setFocusPainted(false);
-        sleepButton.setPreferredSize(new Dimension(140, 48));        
+        sleepButton.setPreferredSize(new Dimension(140, 48));          
         sleepButton.addActionListener(_ -> {
-            currentDay++;
             updateDayLabel();
             player.setHasSlept(true);
             player.setDailyPerkChanceUsed(false); // Reset daily perk chance when sleeping
